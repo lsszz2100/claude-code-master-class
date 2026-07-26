@@ -1,0 +1,30 @@
+# Vercel (프로젝트 식별자 · OIDC 토큰)
+.vercel
+
+# 환경 변수 — 절대 커밋 금지
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# 검증 스크립트 산출물
+shot-*.png
+f[0-9][0-9]-*.png
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 자격 증명
+.ghtoken
+*.token
+*credentials*

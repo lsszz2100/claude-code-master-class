@@ -1,0 +1,7 @@
+content
+build_course.py
+__pycache__
+verify.mjs
+.env.local
+.env*.local
+.vercel

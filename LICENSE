@@ -1,0 +1,36 @@
+MIT License
+
+Copyright (c) 2026 AI_Innovation_Studio
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+NOTE ON SCOPE / 적용 범위 안내
+
+This MIT License applies to the SOURCE CODE ONLY — that is, the build script
+(`build_course.py`) and any other program code in this repository.
+
+The COURSE CONTENT (the Markdown files under `content/`, the rendered
+`index.html`, and the accompanying images) is NOT covered by this license.
+It is licensed separately under CC BY-NC-ND 4.0. See `LICENSE-CONTENT.md`.
+
+이 MIT 라이선스는 **소스 코드에만** 적용됩니다(빌드 스크립트 `build_course.py` 등).
+`content/` 아래의 강의 원고, 생성된 `index.html`, 이미지 등 **강의 콘텐츠는
+CC BY-NC-ND 4.0**으로 별도 라이선스됩니다. `LICENSE-CONTENT.md`를 참고하세요.
