@@ -9,10 +9,17 @@ Claude Code 확장 기능 전반을 다루는 자체 집필 강의. 외부 저�
 import os
 import re
 import html
+import json
+import datetime
 import markdown
 
-SRC = os.path.join(os.path.dirname(__file__), "content")
-OUT = os.path.join(os.path.dirname(__file__), "index.html")
+HERE = os.path.dirname(__file__)
+SRC = os.path.join(HERE, "content")
+OUT = os.path.join(HERE, "index.html")
+
+SITE_URL = "https://claude-code-tutorial-ko.vercel.app"
+SITE_NAME = "Claude Code 마스터 클래스"
+AUTHOR = "AI_Innovation_Studio"
 
 # 챕터 순서: (파일명, 사이드바 제목)
 CHAPTERS = [
@@ -358,12 +365,73 @@ def build():
             f'</div>'
         )
 
-    page = TEMPLATE.replace("{{SIDEBAR}}", "\n".join(sidebar)).replace(
-        "{{CONTENT}}", "\n".join(chapters_html)
-    )
+    page = (TEMPLATE
+            .replace("{{SIDEBAR}}", "\n".join(sidebar))
+            .replace("{{CONTENT}}", "\n".join(chapters_html))
+            .replace("{{JSONLD}}", build_jsonld()))
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(page)
     print(f"Wrote {OUT} ({len(page.encode('utf-8'))} bytes, {len(CHAPTERS)} chapters)")
+    write_seo_files()
+
+
+def build_jsonld():
+    """검색엔진용 구조화 데이터. 단일 페이지라 챕터는 hasPart 로만 노출한다
+    (존재하지 않는 URL 을 만들어 내지 않는다)."""
+    data = {
+        "@context": "https://schema.org",
+        "@type": "Course",
+        "name": SITE_NAME,
+        "description": "설치부터 컨텍스트 엔지니어링·하네스까지 — Claude Code 한국어 종합 실전 강의.",
+        "url": SITE_URL + "/",
+        "inLanguage": "ko",
+        "isAccessibleForFree": True,
+        "learningResourceType": "Course",
+        "teaches": [t for _, t in CHAPTERS],
+        "provider": {"@type": "Organization", "name": AUTHOR, "url": SITE_URL + "/"},
+        "author": {"@type": "Organization", "name": AUTHOR},
+        "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "hasCourseInstance": {
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "courseWorkload": "PT6H",
+        },
+        "hasPart": [
+            {
+                "@type": "LearningResource",
+                "position": i,
+                "name": title,
+                "url": f"{SITE_URL}/#ch{i}",
+            }
+            for i, (_, title) in enumerate(CHAPTERS, start=1)
+        ],
+    }
+    return json.dumps(data, ensure_ascii=False, indent=2)
+
+
+def write_seo_files():
+    today = datetime.date.today().isoformat()
+    sitemap = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        "  <url>\n"
+        f"    <loc>{SITE_URL}/</loc>\n"
+        f"    <lastmod>{today}</lastmod>\n"
+        "    <changefreq>weekly</changefreq>\n"
+        "    <priority>1.0</priority>\n"
+        "  </url>\n"
+        "</urlset>\n"
+    )
+    robots = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "\n"
+        f"Sitemap: {SITE_URL}/sitemap.xml\n"
+    )
+    for name, text in (("sitemap.xml", sitemap), ("robots.txt", robots)):
+        with open(os.path.join(HERE, name), "w", encoding="utf-8") as f:
+            f.write(text)
+    print(f"Wrote sitemap.xml, robots.txt (lastmod {today})")
 
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -375,6 +443,10 @@ TEMPLATE = r"""<!DOCTYPE html>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#0e0f13">
+<link rel="canonical" href="https://claude-code-tutorial-ko.vercel.app/">
+<script type="application/ld+json">
+{{JSONLD}}
+</script>
 <meta name="description" content="Claude Code 한국어 종합 실전 강의 — 설치·권한·모델·명령어·CLAUDE.md·자동 기억·서브에이전트·스킬·훅·MCP·오케스트레이션.">
 <!-- Open Graph / 소셜 미리보기 -->
 <meta property="og:type" content="website">
@@ -489,6 +561,13 @@ code,pre,.mono{font-family:"SF Mono",ui-monospace,"JetBrains Mono","D2Coding",Me
 .content pre code{background:none;border:0;padding:0;color:var(--ink)}
 pre.mermaid{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:20px;text-align:center;overflow-x:auto}
+/* 빌드 시점에 미리 렌더된 도표 (tools/prerender.mjs) — 테마별 두 벌을 넣고 CSS로 전환 */
+.mmd{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:20px;text-align:center;overflow-x:auto;margin:16px 0}
+figure.mmd{margin-left:0;margin-right:0}
+.mmd svg{max-width:100%;height:auto;display:block;margin:0 auto}
+:root[data-theme="dark"] .mmd-light{display:none}
+:root[data-theme="light"] .mmd-dark{display:none}
 
 /* tables */
 .content table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px;display:block;overflow-x:auto}
@@ -746,6 +825,35 @@ pre.mermaid .copy-btn{display:none}
 .site-footer .foot-legal button:hover{border-color:var(--accent);color:var(--accent)}
 .site-footer .disclaimer{font-size:12px;color:var(--ink-dim);line-height:1.7;max-width:640px;opacity:.9}
 
+/* 인쇄 · PDF 저장 — 본문만 남기고 흑백 지면에 맞춘다 */
+@media print{
+  .sidebar,.topbar,.backdrop,.progress,.theme-toggle,#quizStat,.consent,
+  .legal-backdrop,.search-backdrop,.copy-btn,.quiz-retry,.rp-reset,
+  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.site-footer .foot-links{display:none !important}
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{
+    --bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#111;--ink-dim:#444;
+    --line:#bbb;--accent:#444;--accent2:#666;--code-bg:#f6f6f6}
+  html,body{background:#fff !important;color:#111 !important;font-size:10.5pt}
+  .layout{display:block}
+  .main{padding:0}
+  .content{max-width:100%;padding:0}
+  .chapter{page-break-before:always;break-before:page}
+  .chapter:first-of-type{page-break-before:auto;break-before:auto}
+  .ch-title,.content h2,.content h3{page-break-after:avoid;break-after:avoid}
+  pre,table,figure.mmd,.quiz-q,blockquote{page-break-inside:avoid;break-inside:avoid}
+  pre{white-space:pre-wrap;word-break:break-word;border:1px solid #ccc}
+  a{color:#111;text-decoration:underline}
+  /* 화면에선 필요 없지만 종이에선 링크 주소가 사라지므로 붙여 준다 */
+  .content a[href^="http"]::after{content:" (" attr(href) ")";font-size:9pt;color:#555;word-break:break-all}
+  .mmd-dark{display:none !important}
+  .mmd-light{display:block !important}
+  figure.mmd{border:1px solid #ccc;background:#fff}
+  .quiz{border:1px solid #999;background:#fff}
+  .quiz-explain{display:block !important}   /* 지면에선 해설을 항상 보여 준다 */
+  .quiz-opt{border:1px solid #ccc}
+  @page{margin:16mm 14mm}
+}
+
 /* topbar (mobile) */
 .topbar{display:none;position:sticky;top:0;z-index:30;background:var(--panel);
   border-bottom:1px solid var(--line);padding:10px 14px;align-items:center;gap:12px}
@@ -756,6 +864,12 @@ pre.mermaid .copy-btn{display:none}
 
 /* progress */
 .progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;width:0}
+
+/* 접근성 — 키보드 사용자용 본문 바로가기 · 포커스 링 */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#fff;
+  padding:11px 18px;border-radius:0 0 10px 0;font-weight:700;text-decoration:none}
+.skip-link:focus{left:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
 @media(max-width:900px){
   .sidebar{position:fixed;left:0;top:0;z-index:35;transform:translateX(-100%);transition:transform .25s ease;box-shadow:0 0 40px rgba(0,0,0,.4)}
@@ -773,6 +887,7 @@ pre.mermaid .copy-btn{display:none}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#top">본문으로 건너뛰기</a>
 <div class="progress" id="progress"></div>
 <div class="topbar">
   <button class="icon-btn" id="menuBtn" aria-label="목차">☰</button>
@@ -903,11 +1018,11 @@ pre.mermaid .copy-btn{display:none}
           생성된 이미지는 이용자가 직접 내려받기 전까지 어디에도 보관되지 않습니다.</p>
 
         <h3>4. 제3자 서비스</h3>
-        <p>본 사이트는 아래 서비스를 이용합니다. 웹의 기술적 특성상 접속 과정에서 IP 주소·브라우저 정보가 해당 사업자에게 전달될 수 있습니다.</p>
+        <p>본 사이트는 <b>외부 서버로 나가는 요청이 전혀 없습니다.</b> 도표와 코드 강조는 미리 만들어 페이지 안에 담았기 때문에,
+          외부 CDN·폰트·스크립트를 불러오지 않습니다. 따라서 이용자의 접속 정보가 제3자에게 전달되지 않습니다.</p>
         <table>
           <tr><th>서비스</th><th>제공자</th><th>이용 목적</th></tr>
           <tr><td>Vercel</td><td>Vercel Inc.</td><td>웹사이트 호스팅 및 전송 (서버 접속 기록이 남을 수 있음)</td></tr>
-          <tr><td>jsDelivr CDN</td><td>Prospect One</td><td>도표(Mermaid)·코드 강조(highlight.js) 라이브러리 전송</td></tr>
         </table>
         <p>제작자는 위 사업자로부터 이용자 개인을 식별할 수 있는 정보를 제공받지 않습니다.</p>
 
@@ -978,8 +1093,10 @@ pre.mermaid .copy-btn{display:none}
     </div>
     <button class="search-trigger" id="searchBtn"><span>🔍</span><span>검색</span><kbd>Ctrl K</kbd></button>
     <div class="read-progress" id="readProgress"></div>
-    <a class="toc-ch" href="#top"><span class="toc-num">◆</span><span>개요</span></a>
-    {{SIDEBAR}}
+    <nav aria-label="강의 목차">
+      <a class="toc-ch" href="#top"><span class="toc-num">◆</span><span>개요</span></a>
+      {{SIDEBAR}}
+    </nav>
   </aside>
   <main class="main">
     <button class="icon-btn theme-toggle" id="themeBtn" aria-label="테마 전환">◐</button>
@@ -1006,6 +1123,7 @@ pre.mermaid .copy-btn{display:none}
           <button type="button" data-legal="terms">이용약관</button>
           <button type="button" data-legal="privacy">개인정보처리방침</button>
           <button type="button" data-legal="storage">저장소 설정</button>
+          <button type="button" id="printBtn" title="브라우저 인쇄 대화상자에서 PDF로 저장할 수 있습니다">🖨 인쇄 · PDF 저장</button>
         </div>
         <p class="disclaimer">본 강의는 공개된 공식 문서를 참고해 제작한 <b>비공식 학습 자료</b>이며, Anthropic PBC와 제휴·후원·승인 관계가 없습니다.
           Claude 및 Claude Code는 Anthropic PBC의 상표입니다. · 이 사이트는 쿠키와 추적 도구를 사용하지 않습니다.</p>
@@ -1016,26 +1134,27 @@ pre.mermaid .copy-btn{display:none}
 </div>
 
 <script type="module">
-import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-function themeVars(){
-  const dark = document.documentElement.getAttribute('data-theme') !== 'light';
-  return dark ? 'dark' : 'default';
+// tools/prerender.mjs 를 거쳤다면 도표는 이미 인라인 SVG라 mermaid를 받을 필요가 없다.
+// 아직 <pre class="mermaid"> 가 남아 있을 때만(= 후처리를 건너뛴 빌드) CDN에서 불러온다.
+if(document.querySelector('pre.mermaid')){
+  const mermaid = (await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')).default;
+  const MERMAID_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+  const themeVars = () => document.documentElement.getAttribute('data-theme') !== 'light' ? 'dark' : 'default';
+  const renderMermaid = () => {
+    mermaid.initialize({startOnLoad:false, theme:themeVars(), securityLevel:'loose',
+      fontFamily: MERMAID_FONT,
+      flowchart:{ htmlLabels:true, useMaxWidth:true, padding:14 },
+      themeVariables:{ fontFamily: MERMAID_FONT, fontSize:'15px' }});
+    document.querySelectorAll('pre.mermaid').forEach(el=>{
+      if(!el.dataset.src) el.dataset.src = el.textContent;
+      el.removeAttribute('data-processed');
+      el.innerHTML = el.dataset.src;
+    });
+    mermaid.run({querySelector:'pre.mermaid'});
+  };
+  window.__renderMermaid = renderMermaid;
+  renderMermaid();
 }
-var MERMAID_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
-function renderMermaid(){
-  mermaid.initialize({startOnLoad:false, theme:themeVars(), securityLevel:'loose',
-    fontFamily: MERMAID_FONT,
-    flowchart:{ htmlLabels:true, useMaxWidth:true, padding:14 },
-    themeVariables:{ fontFamily: MERMAID_FONT, fontSize:'15px' }});
-  document.querySelectorAll('pre.mermaid').forEach((el,i)=>{
-    if(!el.dataset.src) el.dataset.src = el.textContent;
-    el.removeAttribute('data-processed');
-    el.innerHTML = el.dataset.src;
-  });
-  mermaid.run({querySelector:'pre.mermaid'});
-}
-window.__renderMermaid = renderMermaid;
-renderMermaid();
 </script>
 <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js" integrity="sha384-F/bZzf7p3Joyp5psL90p/p89AZJsndkSoGwRpXcZhleCWhd8SnRuoYo4d0yirjJp" crossorigin="anonymous"></script>
 <script>
@@ -1062,7 +1181,7 @@ const LIGHT_HL='https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build
 const DARK_HL='https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css';
 function applyTheme(t){
   root.setAttribute('data-theme',t);
-  hljsTheme.href = t==='light'?LIGHT_HL:DARK_HL;
+  if(hljsTheme) hljsTheme.href = t==='light'?LIGHT_HL:DARK_HL;   // 후처리로 인라인되면 null
   if(prefs.theme){ try{localStorage.setItem('cc-theme',t)}catch(e){} }
   if(window.__renderMermaid) window.__renderMermaid();
 }
@@ -1331,6 +1450,7 @@ function setSel(i){ sSel=i; [...sRes.querySelectorAll('a')].forEach((a,j)=>a.cla
 function pick(i){
   const h=sList[i]; if(!h) return;
   const it=h.it||h;
+  searchPrevFocus=null;                       // 결과로 이동할 땐 검색 버튼으로 포커스를 되돌리지 않는다
   closeSearch();
   navTo(it.href,it.el);                       // 본문 히트면 그 블록으로 직접 이동
   if(it.el) flashWhenSettled(it.el);
@@ -1351,19 +1471,31 @@ function flash(el){
   el.classList.add('hit-flash');
   setTimeout(()=>el.classList.remove('hit-flash'),1700);
 }
-function openSearch(){ sModal.classList.add('open'); sInput.value=''; renderSearch(); setTimeout(()=>sInput.focus(),0); }
-function closeSearch(){ sModal.classList.remove('open'); }
+let searchPrevFocus=null;
+function openSearch(){
+  // 법적 고지 모달이 떠 있으면 겹쳐 열지 않고 그쪽을 먼저 닫는다
+  if(legalModal.classList.contains('open')) closeLegal();
+  searchPrevFocus=document.activeElement;
+  sModal.classList.add('open'); sInput.value=''; renderSearch(); setTimeout(()=>sInput.focus(),0);
+}
+function closeSearch(){
+  sModal.classList.remove('open');
+  if(searchPrevFocus&&searchPrevFocus.focus) searchPrevFocus.focus({preventScroll:true});
+  searchPrevFocus=null;
+}
 sInput.addEventListener('input',renderSearch);
 sInput.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'){e.preventDefault();setSel(Math.min(sSel+1,sList.length-1));sRes.querySelector('a.sel')?.scrollIntoView({block:'nearest'});}
   else if(e.key==='ArrowUp'){e.preventDefault();setSel(Math.max(sSel-1,0));sRes.querySelector('a.sel')?.scrollIntoView({block:'nearest'});}
   else if(e.key==='Enter'){e.preventDefault();pick(sSel);}
-  else if(e.key==='Escape'){closeSearch();}
 });
 sModal.addEventListener('click',e=>{ if(e.target===sModal) closeSearch(); });
 document.getElementById('searchBtn')?.addEventListener('click',openSearch);
 document.getElementById('searchBtnM')?.addEventListener('click',openSearch);
 document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch();} });
+// Esc 는 문서 전체에서 받는다 — 결과 목록으로 Tab 이동한 뒤에도 닫혀야 하므로
+// 입력창 keydown 에 걸어 두면 안 된다
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sModal.classList.contains('open')){e.preventDefault();closeSearch();} });
 
 // ===== 수료증 =====
 const certApp=document.querySelector('.cert-app');
@@ -1541,6 +1673,21 @@ function closeLegal(){
   legalModal.classList.remove('open');
   if(legalPrevFocus&&legalPrevFocus.focus) legalPrevFocus.focus();
 }
+// 모달이 열려 있는 동안 Tab 포커스가 뒤 페이지로 새지 않도록 가둔다
+const FOCUSABLE='a[href],button:not([disabled]):not([hidden]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+function trapFocus(e){
+  if(e.key!=='Tab') return;
+  const box=[legalModal,sModal].find(m=>m.classList.contains('open'));
+  if(!box) return;
+  const items=[...box.querySelectorAll(FOCUSABLE)].filter(el=>el.offsetParent!==null);
+  if(!items.length) return;
+  const first=items[0], last=items[items.length-1];
+  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  else if(!box.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+}
+document.addEventListener('keydown',trapFocus);
+
 document.querySelectorAll('[data-legal]').forEach(b=>b.addEventListener('click',()=>openLegal(b.dataset.legal)));
 legalModal.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showLegal(b.dataset.tab)));
 document.getElementById('legalClose').addEventListener('click',closeLegal);
@@ -1601,6 +1748,12 @@ document.getElementById('swClearAll').addEventListener('click',()=>{
   Object.assign(prefs,{theme:true,progress:true,quiz:true,ack:true});
   savePrefs();
   renderQuizChip(); renderProgress(); restartTop(); renderPrefs();
+});
+
+// 인쇄 전에 모달·배너를 닫아 둔다(열려 있으면 지면 첫 장을 가린다)
+document.getElementById('printBtn')?.addEventListener('click',()=>{
+  closeLegal(); closeSearch(); consentEl.classList.remove('show');
+  window.print();
 });
 
 // --- 최초 방문 안내 ---

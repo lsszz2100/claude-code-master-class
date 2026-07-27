@@ -1,7 +1,25 @@
+# 배포에는 index.html + 아이콘/OG + robots.txt/sitemap.xml 만 올라간다.
+
+# 소스 · 빌드 도구
 content
 build_course.py
-__pycache__
+tools
 verify.mjs
+__pycache__
+
+# 의존성 (node_modules 는 ~/auto-sns/node_modules 로 가는 심볼릭 링크다)
+node_modules
+
+# 문서 · 라이선스 (GitHub 저장소용)
+*.md
+LICENSE
+
+# 로컬 전용 · 자격 증명
+.git
 .env.local
 .env*.local
 .vercel
+
+# 검증 산출물
+shot-*.png
+f[0-9][0-9]-*.png

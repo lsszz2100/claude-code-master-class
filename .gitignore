@@ -12,8 +12,8 @@ __pycache__/
 .venv/
 venv/
 
-# Node
-node_modules/
+# Node — 슬래시를 붙이면 심볼릭 링크로 걸어 둔 node_modules 를 못 잡는다
+node_modules
 
 # 검증 스크립트 산출물
 shot-*.png

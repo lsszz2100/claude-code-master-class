@@ -30,9 +30,11 @@ course-site/
 │  ├─ 01-intro-install.md
 │  ├─ …
 │  └─ 17-references.md
+├─ tools/prerender.mjs  # 빌드 후처리 — 도표·코드 강조를 미리 렌더해 외부 CDN 의존을 없앤다
 ├─ index.html           # 빌드 산출물 (배포되는 파일, 커밋 대상)
+├─ robots.txt  sitemap.xml   # 빌드가 함께 생성한다
 ├─ favicon.svg  apple-touch-icon.png  og.png
-└─ .vercelignore        # 배포에는 index.html + 아이콘/OG만 올라간다
+└─ .vercelignore        # 배포에는 index.html + 아이콘/OG + robots/sitemap 만 올라간다
 ```
 
 `index.html`은 **생성물**입니다. 직접 고치지 말고 `content/`와 `build_course.py`를 고친 뒤 다시 빌드하세요.
@@ -41,8 +43,12 @@ course-site/
 
 ```bash
 pip install markdown
-python3 build_course.py      # content/*.md → index.html
+python3 build_course.py       # content/*.md → index.html (+ robots.txt, sitemap.xml)
+node tools/prerender.mjs      # 도표·코드 강조를 미리 렌더 → 런타임 외부 요청 0건
 ```
+
+두 번째 단계는 Playwright(`npm i -D playwright`)가 필요합니다. 건너뛰어도 사이트는
+jsDelivr CDN 폴백으로 동작하지만, 그만큼 첫 화면이 늦고 외부 요청이 생깁니다.
 
 로컬에서 확인:
 
@@ -64,7 +70,8 @@ npx vercel deploy --prod --yes
 
 ## 개인정보 · 저장 데이터
 
-이 사이트는 **쿠키와 추적 도구를 사용하지 않습니다.** 분석 스크립트도 없습니다.
+이 사이트는 **쿠키와 추적 도구를 사용하지 않습니다.** 분석 스크립트도 없고,
+페이지를 여는 동안 **외부 서버로 나가는 요청이 하나도 없습니다**(도표·코드 강조를 빌드 시점에 미리 렌더).
 학습 편의를 위해 아래 항목만 브라우저 localStorage에 저장하며, 서버로 전송되지 않습니다.
 
 | 키 | 내용 |
