@@ -8,6 +8,7 @@
  *   2. <pre><code> 를 highlight.js 로 미리 강조 (클래스만 남김)
  *   3. highlight.js 테마 CSS 두 개를 [data-theme] 로 스코프해 인라인
  *   4. jsDelivr 로 나가던 <link>/<script>/preconnect 제거
+ *   5. 챕터별 실제 높이를 재서 contain-intrinsic-size 로 주입 (#cv-sizes)
  *
  * 결과: 런타임 외부 요청 0건. mermaid·hljs 는 이 스크립트가 도는 빌드 시점에만 받는다.
  * 이 단계를 건너뛰어도 사이트는 CDN 폴백으로 동작한다(느릴 뿐).
@@ -104,8 +105,6 @@ const scope = (text, sel) => text
     `${brace}${sels.split(',').map(s => `${sel} ${s.trim()}`).join(',')}{`);
 const hlCss = scope(css.dark, ':root[data-theme="dark"]') + '\n' + scope(css.light, ':root[data-theme="light"]');
 
-await browser.close();
-
 // ── 3. HTML 치환 ────────────────────────────────────────────────────
 let ci = 0;
 html = html.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g,
@@ -155,6 +154,58 @@ html = html.replace(
 html = html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/gh\/highlightjs[^"]*"[^>]*><\/script>\n?/, '');
 // preconnect 제거
 html = html.replace(/<link rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net">\n?/, '');
+
+// ── 4. 챕터별 실측 높이 → contain-intrinsic-size ────────────────────
+// .chapter 는 content-visibility:auto 라 뷰포트 밖에선 "추정 높이"만 차지한다.
+// 추정이 실제와 크게 다르면 스크롤바 길이가 틀리고, navTo 의 smooth scroll 이
+// 이동 중 렌더되는 챕터들 때문에 목표를 빗나간다. 그래서 빌드 시점에 실제 높이를
+// 재서 챕터별로 박아 둔다. 콘텐츠가 바뀌면 다음 빌드에서 자동으로 갱신된다.
+html = html.replace(/<style id="cv-sizes">[\s\S]*?<\/style>\n?/, '');   // 재실행 대비
+
+const TMP = path.join(ROOT, '.cv-measure.html');
+fs.writeFileSync(TMP, html);
+
+const BREAKPOINT = 900;          // build_course.py 의 @media(max-width:900px) 와 맞춰야 한다
+const measure = async (width) => {
+  const p = await browser.newPage({ viewport: { width, height: 900 } });
+  await p.goto('file://' + TMP, { waitUntil: 'load' });
+  // 건너뛴 챕터는 추정 높이를 보고하므로 재는 동안엔 전부 펼치되,
+  // content-visibility:auto 가 걸어 두는 containment 는 그대로 유지해야 한다.
+  // containment 를 빼고 재면 마진 상쇄가 살아나 챕터당 수 px 씩 낮게 나오고,
+  // 그 오차가 이동 경로의 챕터 수만큼 누적된다.
+  await p.addStyleTag({ content:
+    '.chapter{content-visibility:visible !important;contain:layout style paint !important}' });
+  await p.evaluate(() => document.fonts.ready);
+  // contain-intrinsic-size 는 "콘텐츠 박스" 크기다. 보더 박스 높이를 그대로 넣으면
+  // 챕터마다 padding-top(40px)+border(1px)만큼 부풀어, 이동 중 렌더되는 챕터 수에
+  // 비례해 오차가 쌓이고 smooth scroll 이 목표를 지나쳐 버린다.
+  const out = await p.evaluate(() => Object.fromEntries(
+    [...document.querySelectorAll('.chapter[id]')].map(c => {
+      const s = getComputedStyle(c);
+      const pad = ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth']
+        .reduce((a, k) => a + parseFloat(s[k] || 0), 0);
+      return [c.id, Math.round(c.getBoundingClientRect().height - pad)];
+    })));
+  await p.close();
+  return out;
+};
+
+const wide = await measure(1280);
+const narrow = await measure(390);
+await browser.close();
+fs.unlinkSync(TMP);
+
+const rule = (m) => Object.entries(m)
+  .map(([id, h]) => `#${id}{contain-intrinsic-size:auto ${h}px}`).join('\n');
+const cvCss = `<style id="cv-sizes">\n@media screen{\n${rule(wide)}\n`
+  + `@media(max-width:${BREAKPOINT}px){\n${rule(narrow)}\n}\n}\n</style>`;
+
+if (/<\/head>/.test(html)) {
+  html = html.replace('</head>', cvCss + '\n</head>');
+  console.log(`\n챕터 ${Object.keys(wide).length}개 실측 높이 주입 (#cv-sizes)`);
+} else {
+  console.log('\n</head> 를 찾지 못해 #cv-sizes 를 넣지 못했습니다 — 폴백 5000px 로 동작합니다.');
+}
 
 fs.writeFileSync(FILE, html);
 

@@ -539,6 +539,17 @@ code,pre,.mono{font-family:"SF Mono",ui-monospace,"JetBrains Mono","D2Coding",Me
 
 .chapter{padding-top:40px;margin-top:20px;scroll-margin-top:72px}
 .chapter+.chapter{border-top:1px solid var(--line)}
+/* 화면에서만: 뷰포트 밖 챕터는 렌더링을 건너뛴다(초기 레이아웃 비용 대부분이 여기서 나온다).
+   contain-intrinsic-size 의 auto 키워드가 "한 번 렌더한 실제 높이"를 기억하므로,
+   아래 폴백 값은 첫 렌더 전 추정치로만 쓰인다. 챕터별 실측값은 tools/prerender.mjs 가
+   #cv-sizes 스타일로 덮어쓴다 — 추정 오차가 크면 smooth scroll 이 목표를 빗나간다. */
+@media screen{
+  .chapter{content-visibility:auto;contain-intrinsic-size:auto 5000px}
+}
+/* 인쇄는 전부 펼쳐야 한다 — 건너뛴 챕터가 빈 페이지로 나가면 안 된다 */
+@media print{
+  .chapter{content-visibility:visible;contain-intrinsic-size:none}
+}
 .ch-badge{font-family:"SF Mono",monospace;font-size:12px;color:var(--accent);letter-spacing:2px}
 .ch-title{font-size:27px;margin:6px 0 22px;line-height:1.3}
 .content h2{font-size:21px;margin:38px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);scroll-margin-top:72px}
@@ -1221,7 +1232,10 @@ function onScroll(){
   let cur=chapters[0];
   for(const s of chapters){ if(s.getBoundingClientRect().top<=120) cur=s; }
   setActiveChapter(cur.id);
-  const subs=[...document.querySelectorAll('.content h2[id]')];
+  // 소제목은 "현재 챕터" 안에서만 찾는다. 문서 전체의 h2 위치를 읽으면 건너뛴
+  // 챕터까지 강제로 레이아웃돼 content-visibility 이득이 통째로 사라진다.
+  // (.chapter 자기 자신의 rect 는 추정 높이로 답하므로 위 루프는 저렴하다)
+  const subs=cur.classList.contains('chapter')?[...cur.querySelectorAll('.content h2[id]')]:[];
   let curSub=null;
   for(const h of subs){ if(h.getBoundingClientRect().top<=140) curSub=h.id; }
   document.querySelectorAll('.toc-sub').forEach(a=>{
@@ -1381,27 +1395,37 @@ const norm=s=>s.replace(/\s+/g,' ').trim();
 
 // 인덱스: 챕터(kind ch) → 소제목(kind h) → 본문 블록(kind b)
 // 본문 블록은 DOM 참조를 들고 있다가, 클릭 시 그 자리로 이동+강조한다.
+// 전체 본문을 훑는 작업이라 파싱 시점에 하면 첫 화면이 그만큼 늦어진다.
+// 검색은 사용자가 열기 전엔 쓰이지 않으므로 첫 열람 때 한 번만 만든다.
 const sIdx=[];
-document.querySelectorAll('.chapter').forEach(ch=>{
-  const chTitle=norm(ch.querySelector('.ch-title')?.textContent||'');
-  const chNum=norm(ch.querySelector('.ch-badge')?.textContent||'').replace('CHAPTER ','');
-  sIdx.push({kind:'ch',href:'#'+ch.id,title:chTitle,num:chNum,sub:''});
+let sIdxReady=false;
+function buildSearchIndex(){
+  if(sIdxReady) return;
+  sIdxReady=true;
+  document.querySelectorAll('.chapter').forEach(ch=>{
+    const chTitle=norm(ch.querySelector('.ch-title')?.textContent||'');
+    const chNum=norm(ch.querySelector('.ch-badge')?.textContent||'').replace('CHAPTER ','');
+    sIdx.push({kind:'ch',href:'#'+ch.id,title:chTitle,num:chNum,sub:''});
 
-  let anchor='#'+ch.id, section='';
-  const nodes=ch.querySelectorAll('h2[id],h3[id],p,li,td,th,blockquote,pre>code,.quiz-question,.quiz-explain');
-  nodes.forEach(el=>{
-    if(/^H[23]$/.test(el.tagName)){
-      section=norm(el.textContent); anchor='#'+el.id;
-      sIdx.push({kind:'h',href:anchor,title:section,num:'',sub:chTitle});
-      return;
-    }
-    // 중첩 블록(li 안의 p 등)은 가장 안쪽만 인덱싱해 중복을 막는다
-    if(el.querySelector('p,li,td,th,blockquote,pre>code')) return;
-    const text=norm(el.textContent);
-    if(text.length<2) return;
-    sIdx.push({kind:'b',href:anchor,title:section||chTitle,num:'',sub:chTitle,body:text,el:el});
+    let anchor='#'+ch.id, section='';
+    const nodes=ch.querySelectorAll('h2[id],h3[id],p,li,td,th,blockquote,pre>code,.quiz-question,.quiz-explain');
+    nodes.forEach(el=>{
+      if(/^H[23]$/.test(el.tagName)){
+        section=norm(el.textContent); anchor='#'+el.id;
+        sIdx.push({kind:'h',href:anchor,title:section,num:'',sub:chTitle});
+        return;
+      }
+      // 중첩 블록(li 안의 p 등)은 가장 안쪽만 인덱싱해 중복을 막는다
+      if(el.querySelector('p,li,td,th,blockquote,pre>code')) return;
+      const text=norm(el.textContent);
+      if(text.length<2) return;
+      sIdx.push({kind:'b',href:anchor,title:section||chTitle,num:'',sub:chTitle,body:text,el:el});
+    });
   });
-});
+}
+// 브라우저가 한가해지면 미리 만들어 둔다 — 첫 Ctrl+K 가 즉시 열리도록.
+// requestIdleCallback 이 없으면(Safari 구버전) 열 때 만들어도 충분히 빠르다.
+if(window.requestIdleCallback) requestIdleCallback(buildSearchIndex,{timeout:4000});
 const sModal=document.getElementById('searchModal'), sInput=document.getElementById('searchInput'), sRes=document.getElementById('searchResults');
 let sSel=0, sList=[];
 // 매치 주변만 잘라 <mark>로 강조한 스니펫
@@ -1476,6 +1500,7 @@ function openSearch(){
   // 법적 고지 모달이 떠 있으면 겹쳐 열지 않고 그쪽을 먼저 닫는다
   if(legalModal.classList.contains('open')) closeLegal();
   searchPrevFocus=document.activeElement;
+  buildSearchIndex();                         // 유휴 시간에 못 만들었으면 여기서 만든다
   sModal.classList.add('open'); sInput.value=''; renderSearch(); setTimeout(()=>sInput.focus(),0);
 }
 function closeSearch(){

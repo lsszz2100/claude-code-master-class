@@ -19,6 +19,9 @@ node_modules
 shot-*.png
 f[0-9][0-9]-*.png
 
+# prerender.mjs 가 챕터 높이를 잴 때 쓰는 임시 파일 (정상 종료 시 스스로 지운다)
+.cv-measure.html
+
 # OS
 .DS_Store
 Thumbs.db
