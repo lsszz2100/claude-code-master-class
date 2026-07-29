@@ -12,6 +12,9 @@
  *
  * 결과: 런타임 외부 요청 0건. mermaid·hljs 는 이 스크립트가 도는 빌드 시점에만 받는다.
  * 이 단계를 건너뛰어도 사이트는 CDN 폴백으로 동작한다(느릴 뿐).
+ *
+ * 이 스크립트는 멱등이 아니다 — 반드시 build_course.py 의 출력에서 시작해야 한다.
+ * 이미 후처리된 파일이면 아무것도 건드리지 않고 exit 1 한다(아래 "멱등성 가드").
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -34,10 +37,31 @@ const decode = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot
 let html = fs.readFileSync(FILE, 'utf8');
 const before = Buffer.byteLength(html);
 
+// ── 0. 멱등성 가드 ──────────────────────────────────────────────────
+// 이미 후처리된 index.html 에 이 스크립트를 한 번 더 돌리면 코드 블록이 조용히 망가진다.
+// 아래 2단계는 <pre><code> 안을 "아직 강조 안 된 코드"로 가정하는데, 재실행 시엔
+// 이미 들어간 <span class="hljs-…"> 마크업을 코드 텍스트로 보고 다시 강조한다.
+// 그 결과 태그가 이스케이프돼(&lt;span…) 본문에 그대로 노출된다. 현재 52개 중 32개가 해당.
+// (mermaid·hljs CSS·#cv-sizes 단계는 재실행에 안전하다 — 이 가드는 코드 블록 때문에 있다.)
+// 정상 파이프라인은 항상 이 한 쌍이다:  python3 build_course.py && node tools/prerender.mjs
+const MARKERS = [
+  ['<style id="hljs-theme-css">', 'hljs 테마 CSS 인라인'],
+  ['<figure class="mmd"', 'mermaid 인라인 SVG'],
+];
+const found = MARKERS.filter(([m]) => html.includes(m)).map(([, label]) => label);
+if (found.length) {
+  console.error(`index.html 은 이미 후처리된 상태입니다 (${found.join(', ')}).`);
+  console.error('다시 돌리면 이미 강조된 코드 블록이 조용히 망가집니다. 빌드 출력에서 시작하세요:\n');
+  console.error('  python3 build_course.py && node tools/prerender.mjs\n');
+  process.exit(1);
+}
+
 // ── 1. mermaid 원본 수집 ────────────────────────────────────────────
 const blocks = [...html.matchAll(/<pre class="mermaid">([\s\S]*?)<\/pre>/g)];
 if (!blocks.length) {
-  console.log('미리 렌더할 mermaid 블록이 없습니다 (이미 처리됨).');
+  // 위 가드를 통과했으니 여기는 "빌드가 도표를 안 냈다"는 뜻이다.
+  console.error('빌드 출력에 mermaid 블록이 없습니다 — build_course.py 를 확인하세요.');
+  process.exit(1);
 }
 const sources = blocks.map(m => decode(m[1]).trim());
 console.log(`mermaid 블록 ${sources.length}개`);
