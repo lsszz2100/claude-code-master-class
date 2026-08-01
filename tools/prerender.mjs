@@ -240,6 +240,22 @@ if (/<\/head>/.test(html)) {
 fs.writeFileSync(FILE, html);
 
 const after = Buffer.byteLength(html);
-const left = (html.match(/cdn\.jsdelivr\.net/g) || []).length;
 console.log(`\nindex.html ${(before / 1024).toFixed(0)}KB → ${(after / 1024).toFixed(0)}KB`);
-console.log(`남은 jsdelivr 참조: ${left}건 ${left === 0 ? '✓' : '(빌드 시점 전용 코드일 수 있음 — 확인 필요)'}`);
+
+// 남은 jsdelivr 참조 판정.
+// 2026-08-01 확인: 4건이 남는 게 정상이고 전부 "후처리를 건너뛴 빌드"용 폴백이다.
+//   · 초기 테마 부트의 l.href — l(#hljs-theme <link>)이 인라인 <style> 로 바뀌어 null
+//   · mermaid 동적 import — document.querySelector('pre.mermaid') 가 없어 진입 못 함
+//     (폴백 스크립트 안의 <pre class="mermaid"> 문자열은 스크립트 텍스트라 요소가 아니다)
+//   · LIGHT_HL / DARK_HL 상수 — applyTheme 의 if(hljsTheme) 가 막는다
+// 그래서 문자열 개수가 아니라 "실제로 요청을 내는 태그"가 남았는지를 본다.
+// 죽은 코드인지까지는 tools/regress.mjs 1번 검사가 브라우저에서 확인한다.
+const fetching = html.match(/<(?:link|script)\b[^>]*cdn\.jsdelivr\.net[^>]*>/g) || [];
+const left = (html.match(/cdn\.jsdelivr\.net/g) || []).length;
+if (fetching.length) {
+  console.log(`\n⚠ 런타임에 CDN 을 부르는 태그가 ${fetching.length}건 남았습니다 — 외부 요청 0건 방침 위반:`);
+  fetching.forEach(t => console.log(`    ${t.slice(0, 120)}`));
+} else {
+  console.log(`남은 jsdelivr 참조 ${left}건 — 전부 폴백 경로 문자열, 런타임 요청 없음 ✓`);
+}
+console.log('\n다음: node tools/regress.mjs');

@@ -129,15 +129,29 @@ function near(actual, want, tol, label) {
 console.log(`\n대상: ${BASE}${server ? '  (내장 서버 — 네트워크 스로틀 측정용 아님)' : ''}\n`);
 
 // 1. 런타임 외부 요청 0건 — prerender 가 CDN 의존을 없앴는지
-await check('런타임 외부 요청 0건', async ({ page, external }) => {
+// 소스에는 jsdelivr 문자열이 4건 남아 있지만 전부 "후처리를 건너뛴 빌드"용 폴백이다.
+// 문자열을 세는 것만으로는 죽은 코드인지 알 수 없으므로, 그 코드를 깨우는 조건 두 개가
+// 실제로 거짓인지 보고 + 테마 전환(폴백이 CSS 를 갈아끼우는 지점)까지 태워서 확인한다.
+await check('런타임 외부 요청 0건', async ({ page, external, note }) => {
+  const guards = await page.evaluate(() => ({
+    hljsLink: !!document.getElementById('hljs-theme'),          // 있으면 테마 전환 때 CDN CSS 를 받는다
+    mermaidPre: document.querySelectorAll('pre.mermaid').length, // 있으면 mermaid 를 CDN 에서 받는다
+  }));
+  expect(!guards.hljsLink, '#hljs-theme <link> 가 살아 있음 — 인라인 <style> 로 대체됐어야 한다');
+  expect(guards.mermaidPre === 0,
+    `pre.mermaid ${guards.mermaidPre}개가 요소로 살아 있음 — 도표가 인라인 SVG 로 안 바뀌었다`);
   await page.evaluate(async () => {
     for (let y = 0; y < document.body.scrollHeight; y += 900) {
       window.scrollTo({ top: y, behavior: 'instant' });
       await new Promise(r => requestAnimationFrame(r));
     }
   });
-  await sleep(300);
+  await page.click('#themeBtn');   // 다크 → 라이트
+  await sleep(200);
+  await page.click('#themeBtn');   // 라이트 → 다크
+  await sleep(400);
   expect(external.length === 0, `외부 요청 ${external.length}건: ${external.slice(0, 3).join(', ')}`);
+  note('스크롤 전체 + 테마 왕복 · 폴백 가드 2개 모두 거짓');
 });
 
 // 2. 콘솔·페이지 에러 0건
