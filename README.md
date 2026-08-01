@@ -32,6 +32,7 @@ course-site/
 │  └─ 17-references.md
 ├─ tools/prerender.mjs  # 빌드 후처리 — 도표·코드 강조를 미리 렌더해 외부 CDN 의존을 없앤다
 ├─ tools/regress.mjs    # 회귀 검증 — 이동 정확도·검색·진도·인쇄 등 14건 + 성능 지표
+├─ tools/chromedeps.mjs # 위 두 스크립트가 쓰는 Chromium 라이브러리 경로 처리
 ├─ index.html           # 빌드 산출물 (배포되는 파일, 커밋 대상)
 ├─ robots.txt  sitemap.xml   # 빌드가 함께 생성한다
 ├─ favicon.svg  apple-touch-icon.png  og.png
@@ -50,6 +51,8 @@ node tools/prerender.mjs      # 도표·코드 강조를 미리 렌더 → 런�
 
 두 번째 단계는 Playwright(`npm i -D playwright`)가 필요합니다. 건너뛰어도 사이트는
 jsDelivr CDN 폴백으로 동작하지만, 그만큼 첫 화면이 늦고 외부 요청이 생깁니다.
+성공하면 로그에 `index.html 300KB → 761KB`가 찍힙니다 — 이게 안 보이면 후처리가
+안 된 것이니 그대로 배포하지 마세요.
 
 로컬에서 확인:
 

@@ -15,11 +15,17 @@
  *
  * 이 스크립트는 멱등이 아니다 — 반드시 build_course.py 의 출력에서 시작해야 한다.
  * 이미 후처리된 파일이면 아무것도 건드리지 않고 exit 1 한다(아래 "멱등성 가드").
+ *
+ * Playwright 시스템 라이브러리 경로(LD_LIBRARY_PATH)는 tools/chromedeps.mjs 가 챙긴다 —
+ * 손으로 붙일 필요 없다. 빌드 뒤에는 node tools/regress.mjs 로 회귀 검사를 돌릴 것.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureChromeDeps } from './chromedeps.mjs';
+
+ensureChromeDeps();   // LD_LIBRARY_PATH 를 챙겨 자신을 다시 실행할 수 있다 (첫 문장이어야 한다)
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FILE = path.join(ROOT, 'index.html');

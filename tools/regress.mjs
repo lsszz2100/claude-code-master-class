@@ -23,29 +23,12 @@ import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { ensureChromeDeps } from './chromedeps.mjs';
 
-const SELF = fileURLToPath(import.meta.url);
-const ROOT = path.resolve(path.dirname(SELF), '..');
+ensureChromeDeps();   // LD_LIBRARY_PATH 를 챙겨 자신을 다시 실행할 수 있다 (첫 문장이어야 한다)
 
-// ── LD_LIBRARY_PATH 자기 처리 ───────────────────────────────────────
-// 이게 없으면 Chromium 이 exit 127(공유 라이브러리 없음)로 죽는데, 로그 꼬리에는
-// 정리 메시지만 남아 원인이 안 드러난다. 경로가 있으면 붙여서 자신을 다시 실행한다.
-// (경로는 환경마다 다르다 — 있는 것만 골라 쓴다. 이 WSL 에는 root/usr/lib 쪽만 있다.)
-const DEPS = [
-  path.join(os.homedir(), '.local/chromedeps/root/usr/lib/x86_64-linux-gnu'),
-  path.join(os.homedir(), '.local/chromedeps/root/lib/x86_64-linux-gnu'),
-].filter(d => fs.existsSync(d));
-if (!process.env.CC_REGRESS_REEXEC && DEPS.length
-    && !(process.env.LD_LIBRARY_PATH || '').includes(DEPS[0])) {
-  const r = spawnSync(process.execPath, [SELF, ...process.argv.slice(2)], {
-    stdio: 'inherit',
-    env: { ...process.env, CC_REGRESS_REEXEC: '1',
-      LD_LIBRARY_PATH: [...DEPS, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') },
-  });
-  process.exit(r.status ?? 1);
-}
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const argv = process.argv.slice(2);
 const urlArg = (argv.find(a => a.startsWith('--url')) || '').replace(/^--url=?/, '')
