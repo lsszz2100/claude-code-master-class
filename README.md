@@ -31,6 +31,7 @@ course-site/
 │  ├─ …
 │  └─ 17-references.md
 ├─ tools/prerender.mjs  # 빌드 후처리 — 도표·코드 강조를 미리 렌더해 외부 CDN 의존을 없앤다
+├─ tools/regress.mjs    # 회귀 검증 — 이동 정확도·검색·진도·인쇄 등 14건 + 성능 지표
 ├─ index.html           # 빌드 산출물 (배포되는 파일, 커밋 대상)
 ├─ robots.txt  sitemap.xml   # 빌드가 함께 생성한다
 ├─ favicon.svg  apple-touch-icon.png  og.png
@@ -56,6 +57,27 @@ jsDelivr CDN 폴백으로 동작하지만, 그만큼 첫 화면이 늦고 외부
 python3 -m http.server 8899
 # http://127.0.0.1:8899
 ```
+
+## 회귀 검증
+
+빌드한 뒤 반드시 돌리세요. 내장 정적 서버로 `index.html`을 띄워 14건을 검사합니다.
+
+```bash
+node tools/regress.mjs                       # 로컬 빌드
+node tools/regress.mjs --url https://…       # 배포된 사이트
+```
+
+검사 항목은 목차·검색 이동 도착 정확도(72±40px), 스크롤 스파이, 소제목 강조,
+읽음 진도, 진도 초기화, 인쇄 전체 펼침 + PDF, 모바일 버튼 클릭 겹침,
+런타임 외부 요청 0건, 프리렌더 산출물 무결성이고, 끝에 CDP 성능 지표를 찍습니다.
+
+특히 **이동 도착 정확도**가 핵심입니다. `.chapter`는 화면에서 `content-visibility:auto`라
+뷰포트 밖 챕터가 `tools/prerender.mjs`가 실측해 넣은 추정 높이(`#cv-sizes`)만 차지하는데,
+콘텐츠가 바뀐 뒤 이 값이 어긋나면 목차 이동이 엉뚱한 곳에 도착합니다. 눈에 잘 안 띄고
+배포 후에야 드러나므로 기계로 재야 합니다.
+
+> 내장 서버는 gzip을 하지 않습니다(780KB 원본을 그대로 보냄 — Vercel에서는 117KB).
+> 네트워크 스로틀을 건 수치는 `--url`로 라이브에서 재세요.
 
 ## 배포
 
