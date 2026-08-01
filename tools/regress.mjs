@@ -380,6 +380,54 @@ await check('모바일 상단바 버튼 클릭 겹침', async ({ page, note }) =
   note(Object.keys(hit).join(', '));
 }, { width: 390, height: 844 });
 
+// 15. 접근성 기본
+// 이런 결함은 화면으로는 절대 안 보인다 — 스크린리더에서만 드러나므로 기계로 지켜야 한다.
+await check('접근성 기본 (접근 이름·모달·현재 위치)', async ({ page, note }) => {
+  const a = await page.evaluate(() => {
+    const named = el => !!(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby')
+      || (el.id && document.querySelector(`label[for="${el.id}"]`)) || el.closest('label'));
+    const accName = el => (el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || '').trim();
+    return {
+      lang: document.documentElement.lang,
+      // placeholder 는 접근 이름이 아니다 — 입력 중에는 사라진다
+      inputsUnnamed: [...document.querySelectorAll('input,select,textarea')]
+        .filter(el => el.type !== 'hidden' && !named(el)).map(el => el.id || el.type),
+      controlsUnnamed: [...document.querySelectorAll('button, a[href]')]
+        .filter(el => !accName(el)).map(el => el.id || el.className).slice(0, 5),
+      modals: ['searchModal', 'legalModal'].map(id => {
+        const el = document.getElementById(id);
+        return { id, ok: !!el && el.getAttribute('role') === 'dialog' && el.getAttribute('aria-modal') === 'true'
+          && !!(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby')) };
+      }),
+      // 진행 막대는 장식 — 같은 정보를 사이드바가 글로 준다
+      progressHidden: document.getElementById('progress')?.getAttribute('aria-hidden') === 'true',
+      // 도표는 인라인 SVG 라 대체 텍스트가 없으면 스크린리더가 통째로 건너뛴다
+      figuresUnlabeled: [...document.querySelectorAll('figure.mmd')].filter(f => !f.getAttribute('aria-label')).length,
+      skipLink: !!document.querySelector('.skip-link'),
+      landmarks: ['main', 'nav', 'footer'].filter(t => !document.querySelector(t)),
+    };
+  });
+  expect(a.lang === 'ko', `<html lang>가 "${a.lang}"`);
+  expect(a.inputsUnnamed.length === 0, `접근 이름 없는 입력: ${a.inputsUnnamed.join(', ')}`);
+  expect(a.controlsUnnamed.length === 0, `접근 이름 없는 버튼·링크: ${a.controlsUnnamed.join(', ')}`);
+  const badModal = a.modals.filter(m => !m.ok).map(m => m.id);
+  expect(badModal.length === 0, `role=dialog/aria-modal/이름이 빠진 모달: ${badModal.join(', ')}`);
+  expect(a.progressHidden, '#progress 가 aria-hidden 이 아님 — 스크롤마다 접근성 트리가 흔들린다');
+  expect(a.figuresUnlabeled === 0, `대체 텍스트 없는 도표 ${a.figuresUnlabeled}개`);
+  expect(a.skipLink, '본문 건너뛰기 링크가 없음');
+  expect(a.landmarks.length === 0, `빠진 랜드마크: ${a.landmarks.join(', ')}`);
+
+  // 현재 챕터가 색 말고 의미로도 노출되는지
+  const ids = await chapterIds(page);
+  await page.click(`.toc-ch[href="#${ids[2]}"]`);
+  await settle(page);
+  await sleep(800);
+  const cur = await page.$$eval('.toc-ch[aria-current]', as => as.map(a => a.getAttribute('href')));
+  expect(cur.length === 1 && cur[0] === `#${ids[2]}`,
+    `aria-current 가 ${JSON.stringify(cur)} (기대 ["#${ids[2]}"] 하나)`);
+  note(`입력 ${'0'}건 미명명 · 모달 2 · aria-current ${cur[0]}`);
+});
+
 // ── 성능 지표 (CDP) ─────────────────────────────────────────────────
 // 로드 직후 값이다. content-visibility 의 이득은 여기서 나온다 — 스크롤로 전부
 // 렌더한 뒤 재면 의미가 없다. 값은 기기 성능에 따라 흔들리므로 LayoutObjects 만 문턱을 건다.

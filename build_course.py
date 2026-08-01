@@ -899,7 +899,9 @@ pre.mermaid .copy-btn{display:none}
 </head>
 <body>
 <a class="skip-link" href="#top">본문으로 건너뛰기</a>
-<div class="progress" id="progress"></div>
+<!-- 읽기 진행 막대는 순수 장식 — 같은 정보를 사이드바의 "완주 n/17"이 글로 제공한다.
+     스크롤마다 aria-valuenow 를 갱신하면 접근성 트리가 계속 흔들리고 스크롤도 무거워지므로 숨긴다. -->
+<div class="progress" id="progress" aria-hidden="true"></div>
 <div class="topbar">
   <button class="icon-btn" id="menuBtn" aria-label="목차">☰</button>
   <b>Claude Code 마스터 클래스</b>
@@ -907,9 +909,9 @@ pre.mermaid .copy-btn{display:none}
   <button class="icon-btn" id="themeBtnM" aria-label="테마 전환">◐</button>
 </div>
 <div class="backdrop" id="backdrop"></div>
-<div class="search-backdrop" id="searchModal">
+<div class="search-backdrop" id="searchModal" role="dialog" aria-modal="true" aria-label="강의 전체 검색">
   <div class="search-box">
-    <input id="searchInput" type="text" placeholder="본문까지 전체 검색 — 예: PreToolUse, allowed-tools" autocomplete="off" spellcheck="false">
+    <input id="searchInput" type="text" aria-label="검색어" placeholder="본문까지 전체 검색 — 예: PreToolUse, allowed-tools" autocomplete="off" spellcheck="false">
     <div class="search-results" id="searchResults"></div>
     <div class="search-hint"><span><kbd>↑</kbd><kbd>↓</kbd> 이동</span><span><kbd>Enter</kbd> 열기</span><span><kbd>Esc</kbd> 닫기</span></div>
   </div>
@@ -1222,8 +1224,16 @@ document.querySelectorAll('.toc-ch').forEach(a=>{
 const progress=document.getElementById('progress');
 let suppressSpy=false, spyTimer=0;
 
+let activeCh=null;
 function setActiveChapter(chId){   // 현재 위치 강조만 (펼침 상태는 사용자가 직접 제어)
-  chLinks.forEach((a,cid)=>a.classList.toggle('active',cid===chId));
+  if(chId===activeCh) return;      // 스크롤마다 링크 18개를 훑지 않도록, 바뀔 때만 쓴다
+  activeCh=chId;
+  chLinks.forEach((a,cid)=>{
+    const on=cid===chId;
+    a.classList.toggle('active',on);
+    // 색으로만 알 수 있던 "지금 이 챕터"를 스크린리더에도 알린다
+    if(on) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current');
+  });
 }
 function onScroll(){
   const st=window.scrollY, dh=document.body.scrollHeight-window.innerHeight;
@@ -1525,7 +1535,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sModal.classList.c
 // ===== 수료증 =====
 const certApp=document.querySelector('.cert-app');
 if(certApp){
-  certApp.innerHTML='<div class="cert-form"><input id="certName" type="text" placeholder="이름을 입력하세요" maxlength="24" spellcheck="false"><button class="cert-btn" id="certGen" type="button">수료증 생성</button><button class="cert-btn ghost" id="certDl" type="button">PNG 저장</button></div><div class="cert-stat" id="certStat"></div><canvas id="certCanvas" width="1200" height="820"></canvas><div class="cert-note" id="certNote"><b>💾 저장 방법</b><br>• <b>PC:</b> <b>PNG 저장</b> 버튼을 누르면 브라우저 <b>다운로드 폴더</b>에 이미지로 저장됩니다. (수료증을 마우스 <b>우클릭 → 이미지를 다른 이름으로 저장</b>도 됩니다.)<br>• <b>모바일:</b> 수료증 이미지를 <b>길게 눌러 「이미지 저장」</b>을 선택하세요. (기기·브라우저에 따라 <b>PNG 저장</b> 버튼도 동작합니다.)</div>';
+  certApp.innerHTML='<div class="cert-form"><input id="certName" type="text" aria-label="수료증에 넣을 이름" placeholder="이름을 입력하세요" maxlength="24" spellcheck="false"><button class="cert-btn" id="certGen" type="button">수료증 생성</button><button class="cert-btn ghost" id="certDl" type="button">PNG 저장</button></div><div class="cert-stat" id="certStat"></div><canvas id="certCanvas" width="1200" height="820"></canvas><div class="cert-note" id="certNote"><b>💾 저장 방법</b><br>• <b>PC:</b> <b>PNG 저장</b> 버튼을 누르면 브라우저 <b>다운로드 폴더</b>에 이미지로 저장됩니다. (수료증을 마우스 <b>우클릭 → 이미지를 다른 이름으로 저장</b>도 됩니다.)<br>• <b>모바일:</b> 수료증 이미지를 <b>길게 눌러 「이미지 저장」</b>을 선택하세요. (기기·브라우저에 따라 <b>PNG 저장</b> 버튼도 동작합니다.)</div>';
   const cName=document.getElementById('certName'), cGen=document.getElementById('certGen'), cDl=document.getElementById('certDl'), cCanvas=document.getElementById('certCanvas'), cStat=document.getElementById('certStat'), cNote=document.getElementById('certNote');
   function roundRect(x,y,w,h,r){const c=cCanvas.getContext('2d');c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
   function updStat(){ const s=quizStats(); const pct=s.answered?Math.round(s.correct/s.answered*100):0; cStat.innerHTML='읽은 챕터 <b>'+readSet.size+'/'+totalCh+'</b> · 퀴즈 정답 <b>'+s.correct+'/'+s.answered+'</b>'+(s.answered?' ('+pct+'%)':''); }
@@ -1561,7 +1571,7 @@ if(certApp){
 // ===== 플레이그라운드 · 터미널 놀이터 =====
 const pgt=document.querySelector('.pg-terminal');
 if(pgt){
-  pgt.innerHTML='<div class="pg-bar"><i></i><i></i><i></i><span>claude — 놀이터</span></div><div class="pg-out" id="pgOut"></div><div class="pg-inline"><span class="p">❯</span><input id="pgIn" type="text" placeholder="/help 를 입력해 보세요" autocomplete="off" spellcheck="false"></div>';
+  pgt.innerHTML='<div class="pg-bar"><i></i><i></i><i></i><span>claude — 놀이터</span></div><div class="pg-out" id="pgOut"></div><div class="pg-inline"><span class="p">❯</span><input id="pgIn" type="text" aria-label="놀이터 터미널 명령 입력" placeholder="/help 를 입력해 보세요" autocomplete="off" spellcheck="false"></div>';
   const out=pgt.querySelector('#pgOut'), inp=pgt.querySelector('#pgIn');
   const CMDS={
     '/help':()=>['<span class="k">사용 가능한 명령</span>','/clear · /compact · /context — 컨텍스트 관리','/model · /effort · /fast — 모델·성능','/init · /memory · /agents · /mcp · /hooks — 설정','/status · /usage · /doctor · /rewind — 진단·되돌리기','아무 문장이나 입력 → Claude가 작업 시작(시뮬레이션)'],
@@ -1574,7 +1584,7 @@ if(pgt){
     '/hooks':()=>['<span class="k">훅</span> 구성된 훅 없음. .claude/settings.json 의 hooks 블록에 정의합니다.'],
     '/status':()=>['<span class="k">세션</span> 모델 claude-opus-5 · effort high · 정상'],
     '/usage':()=>['<span class="k">사용량</span> 오늘 입력 128K · 출력 34K · 예상 $1.49'],
-    '/fast':()=>['<span class="ok">✓ 빠른 모드 ON</span> — 최근 Opus를 최대 2.5배 빠르게(프리미엄).'],
+    '/fast':()=>['<span class="ok">✓ 빠른 모드 ON</span> — Opus를 최대 2.5배 빠르게(프리미엄, Opus 티어 전용).'],
     '/rewind':()=>['<span class="k">되감기</span> 체크포인트 3개. Esc 를 두 번 눌러도 열립니다.'],
     '/memory':()=>['<span class="k">기억</span> MEMORY.md 색인 로드됨(앞 200줄). 자동 기억 ON.'],
     '/permissions':()=>['<span class="k">권한</span> 기본(default) 모드. Shift+Tab 으로 순환합니다.'],
@@ -1650,10 +1660,11 @@ if(pgc){
   };
   pgc.innerHTML=
     '<div class="presets" id="ccPre"></div>'+
-    '<div class="fld"><div class="lab"><b>① 어떤 모델을 쓸까요?</b></div><select id="ccModel"></select></div>'+
-    '<div class="fld"><div class="lab"><b>② 하루에 몇 번 쓸까요?</b><span class="val" id="ccReqV"></span></div><input id="ccReq" type="range" min="1" max="200" value="20"></div>'+
-    '<div class="fld"><div class="lab"><b>③ 내가 보내는 양 (입력)</b><span class="val" id="ccInV"></span></div><input id="ccIn" type="range" min="200" max="40000" step="200" value="4000"></div>'+
-    '<div class="fld"><div class="lab"><b>④ Claude 답변 양 (출력)</b><span class="val" id="ccOutV"></span></div><input id="ccOut" type="range" min="100" max="12000" step="100" value="1000"></div>'+
+    // 시각적 라벨(.lab)은 <label for>로 묶기 어려운 구조라 aria-label 로 접근 이름을 준다.
+    '<div class="fld"><div class="lab"><b>① 어떤 모델을 쓸까요?</b></div><select id="ccModel" aria-label="모델"></select></div>'+
+    '<div class="fld"><div class="lab"><b>② 하루에 몇 번 쓸까요?</b><span class="val" id="ccReqV"></span></div><input id="ccReq" aria-label="하루 사용 횟수" type="range" min="1" max="200" value="20"></div>'+
+    '<div class="fld"><div class="lab"><b>③ 내가 보내는 양 (입력)</b><span class="val" id="ccInV"></span></div><input id="ccIn" aria-label="입력 토큰 수" type="range" min="200" max="40000" step="200" value="4000"></div>'+
+    '<div class="fld"><div class="lab"><b>④ Claude 답변 양 (출력)</b><span class="val" id="ccOutV"></span></div><input id="ccOut" aria-label="출력 토큰 수" type="range" min="100" max="12000" step="100" value="1000"></div>'+
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note">프롬프트 캐싱·배치 할인으로 실제 비용은 더 낮아질 수 있어요. (환율 약 ₩'+KRW.toLocaleString()+' 가정, 토큰→글자수는 대략치)</div></div>';
   const sel=pgc.querySelector('#ccModel');
   Object.entries(M).forEach(([id,v])=>{const o=document.createElement('option');o.value=id;o.textContent=v[2]+' — '+v[3];sel.appendChild(o);});
