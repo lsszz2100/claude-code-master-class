@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 14건 + CDP Performance.getMetrics 지표.
+ * 검사 18건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -426,6 +426,154 @@ await check('접근성 기본 (접근 이름·모달·현재 위치)', async ({ 
   expect(cur.length === 1 && cur[0] === `#${ids[2]}`,
     `aria-current 가 ${JSON.stringify(cur)} (기대 ["#${ids[2]}"] 하나)`);
   note(`입력 ${'0'}건 미명명 · 모달 2 · aria-current ${cur[0]}`);
+});
+
+// ── 놀이터 위젯 ─────────────────────────────────────────────────────
+// 세 위젯은 전부 JS 로 그려진다. 빌드가 통과해도 위젯 안에서 조용히 죽으면 페이지는
+// 멀쩡해 보이고 챕터 15만 텅 빈다 — 눈으로 안 보므로 기계로 눌러 봐야 한다.
+
+// 위젯은 #ch15 안이라 content-visibility 로 렌더가 건너뛰어져 있다. 클릭하려면 먼저 올려야 한다.
+const reachPlayground = async page => {
+  await page.locator('.pg-terminal').scrollIntoViewIfNeeded();
+  await settle(page);
+};
+
+// 16. 터미널 놀이터 — 미션 · 히스토리 · 자동완성
+await check('놀이터 터미널 (미션·히스토리·Tab 완성)', async ({ page, note }) => {
+  await reachPlayground(page);
+  const misText = () => page.$eval('#pgMis', el => el.textContent);
+  const outText = () => page.$eval('#pgOut', el => el.textContent);
+  const inVal = () => page.$eval('#pgIn', el => el.value);
+
+  expect(/미션 1\s*\/\s*6/.test(await misText()), `미션 바가 1/6 로 시작하지 않음: ${await misText()}`);
+
+  // 미션 1 의 정답을 치면 다음 미션으로 넘어가야 한다
+  await page.click('#pgIn');
+  await page.type('#pgIn', '/context');
+  await page.keyboard.press('Enter');
+  expect((await outText()).includes('미션 1 완료'), '정답을 쳤는데 미션 완료가 안 찍힘');
+  expect(/미션 2\s*\/\s*6/.test(await misText()), `미션이 2/6 로 안 넘어감: ${await misText()}`);
+
+  // 오답은 오답이라고 해야 한다 (아무거나 통과시키면 미션이 의미가 없다)
+  await page.type('#pgIn', '/nope');
+  await page.keyboard.press('Enter');
+  expect((await outText()).includes('명령을 찾을 수 없습니다'), '없는 명령인데 오류가 안 나옴');
+  expect(/미션 2\s*\/\s*6/.test(await misText()), '오답인데 미션이 넘어갔다');
+
+  // Tab 자동완성 — /comp → /compact
+  await page.type('#pgIn', '/comp');
+  await page.keyboard.press('Tab');
+  expect(await inVal() === '/compact', `Tab 완성 결과가 "${await inVal()}" (기대 /compact)`);
+  expect(await page.evaluate(() => document.activeElement.id) === 'pgIn',
+    'Tab 이 입력창에서 포커스를 빼앗겼다');
+
+  // 입력이 비었을 때의 Tab 은 가로채면 안 된다 — 키보드로 빠져나갈 수 없게 된다
+  await page.fill('#pgIn', '');
+  await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => document.activeElement.id) !== 'pgIn',
+    '빈 입력에서도 Tab 을 가로채 포커스가 갇혔다');
+
+  // ↑ 히스토리
+  await page.click('#pgIn');
+  await page.keyboard.press('ArrowUp');
+  expect(await inVal() === '/nope', `↑ 이 복원한 값이 "${await inVal()}" (기대 /nope)`);
+
+  // Ctrl+L 화면 지우기
+  await page.fill('#pgIn', '');
+  await page.keyboard.press('Control+l');
+  expect((await outText()).trim() === '', 'Ctrl+L 이 화면을 안 지움');
+
+  const cmds = await page.$$eval('.pg-chips button', bs => bs.length);
+  note(`미션 6개 · 칩 ${cmds}개`);
+});
+
+// 17. 확장 진단기 — 2단계 분기 · 스니펫 · 뒤로 가기
+await check('놀이터 진단기 (분기·스니펫·뒤로)', async ({ page, note }) => {
+  await reachPlayground(page);
+  // 질문이 아예 없을 수도 있으므로(바로 결과로 튀는 회귀) null 을 허용해서 읽는다
+  const q = () => page.evaluate(() => document.querySelector('.pg-wizard .pg-q')?.textContent ?? null);
+  const first = await q();
+  expect(first, '진단기가 첫 질문을 못 그림');
+
+  // "무조건 매번 일어나야 한다" → 2단계로 갈라져야 한다 (예전에는 바로 결과였다)
+  await page.click('.pg-wizard .pg-opts button:nth-child(3)');
+  const second = await q();
+  expect(second && second !== first, `2단계 질문으로 안 갈라짐 (지금: ${second ?? '질문 없이 결과로 직행'})`);
+  expect((await page.$eval('.pg-wizard .pg-step', el => el.textContent)).includes('질문 2'),
+    '단계 표시가 질문 2 가 아님');
+
+  // "전에 막아야" → PreToolUse 결과 + 복사 가능한 스니펫
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  const r = await page.evaluate(() => ({
+    title: document.querySelector('.pg-wizard .pg-result h4')?.textContent || '',
+    code: document.querySelector('.pg-wizard .pg-result pre code')?.textContent || '',
+    copy: !!document.querySelector('.pg-wizard .pg-result .copy-btn'),
+    also: !!document.querySelector('.pg-wizard .pg-also'),
+  }));
+  expect(r.title.includes('PreToolUse'), `결과 제목이 "${r.title}"`);
+  expect(r.code.includes('PreToolUse') && r.code.length > 80, `스니펫이 비었거나 짧음 (${r.code.length}자)`);
+  // 훅 스니펫은 9장의 방식(stdin JSON + jq)과 같아야 한다 — 여기서만 다른 관용구를 가르치면 안 된다
+  expect(r.code.includes('jq'), '훅 스니펫이 stdin JSON(jq) 방식이 아님');
+  expect(r.copy, '스니펫에 복사 버튼이 없음');
+  expect(r.also, '보조 설명(.pg-also)이 없음');
+
+  // 뒤로 → 2단계 질문으로 돌아가야 한다 (답 바꾸려고 처음부터 다시 하게 만들면 안 된다)
+  await page.click('.pg-wizard .pg-nav button:nth-child(1)');
+  expect(await page.$('.pg-wizard .pg-opts') !== null, '뒤로 눌렀는데 질문이 안 나옴');
+  expect((await page.$eval('.pg-wizard .pg-step', el => el.textContent)).includes('질문 2'),
+    `뒤로가 2단계가 아닌 곳으로 감`);
+
+  note(`결과 "${r.title}" · 스니펫 ${r.code.length}자`);
+});
+
+// 18. 비용 계산기 — 캐싱·배치·모델 비교
+// 값을 통째로 박아 두면 가격표가 정당하게 바뀔 때마다 깨진다. 가격과 무관한
+// 관계(배치는 정확히 절반, 캐싱은 감소, 선택 모델 행 = 총액)만 건다.
+await check('놀이터 계산기 (캐싱·배치·모델 비교)', async ({ page, note }) => {
+  await reachPlayground(page);
+  const won = () => page.$eval('#ccKrw', el => +el.textContent.replace(/[^\d]/g, ''));
+  const setRange = (id, v) => page.$eval(id, (el, val) => {
+    el.value = val; el.dispatchEvent(new Event('input', { bubbles: true }));
+  }, v);
+
+  const base = await won();
+  expect(base > 0, `기본 상태에서 하루 비용이 ${base}`);
+
+  await setRange('#ccHit', 80);
+  const cached = await won();
+  expect(cached < base, `캐시 80% 인데 비용이 안 줄었다 (${base} → ${cached})`);
+
+  await page.click('#ccBatch');
+  const batched = await won();
+  // 반올림 오차 1원까지 허용
+  expect(Math.abs(batched * 2 - cached) <= 2, `배치가 정확히 절반이 아니다 (${cached} → ${batched})`);
+
+  await page.click('#ccBatch');
+  await setRange('#ccHit', 0);
+  expect(Math.abs(await won() - base) <= 1, '되돌렸는데 원래 값으로 안 돌아옴');
+
+  // 모델 비교 막대
+  const cmp = await page.evaluate(() => ({
+    rows: [...document.querySelectorAll('.pg-cmp .row')].map(r => ({
+      name: r.querySelector('.nm').textContent,
+      won: +r.querySelector('.amt').textContent.replace(/[^\d]/g, ''),
+      on: r.classList.contains('on'),
+      width: parseFloat(r.querySelector('.bar i').style.width),   // CSSOM 이 "100.0%" 를 "100%" 로 정규화한다
+    })),
+    selected: document.querySelector('#ccModel').selectedOptions[0].textContent,
+  }));
+  expect(cmp.rows.length === 4, `비교 행이 ${cmp.rows.length}개 (기대 4)`);
+  const on = cmp.rows.filter(r => r.on);
+  expect(on.length === 1, `강조된 행이 ${on.length}개 (기대 1)`);
+  expect(cmp.selected.startsWith(on[0].name), `강조 행 "${on[0].name}" 이 선택 모델 "${cmp.selected}" 과 다름`);
+  expect(on[0].won === base, `강조 행 금액 ${on[0].won} 이 총액 ${base} 과 다름`);
+  // 싼 모델이 비싼 모델보다 싸야 한다 — 가격표를 잘못 이어 붙이면 여기서 잡힌다
+  const byName = Object.fromEntries(cmp.rows.map(r => [r.name, r.won]));
+  expect(byName['Haiku 4.5'] < byName['Fable 5'], '모델 순서대로 비용이 오르지 않음');
+  const widest = cmp.rows.reduce((a, b) => (b.won > a.won ? b : a));
+  expect(Math.abs(widest.width - 100) < 0.05, `가장 비싼 모델의 막대가 ${widest.width}% (기대 100%)`);
+
+  note(`하루 ₩${base.toLocaleString()} · 캐시80% ₩${cached.toLocaleString()} · 비교 4모델`);
 });
 
 // ── 성능 지표 (CDP) ─────────────────────────────────────────────────

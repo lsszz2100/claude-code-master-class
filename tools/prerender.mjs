@@ -63,7 +63,14 @@ if (found.length) {
 }
 
 // ── 1. mermaid 원본 수집 ────────────────────────────────────────────
-const blocks = [...html.matchAll(/<pre class="mermaid">([\s\S]*?)<\/pre>/g)];
+// 본문을 [\s\S] 가 아니라 [^<] 로 끊는 이유: 런타임 부트 스크립트의 주석에도
+// <pre class="mermaid"> 라는 리터럴이 들어 있다. [\s\S]*? 로 두면 그 주석이 페이지 뒤쪽
+// 아무 </pre> 와 짝을 지어 스크립트 전체를 "도표"로 잡아가고, mermaid 가
+// UnknownDiagramError 로 죽는다. 진짜 도표 본문은 빌드가 HTML 이스케이프하므로 raw '<' 가
+// 절대 없다 — 그 성질로 가른다.
+// 수집과 치환이 반드시 같은 패턴이어야 한다(개수가 어긋나면 sources[i] 가 undefined 가 된다).
+const MMD_RE = () => /<pre class="mermaid">([^<]*?)<\/pre>/g;
+const blocks = [...html.matchAll(MMD_RE())];
 if (!blocks.length) {
   // 위 가드를 통과했으니 여기는 "빌드가 도표를 안 냈다"는 뜻이다.
   console.error('빌드 출력에 mermaid 블록이 없습니다 — build_course.py 를 확인하세요.');
@@ -166,7 +173,7 @@ function altText(src) {
 }
 
 let mi = 0;
-html = html.replace(/<pre class="mermaid">([\s\S]*?)<\/pre>/g, () => {
+html = html.replace(MMD_RE(), () => {
   const i = mi++;
   const alt = altText(sources[i]).replace(/"/g, '&quot;').replace(/</g, '&lt;');
   const strip = s => s.replace(/^<svg /, '<svg aria-hidden="true" focusable="false" ');
