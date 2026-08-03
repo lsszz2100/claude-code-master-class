@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 19건 + CDP Performance.getMetrics 지표.
+ * 검사 20건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -621,6 +621,50 @@ await check('놀이터 계산기 (캐싱·배치·모델 비교)', async ({ page
   expect(Math.abs(widest.width - 100) < 0.05, `가장 비싼 모델의 막대가 ${widest.width}% (기대 100%)`);
 
   note(`하루 ₩${base.toLocaleString()} · 캐시80% ₩${cached.toLocaleString()} · 비교 4모델`);
+});
+
+// 18'. 요금제 vs 종량 비교 — 정액 금액도, 모델 가격도 박지 않는다.
+// 거는 것은 방향뿐이다: 사용량이 늘면 요금제가 이기는 칸이 늘어나야 하고,
+// 승패 표시가 실제 금액 대소와 어긋나면 안 된다.
+await check('놀이터 계산기 (요금제 vs 종량)', async ({ page, note }) => {
+  await reachPlayground(page);
+  const read = () => page.evaluate(() => ({
+    month: +document.querySelector('#ccPlanSum b').textContent.replace(/[^\d]/g, ''),
+    rows: [...document.querySelectorAll('.pg-plan .row')].map(r => ({
+      name: r.querySelector('.nm').childNodes[0].textContent.trim(),
+      won: +r.querySelector('.amt').textContent.replace(/[^\d]/g, ''),
+      win: r.classList.contains('win'),
+      verdict: r.querySelector('.verdict').textContent,
+    })),
+    caveat: document.querySelector('#ccPlanCav').textContent,
+  }));
+  const preset = i => page.click(`#ccPre button:nth-child(${i})`);
+
+  await preset(1);                       // 가벼운 질문 — 종량이 압도적으로 싸다
+  const light = await read();
+  expect(light.rows.length === 3, `요금제 행이 ${light.rows.length}개 (기대 3)`);
+  expect(light.rows.every(r => !r.win), '가벼운 사용인데 요금제가 이긴다고 나옴');
+
+  await preset(4);                       // 에이전트 자동화 — 종량이 비싸진다
+  const heavy = await read();
+  expect(heavy.month > light.month, `사용량을 늘렸는데 월 비용이 안 늘었다 (${light.month} → ${heavy.month})`);
+  const wins = heavy.rows.filter(r => r.win).length;
+  expect(wins > 0, '무거운 사용인데도 이득인 요금제가 하나도 없음');
+
+  // 승패 표시가 금액 대소와 일치해야 한다 — 부호를 뒤집으면 여기서 잡힌다
+  for (const r of heavy.rows) {
+    const shouldWin = heavy.month > r.won;
+    expect(r.win === shouldWin,
+      `${r.name}: 월 ${heavy.month} vs 정액 ${r.won} 인데 표시가 "${r.verdict}"`);
+    expect(r.verdict.includes(shouldWin ? '요금제' : '종량제'), `${r.name} 판정 문구가 "${r.verdict}"`);
+  }
+  // 정액은 Pro < Max 5x < Max 20x 순이어야 한다
+  expect(heavy.rows[0].won < heavy.rows[1].won && heavy.rows[1].won < heavy.rows[2].won,
+    `요금제 금액 순서가 뒤집힘 (${heavy.rows.map(r => r.won)})`);
+  // 정액과 종량이 같은 것을 사는 게 아니라는 단서가 빠지면 안 된다 — 이 비교의 오해 지점이다
+  expect(/사용량 창/.test(heavy.caveat) && /API/.test(heavy.caveat), '요금제/종량 차이 설명이 없음');
+
+  note(`가벼움 0승 → 무거움 ${wins}승 · 월 ₩${heavy.month.toLocaleString()}`);
 });
 
 // ── 성능 지표 (CDP) ─────────────────────────────────────────────────

@@ -792,6 +792,22 @@ pre.mermaid .copy-btn{display:none}
 .pg-cmp .row.on .nm,.pg-cmp .row.on .amt{color:var(--ink);font-weight:700}
 .pg-cmp .row.on .bar i{background:var(--accent)}
 @media(max-width:520px){.pg-cmp .row{grid-template-columns:74px 1fr 80px;gap:8px;font-size:12px}}
+.pg-plan{margin-top:19px}
+.pg-plan .h{font-size:13px;color:var(--ink-dim);margin-bottom:11px}
+/* 금액이 커지면 "요금제가 ₩359,904 저렴" 이 길어진다 — 고정 폭을 주면 잘리므로 내용에 맞춰 늘린다 */
+.pg-plan .row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px 14px;
+  padding:9px 12px;margin-bottom:7px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;font-size:13px}
+.pg-plan .row.win{border-color:color-mix(in srgb,#3aa76d 45%,var(--line))}
+.pg-plan .nm{color:var(--ink);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.pg-plan .nm i{display:block;font-style:normal;font-weight:400;font-size:11.5px;color:var(--ink-dim);margin-top:2px}
+.pg-plan .amt{text-align:right;font-family:"SF Mono",monospace;font-size:12.5px;color:var(--ink-dim);white-space:nowrap}
+.pg-plan .verdict{text-align:right;font-size:12px;font-weight:700;color:var(--ink-dim);white-space:nowrap}
+.pg-plan .row.win .verdict{color:#3aa76d}
+.pg-plan .sum{font-size:13.5px;color:var(--ink);margin-top:12px;line-height:1.65}
+.pg-plan .sum b{color:var(--accent2)}
+.pg-plan .cav{font-size:12px;color:var(--ink-dim);margin-top:9px;line-height:1.6}
+@media(max-width:520px){.pg-plan .row{grid-template-columns:1fr auto;gap:3px 10px}
+  .pg-plan .verdict{grid-column:1/-1;text-align:left}}
 
 /* 약관·개인정보·저장소 설정 모달 */
 .legal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:none;
@@ -1889,6 +1905,11 @@ if(pgc){
     'claude-fable-5':[10,50,'Fable 5','최고 성능 · 가장 비쌈'],
   };
   const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 입력가의 1/10, 배치 API 는 50% 할인
+  const PLANS=[ // [월 정액$, 이름, 한 줄 설명] — 공식 요금제(claude.com/pricing) 기준
+    [20,'Pro','개인 · 가벼운 코딩'],
+    [100,'Max 5x','Pro의 5배 사용량'],
+    [200,'Max 20x','Pro의 20배 · 하루 종일'],
+  ];
   const P={ // 시나리오 프리셋: [입력토큰, 출력토큰, 하루 횟수, 캐시히트%]
     '💬 가벼운 질문':[500,300,20,0], '🔧 코드 리뷰':[4000,1200,15,40],
     '📄 긴 문서 작업':[20000,4000,8,60], '🤖 에이전트 자동화':[60000,6000,40,80],
@@ -1903,12 +1924,15 @@ if(pgc){
     '<div class="fld"><div class="lab"><b>⑤ 입력 중 캐시로 재사용되는 비율</b><span class="val" id="ccHitV"></span></div><input id="ccHit" aria-label="프롬프트 캐시 히트 비율" type="range" min="0" max="90" step="5" value="0"></div>'+
     '<div class="toggles"><label><input id="ccBatch" type="checkbox">배치 API로 보내기 <span class="val">−50%</span></label></div>'+
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note" id="ccNote"></div></div>'+
-    '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div></div>';
+    '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div></div>'+
+    '<div class="pg-plan"><div class="h">요금제(정액)로 쓰면? — 한 달 30일 환산 비교</div><div id="ccPlan"></div>'+
+    '<div class="sum" id="ccPlanSum"></div><div class="cav" id="ccPlanCav"></div></div>';
   const sel=pgc.querySelector('#ccModel');
   Object.entries(M).forEach(([id,v])=>{const o=document.createElement('option');o.value=id;o.textContent=v[2]+' — '+v[3];sel.appendChild(o);});
   sel.value='claude-opus-5';
   const req=pgc.querySelector('#ccReq'), ti=pgc.querySelector('#ccIn'), to=pgc.querySelector('#ccOut'),
-        hit=pgc.querySelector('#ccHit'), batch=pgc.querySelector('#ccBatch'), pre=pgc.querySelector('#ccPre'), cmp=pgc.querySelector('#ccCmp');
+        hit=pgc.querySelector('#ccHit'), batch=pgc.querySelector('#ccBatch'), pre=pgc.querySelector('#ccPre'), cmp=pgc.querySelector('#ccCmp'),
+        plan=pgc.querySelector('#ccPlan');
   const chars=t=>'약 '+Math.round(t*1.5).toLocaleString()+'자';   // 대략 한글 글자수
   const won=v=>'₩'+Math.round(v*KRW).toLocaleString();
   // 요청 1건 값. 캐시 히트분은 입력가의 1/10 로만 센다.
@@ -1938,6 +1962,22 @@ if(pgc){
       +'<span class="nm">'+mm[2]+'</span>'
       +'<span class="bar"><i style="width:'+(d/max*100).toFixed(1)+'%"></i></span>'
       +'<span class="amt">'+won(d)+'</span></div>').join('');
+    // 요금제 비교 — 정액 요금제와 종량 과금 중 어느 쪽이 싼지. 금액이 아니라 "방향"이 요점이다.
+    const month=day*30;
+    plan.innerHTML=PLANS.map(([usd,nm,desc])=>{
+      const gap=month-usd, win=gap>0;   // 종량이 더 비싸면 = 요금제가 이득
+      return '<div class="row'+(win?' win':'')+'">'
+        +'<span class="nm">'+nm+'<i>'+desc+'</i></span>'
+        +'<span class="amt">'+won(usd)+' / 월</span>'
+        +'<span class="verdict">'+(win?'요금제가 '+won(gap)+' 저렴':'종량제가 '+won(-gap)+' 저렴')+'</span>'
+        +'</div>';
+    }).join('');
+    pgc.querySelector('#ccPlanSum').innerHTML='지금 설정이면 종량 과금은 한 달 <b>'+won(month)+'</b>입니다. '
+      +'하루 <b>'+won(PLANS[0][0]/30)+'</b>을 넘게 쓰면 Pro가, <b>'+won(PLANS[1][0]/30)+'</b>을 넘으면 Max 5x가 이득으로 넘어갑니다.';
+    pgc.querySelector('#ccPlanCav').innerHTML='다만 <b>둘은 같은 것을 사는 게 아닙니다.</b> '
+      +'요금제 한도는 금액이 아니라 <b>사용량 창</b>(5시간 롤링 + 주간 한도)이고 Claude 앱과 Claude Code가 그 한도를 나눠 씁니다 — 위 환산은 어림값입니다.'
+      +'<br>요금제는 <b>내가 도구를 쓰는</b> 값이고, <b>내 서비스에 Claude를 붙이는</b> 것은 종량제(API)로만 됩니다. 그래서 보통 둘 중 하나가 아니라 둘 다 씁니다.'
+      +'<br>참고로 공식 문서가 밝힌 팀 배포 실측은 개발자 1인당 <b>하루 약 $13 · 한 달 $150~250</b>입니다.';
   }
   Object.entries(P).forEach(([name,[pi,po,pn,ph]])=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.addEventListener('click',()=>{ti.value=pi;to.value=po;req.value=pn;hit.value=ph;[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');calc();});pre.appendChild(b);});
   [sel,req,ti,to,hit,batch].forEach(e=>e.addEventListener('input',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));calc();}));
