@@ -1790,7 +1790,10 @@ if(pgw){
       also:'<b>핵심은 description 입니다.</b> 언제 발동할지가 여기 안 적혀 있으면 스킬은 있어도 안 불립니다.'},
     'hook-pre':{t:'훅 — PreToolUse',d:'<strong>일어나기 전에 막아야</strong> 하는 일이라면 PreToolUse 훅입니다. 0이 아닌 종료 코드로 도구 실행 자체를 차단할 수 있습니다.',href:'#ch9',
       f:'.claude/settings.json',code:'{\n  "hooks": {\n    "PreToolUse": [{\n      "matcher": "Bash",\n      "hooks": [{\n        "type": "command",\n        "command": "jq -r \'.tool_input.command\' | grep -qE \'rm -rf|push --force\' && exit 2 || exit 0"\n      }]\n    }]\n  }\n}',
-      also:'<b>exit 2 가 차단입니다.</b> exit 0 은 “승인”이 아니라 그냥 통과라서 평소 권한 흐름이 그대로 적용됩니다 — 막을 생각이었다면 종료 코드를 꼭 확인하세요.'},
+      also:'<b>exit 2 가 차단입니다.</b> exit 0 은 “승인”이 아니라 그냥 통과라서 평소 권한 흐름이 그대로 적용됩니다 — 막을 생각이었다면 종료 코드를 꼭 확인하세요.<br><b>훅과 권한 규칙은 둘 다 살아 있습니다.</b> 훅이 통과시켜도 deny 규칙이 맞으면 막히고, 반대로 exit 2 는 allow 규칙보다 먼저 막습니다.'},
+    perm:{t:'권한 규칙 (deny) — 훅 말고',d:'막을 대상이 <strong>명령·경로 목록으로 딱 떨어진다면</strong> 훅을 짤 필요가 없습니다. <code>settings.json</code>의 <code>permissions</code>가 그 일을 합니다.',href:'#ch2',
+      f:'.claude/settings.json',code:'{\n  "permissions": {\n    "deny": [\n      "Bash(git push --force *)",\n      "Read(./.env)"\n    ],\n    "ask": [\n      "Bash(git push *)"\n    ]\n  }\n}',
+      also:'<b>규칙은 deny → ask → allow 순으로 평가되고, 먼저 맞는 것이 이깁니다</b> — 더 구체적인 규칙이 이기는 게 아닙니다. 그래서 넓은 deny 에 예외를 뚫을 수 없습니다: <code>Bash(aws *)</code>를 막아 두면 <code>Bash(aws s3 ls)</code>를 allow 에 넣어도 막힙니다.<br><b><code>*</code> 앞의 공백도 의미가 있습니다</b> — <code>Bash(ls *)</code>는 <code>lsof</code>를 안 잡지만 <code>Bash(ls*)</code>는 잡습니다.'},
     'hook-post':{t:'훅 — PostToolUse',d:'포맷·린트처럼 <strong>고친 뒤에 매번 정리</strong>돼야 하는 일이라면 PostToolUse 훅입니다. CLAUDE.md의 “조언”과 달리 강제로 실행됩니다.',href:'#ch9',
       f:'.claude/settings.json',code:'{\n  "hooks": {\n    "PostToolUse": [{\n      "matcher": "Edit|Write",\n      "hooks": [{ "type": "command", "command": "jq -r \'.tool_input.file_path\' | xargs npx prettier --write" }]\n    }]\n  }\n}',
       also:'<b>왜 훅인가:</b> “저장할 때 포맷해 줘”를 CLAUDE.md에 적으면 가끔 잊습니다. 훅은 잊지 않습니다.'},
@@ -1824,8 +1827,13 @@ if(pgw){
       ['여러 단계로 이뤄진 절차(배포·이슈 수정 루틴 등)','r:skill'],
     ]},
     always:{q:'그 동작은 언제 일어나야 하나요?',opts:[
-      ['위험한 일이 벌어지기 <b>전에 막아야</b> 한다','r:hook-pre'],
+      ['위험한 일이 벌어지기 <b>전에 막아야</b> 한다','q:block'],
       ['파일을 고친 <b>뒤에 정리</b>돼야 한다(포맷·린트)','r:hook-post'],
+    ]},
+    // 차단은 훅부터 떠올리지만, 규칙으로 적을 수 있으면 권한 설정이 먼저다
+    block:{q:'막을 대상을 <b>규칙으로 적을 수 있나요?</b>',opts:[
+      ['명령·경로 목록으로 딱 떨어진다(<code>git push --force</code>, <code>.env</code> 읽기 등)','r:perm'],
+      ['내용을 봐야 판단할 수 있다(명령 안의 플래그 조합·파일 내용 등)','r:hook-pre'],
     ]},
     noisy:{q:'그 시끄러운 작업은 어떤 종류인가요?',opts:[
       ['코드 위치 찾기·작업 계획 세우기','r:sub-builtin'],

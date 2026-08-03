@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 20건 + CDP Performance.getMetrics 지표.
+ * 검사 21건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -502,8 +502,11 @@ await check('놀이터 진단기 (분기·스니펫·뒤로)', async ({ page, no
   expect((await page.$eval('.pg-wizard .pg-step', el => el.textContent)).includes('질문 2'),
     '단계 표시가 질문 2 가 아님');
 
-  // "전에 막아야" → PreToolUse 결과 + 복사 가능한 스니펫
+  // "전에 막아야" → 3단계(규칙으로 적을 수 있나) → "내용을 봐야 판단" → PreToolUse
   await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  expect((await page.$eval('.pg-wizard .pg-step', el => el.textContent)).includes('질문 3'),
+    '차단 경로가 3단계로 안 갈라짐');
+  await page.click('.pg-wizard .pg-opts button:nth-child(2)');
   const r = await page.evaluate(() => ({
     title: document.querySelector('.pg-wizard .pg-result h4')?.textContent || '',
     code: document.querySelector('.pg-wizard .pg-result pre code')?.textContent || '',
@@ -517,11 +520,11 @@ await check('놀이터 진단기 (분기·스니펫·뒤로)', async ({ page, no
   expect(r.copy, '스니펫에 복사 버튼이 없음');
   expect(r.also, '보조 설명(.pg-also)이 없음');
 
-  // 뒤로 → 2단계 질문으로 돌아가야 한다 (답 바꾸려고 처음부터 다시 하게 만들면 안 된다)
+  // 뒤로 → 직전 질문으로 돌아가야 한다 (답 바꾸려고 처음부터 다시 하게 만들면 안 된다)
   await page.click('.pg-wizard .pg-nav button:nth-child(1)');
   expect(await page.$('.pg-wizard .pg-opts') !== null, '뒤로 눌렀는데 질문이 안 나옴');
-  expect((await page.$eval('.pg-wizard .pg-step', el => el.textContent)).includes('질문 2'),
-    `뒤로가 2단계가 아닌 곳으로 감`);
+  expect((await page.$eval('.pg-wizard .pg-step', el => el.textContent)).includes('질문 3'),
+    `뒤로가 3단계가 아닌 곳으로 감`);
 
   note(`결과 "${r.title}" · 스니펫 ${r.code.length}자`);
 });
@@ -571,6 +574,49 @@ await check('놀이터 진단기 (MCP vs 스킬 3단계)', async ({ page, note }
   expect((await title() || '').includes('MCP'), `CLI 가 없다고 답했는데 결과가 "${await title()}"`);
 
   note(`3단계 도달 · CLI 답 "${cli.title}" · 스니펫 ${cli.code.length}자`);
+});
+
+// 17''. 차단 3단계 분기 — 훅 vs 권한 규칙. "막는다"를 전부 훅으로 가르치면
+// settings.json 두 줄이면 끝날 일에 셸 스크립트를 짜게 만든다.
+await check('놀이터 진단기 (훅 vs 권한 3단계)', async ({ page, note }) => {
+  await reachPlayground(page);
+  const step = () => page.$eval('.pg-wizard .pg-step', el => el.textContent);
+  const title = () => page.evaluate(() => document.querySelector('.pg-wizard .pg-result h4')?.textContent ?? null);
+
+  // 3번: 무조건 매번 일어나야 한다 → 2번: 전에 막아야 → 질문 3
+  await page.click('.pg-wizard .pg-opts button:nth-child(3)');
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  expect(await title() === null, '차단 경로가 아직 훅 결과로 직행함');
+  expect((await step()).includes('질문 3'), `3단계로 안 갈라짐 (${await step()})`);
+
+  // 1번: 규칙으로 딱 떨어진다 → 훅이 아니라 권한 규칙
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  const p = await page.evaluate(() => ({
+    title: document.querySelector('.pg-wizard .pg-result h4')?.textContent || '',
+    code: document.querySelector('.pg-wizard .pg-result pre code')?.textContent || '',
+    also: document.querySelector('.pg-wizard .pg-also')?.textContent || '',
+    href: document.querySelector('.pg-wizard .pg-result a')?.getAttribute('href') || '',
+    copy: !!document.querySelector('.pg-wizard .pg-result .copy-btn'),
+  }));
+  // 훅 결과는 제목이 "훅 — …" 로 시작한다. 권한 결과 제목에도 "훅 말고" 가 들어가므로
+  // 단순 포함 검사로는 안 되고, 앞머리로 판정해야 한다
+  expect(!/^훅/.test(p.title), `규칙으로 적을 수 있다고 답했는데 결과가 "${p.title}"`);
+  expect(p.title.includes('권한'), `결과 제목이 "${p.title}"`);
+  expect(!/"hooks"/.test(p.code), '권한 스니펫에 훅 설정이 섞임');
+  // 2장 권한 절의 문법과 같아야 한다 — 여기서만 다른 관용구를 가르치면 안 된다
+  expect(/"permissions"/.test(p.code) && /"deny"/.test(p.code), '스니펫에 permissions.deny 가 없음');
+  expect(/Bash\(|Read\(/.test(p.code), '스니펫에 규칙 문법(Bash(...)/Read(...))이 없음');
+  expect(p.href === '#ch2', `권한 결과가 ${p.href} 로 보냄 (기대 #ch2)`);
+  expect(p.copy, '스니펫에 복사 버튼이 없음');
+  // 넓은 deny 에 예외를 못 뚫는다는 것이 이 규칙의 최대 함정이다 — 설명이 빠지면 안 된다
+  expect(/deny/.test(p.also) && /allow/.test(p.also), '평가 순서(deny→ask→allow) 설명이 없음');
+
+  // 반대편 답(내용을 봐야 판단)은 훅이어야 한다
+  await page.click('.pg-wizard .pg-nav button:nth-child(1)');
+  await page.click('.pg-wizard .pg-opts button:nth-child(2)');
+  expect((await title() || '').includes('PreToolUse'), `내용 판단 쪽 결과가 "${await title()}"`);
+
+  note(`규칙 답 "${p.title}" · 스니펫 ${p.code.length}자`);
 });
 
 // 18. 비용 계산기 — 캐싱·배치·모델 비교
