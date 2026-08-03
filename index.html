@@ -665,7 +665,7 @@ pre.mermaid .copy-btn{display:none}
 @media screen{
 #ch1{contain-intrinsic-size:auto 4979px}
 #ch2{contain-intrinsic-size:auto 3977px}
-#ch3{contain-intrinsic-size:auto 4802px}
+#ch3{contain-intrinsic-size:auto 5353px}
 #ch4{contain-intrinsic-size:auto 5376px}
 #ch5{contain-intrinsic-size:auto 5378px}
 #ch6{contain-intrinsic-size:auto 4687px}
@@ -683,7 +683,7 @@ pre.mermaid .copy-btn{display:none}
 @media(max-width:900px){
 #ch1{contain-intrinsic-size:auto 6310px}
 #ch2{contain-intrinsic-size:auto 5651px}
-#ch3{contain-intrinsic-size:auto 7149px}
+#ch3{contain-intrinsic-size:auto 8220px}
 #ch4{contain-intrinsic-size:auto 7056px}
 #ch5{contain-intrinsic-size:auto 7633px}
 #ch6{contain-intrinsic-size:auto 6222px}
@@ -1286,8 +1286,9 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 </table>
 <pre><code class="language-text">/effort xhigh
 </code></pre>
-<p><strong>effort를 지원하는 모델</strong>은 Fable 5·Opus 5·Sonnet 5와 레거시 Opus·Sonnet 계열입니다. <strong>Haiku 4.5는 effort도, 적응형 사고도 지원하지 않습니다</strong> — 저비용·저지연이 이미 그 모델의 성격이라 조절할 레버가 없다고 보면 됩니다.</p>
+<p><strong>effort를 지원하는 모델</strong>은 Fable 5·Opus 5·Sonnet 5와 레거시 Opus·Sonnet 계열입니다. <strong>Haiku 4.5는 effort도, 적응형 사고도 지원하지 않습니다</strong> — 저비용·저지연이 이미 그 모델의 성격이라 조절할 레버가 없다고 보면 됩니다. 레거시 중 <strong>Opus 4.6·Sonnet 4.6에는 <code>xhigh</code>가 없어</strong> 지정해도 <code>high</code>로 내려앉습니다(에러가 아니라 조용한 폴백이니, 올렸는데 안 달라졌다면 이걸 의심하세요).</p>
 <blockquote>
+<p><strong><code>/effort</code> 메뉴의 <code>ultracode</code>는 effort 레벨이 아닙니다.</strong> 모델에는 <code>xhigh</code>를 보내고, 거기에 더해 Claude Code가 <strong>동적 워크플로를 오케스트레이션</strong>하도록 하는 Claude Code 쪽 설정입니다. 다른 레벨과 달리 <strong>현재 세션에만</strong> 적용됩니다.</p>
 <p><strong>effort는 "답변 길이" 레버가 아닙니다.</strong> 사고량과 토큰 총량을 조절할 뿐이라, Opus 5에서는 effort를 낮춰도 눈에 보이는 응답이 안정적으로 짧아지지 않습니다. 답변을 짧게 만들고 싶으면 effort가 아니라 <strong>프롬프트로 길이를 지시</strong>하세요(<a href="#ch14">14장</a>).</p>
 <p><strong>핵심(2026 최신):</strong> Opus 5·Sonnet 5의 기본 effort는 <strong><code>high</code></strong>입니다. <strong>기본(high)에서 시작</strong>해 자신의 평가셋으로 조정하세요 — <strong><code>low</code>·<code>medium</code>을 비용·속도의 주 레버로 적극 활용</strong>하고(품질이 유지되는 한), <strong>어려운 코딩·에이전틱엔 <code>xhigh</code>로 올립니다</strong>. 이전 모델의 effort 기본값을 그대로 가져왔다면 재튜닝하세요.</p>
 </blockquote>
@@ -1300,9 +1301,18 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 </blockquote>
 <hr />
 <h2 id="c3-빠른-모드-fast">빠른 모드 — <code>/fast</code></h2>
-<p><strong>Fast 모드</strong>는 Opus를 같은 지능으로 유지하면서 <strong>출력 속도를 최대 2.5배</strong>까지 올립니다(프리미엄 가격, 리서치 프리뷰). 작은 모델로 낮추는 게 아니라 같은 Opus를 더 빠르게 내보냅니다. Claude Code에서는 <strong>Opus 5·4.8·4.7에서만</strong> 쓸 수 있습니다 — Sonnet이나 Haiku에서는 토글해도 효과가 없습니다.</p>
+<p><strong>Fast 모드</strong>는 Opus를 같은 지능으로 유지하면서 <strong>출력 속도를 최대 2.5배</strong>까지 올립니다(리서치 프리뷰). 작은 모델로 낮추는 게 아니라 같은 Opus를 더 빠르게 내보냅니다. Claude Code에서는 <strong>Opus 5·4.8에서만</strong> 쓸 수 있습니다 — Sonnet·Haiku에서 켜면 자동으로 꺼집니다.</p>
 <pre><code class="language-text">/fast     # 토글 — 인터랙티브하게 빠른 피드백이 필요할 때
 </code></pre>
+<blockquote>
+<p><strong>Opus 4.7의 fast 모드는 2026-07-24에 제거됐습니다.</strong> 그런데 Claude Code는 4.7을 여전히 fast 모델로 취급해서 <strong>토글은 켜지지만 API가 요청을 거부</strong>합니다 — 조용히 표준 속도로 도는 게 아니라 실패합니다. 4.7에서 fast를 쓰던 설정이 남아 있다면 Opus 5나 4.8로 옮기세요.</p>
+</blockquote>
+<p><strong>비용을 반드시 알고 켜세요.</strong> fast 모드는 백만 토큰당 <strong>$10 / $50</strong> — 표준 Opus($5/$25)의 <strong>정확히 2배</strong>입니다. 그리고 두 가지가 더 있습니다.</p>
+<ul>
+<li><strong>구독 요금제(Pro·Max·Team)에서도 fast는 플랜에 포함되지 않습니다.</strong> 플랜 사용량이 남아 있어도 <strong>사용량 크레딧에서 첫 토큰부터</strong> fast 요금으로 빠져나갑니다. 크레딧이 꺼져 있으면 아예 못 씁니다.</li>
+<li><strong>대화 중간에 켜면 그 시점의 전체 컨텍스트를 fast 미캐시 입력가로 한 번 다시 냅니다.</strong> 깊이 들어간 세션일수록 비싸므로, 쓸 거면 <strong>세션 시작 때</strong> 켜는 편이 쌉니다(껐다 켜도 이 비용은 한 번만 듭니다).</li>
+</ul>
+<p>VS Code 확장에서는 지원하지 않고, Bedrock·Google Cloud·Foundry에서도 쓸 수 없습니다.</p>
 <hr />
 <h2 id="c3-컨텍스트비용-함께-보기">컨텍스트·비용 함께 보기</h2>
 <ul>
@@ -1316,7 +1326,7 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 <ul>
 <li>현재 라인업: <strong>Fable 5</strong>(최고 지능) · <strong>Opus 5</strong>(복잡 코딩·에이전틱, Anthropic 권장 기본) · <strong>Sonnet 5</strong>(균형) · <strong>Haiku 4.5</strong>(빠름·저렴). Opus 4.8 등은 레거시.</li>
 <li><strong><code>/model</code></strong>로 모델을, <strong><code>/effort</code></strong>로 추론 강도를 조절 — <strong>기본은 <code>high</code>, 어려운 코딩·에이전틱은 <code>xhigh</code>, 비용 절감은 <code>low/medium</code></strong>.</li>
-<li><strong><code>/fast</code></strong>는 Opus를 최대 2.5배 빠르게(프리미엄, Opus 티어 전용). 적응형 사고는 스스로 사고량을 정하고, <strong>Haiku 4.5는 effort·적응형 사고 대상이 아니다.</strong></li>
+<li><strong><code>/fast</code></strong>는 Opus 5·4.8을 최대 2.5배 빠르게. 단 <strong>가격이 2배</strong>이고 <strong>구독 요금제에도 포함되지 않아</strong> 사용량 크레딧에서 빠진다. 적응형 사고는 스스로 사고량을 정하고, <strong>Haiku 4.5는 effort·적응형 사고 대상이 아니다.</strong></li>
 <li>1M 컨텍스트라도 관리가 필요하고, 모델별 프롬프트 튜닝은 <a href="#ch14">14장</a>에서 다룬다.</li>
 </ul><div class="quiz"><div class="quiz-head">확인 퀴즈<button class="quiz-retry" type="button" hidden>다시 풀기</button></div><div class="quiz-q" data-answer="1" data-qid="q3-1"><p class="quiz-question"><span class="quiz-n">Q1.</span> 복잡한 에이전틱 코딩에 Anthropic이 권장하는 기본 모델은?(2026)</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Fable 5</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Opus 5</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Sonnet 5</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Haiku 4.5</button></div><div class="quiz-explain"><b>해설</b> · 복잡한 에이전틱 코딩·엔터프라이즈엔 Opus 5, 최고 능력엔 Fable 5를 권합니다. Opus 4.8 등은 레거시입니다.</div></div><div class="quiz-q" data-answer="2" data-qid="q3-2"><p class="quiz-question"><span class="quiz-n">Q2.</span> Claude 5 세대(Opus 5·Sonnet 5)의 기본 effort 레벨은?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>low</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>medium</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>high</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>xhigh</button></div><div class="quiz-explain"><b>해설</b> · 기본은 high입니다(Claude API·Claude Code). 어려운 코딩·에이전틱엔 xhigh로 올리고, 비용·속도엔 low/medium을 적극 씁니다.</div></div><div class="quiz-q" data-answer="1" data-qid="q3-3"><p class="quiz-question"><span class="quiz-n">Q3.</span> 가장 강력한(최고 지능) 널리 출시된 모델은?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Opus 5</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Fable 5</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Sonnet 5</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Haiku 4.5</button></div><div class="quiz-explain"><b>해설</b> · 최고 지능 티어는 Fable 5입니다. 복잡 코딩·에이전틱의 권장 기본은 Opus 5.</div></div></div></section>
 <section class="chapter" id="ch4"><div class="ch-badge">CHAPTER 04</div><h1 class="ch-title">명령어 · 슬래시 커맨드</h1><p>Claude Code는 자연어로 대화하는 도구지만, <strong>자주 하는 작업일수록 매번 문장으로 설명하는 건 비효율적</strong>입니다. 슬래시 커맨드(slash command)는 <code>/</code>로 시작하는 짧은 명령으로, 정해진 동작을 <strong>일관되게, 예측 가능하게</strong> 실행하는 진입점입니다.</p>
