@@ -1,0 +1,12 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# 빌드 산출물 — 에디터가 저장할 때 손대지 않게 한다.
+[{index.html,sitemap.xml,.cv-measure.html}]
+insert_final_newline = false
+trim_trailing_whitespace = false
