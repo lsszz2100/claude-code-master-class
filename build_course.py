@@ -1784,9 +1784,12 @@ if(pgw){
     'sub-custom':{t:'커스텀 서브에이전트',d:'우리 팀에만 있는 반복 작업이라면 <strong>전용 에이전트</strong>를 정의하세요. 도구·모델·프롬프트를 따로 줄 수 있습니다.',href:'#ch7',
       f:'.claude/agents/test-writer.md',code:'---\nname: test-writer\ndescription: 바뀐 코드에 대한 테스트를 쓴다. 테스트 작성·보강 요청 때 사용.\ntools: Read, Grep, Glob, Edit, Write, Bash\n---\n\n기존 테스트의 스타일과 헬퍼를 먼저 읽고 그 관습을 따른다.\n실패하는 경로를 먼저 쓰고, 통과할 때까지 실제로 돌려 확인한다.',
       also:'<b>tools 를 좁히세요.</b> 넓게 열어 두면 격리해 둔 의미가 옅어집니다.'},
-    mcp:{t:'MCP',d:'다른 도구의 데이터를 <strong>반복해서 복붙</strong>하고 있다면 MCP로 직접 연결하세요. 이슈트래커·DB·디자인 도구 등.',href:'#ch10',
+    mcp:{t:'MCP',d:'쓸 만한 CLI가 없는 도구라면 MCP로 직접 연결하세요. OAuth·스키마를 서버가 처리하므로 <strong>인증이 까다로운 SaaS</strong>에 특히 값을 합니다.',href:'#ch10',
       f:'터미널',code:'claude mcp add --transport http linear https://mcp.linear.app/mcp\nclaude mcp list        # 연결 확인\n/mcp                   # 대화 안에서 상태 보기',
       also:'<b>먼저 물어볼 것:</b> 붙일 때마다 도구 정의가 컨텍스트를 먹습니다. 한 달에 한 번 쓰는 서버라면 복붙이 더 쌉니다.'},
+    'skill-cli':{t:'CLI + 스킬 (MCP 말고)',d:'그 도구에 이미 CLI가 있다면 <strong>MCP를 붙일 이유가 없습니다</strong>. CLI는 가장 컨텍스트 효율적인 외부 연동이고, 팀의 사용 순서만 스킬로 감싸면 됩니다.',href:'#ch10',
+      f:'.claude/skills/issue-fix/SKILL.md',code:'---\nname: issue-fix\ndescription: GitHub 이슈를 받아 고치고 PR 까지 올린다. "이슈 N 고쳐줘" 라고 하면 발동.\n---\n\n1. `gh issue view $ARG --comments` 로 본문과 댓글을 읽는다.\n2. 재현되는 테스트를 먼저 쓴다.\n3. 고치고 `pnpm test -- --run` 으로 통과를 확인한다.\n4. `gh pr create --fill` 로 올리고 본문에 `Closes #$ARG` 를 넣는다.',
+      also:'<b>왜 MCP가 아닌가:</b> MCP 서버는 연결돼 있는 동안 도구 정의가 <b>매 세션 컨텍스트에 상주</b>합니다. CLI는 필요할 때 한 줄 실행이고, 스킬 본문도 그때만 로드됩니다. 모르는 CLI라도 “<code>foo --help</code>로 익힌 뒤 …”라고 시키면 됩니다.'},
     memory:{t:'자동 기억',d:'Claude가 여러분의 교정에서 <strong>스스로 배우게</strong> 하고 싶다면 자동 기억이 발견·교정을 축적합니다.',href:'#ch6',
       f:'대화에서 바로',code:'# 방금 알려준 걸 남기게 하기\n이거 기억해 둬 — 이 저장소는 pnpm 만 쓴다, npm 은 lock 파일이 깨진다\n\n# 무엇을 기억하고 있는지 보기\n/memory',
       also:'<b>구분:</b> 저장소를 읽으면 알 수 있는 사실은 기억할 가치가 없습니다. “왜 그렇게 정했는지”가 남길 값입니다.'},
@@ -1797,7 +1800,7 @@ if(pgw){
       ['특정 작업을 한 번에 실행할 바로가기가 필요하다','r:skill'],
       ['어떤 동작이 무조건 매번 일어나야 한다(포맷·차단 등)','q:always'],
       ['탐색·테스트 출력이 많아 메인 대화가 지저분해진다','q:noisy'],
-      ['다른 도구(이슈·DB·디자인)의 데이터를 자꾸 복붙한다','r:mcp'],
+      ['다른 도구(이슈·DB·디자인)의 데이터를 자꾸 복붙한다','q:external'],
       ['Claude가 내 교정에서 스스로 배우면 좋겠다','r:memory'],
     ]},
     repeat:{q:'그 반복되는 내용은 어느 쪽에 가깝나요?',opts:[
@@ -1812,12 +1815,23 @@ if(pgw){
       ['코드 위치 찾기·작업 계획 세우기','r:sub-builtin'],
       ['우리 팀에만 있는 반복 작업(테스트 작성·마이그레이션 등)','r:sub-custom'],
     ]},
+    // MCP 로 직행하지 않는다 — 여기서 갈리는 두 질문이 실제로 가장 많이 헷갈리는 지점이다
+    external:{q:'그 도구로 하려는 일은 어느 쪽에 가깝나요?',opts:[
+      ['최신 <b>데이터를 읽어 와서</b> 작업에 쓰고 싶다(이슈 내용·DB 스키마·디자인 스펙)','q:ext-cli'],
+      ['데이터보다, 그 도구를 다루는 <b>우리 팀의 순서</b>를 매번 설명하는 게 문제다','r:skill'],
+    ]},
+    'ext-cli':{q:'그 도구에 쓸 만한 CLI가 이미 있나요?',opts:[
+      ['있다 — <code>gh</code>·<code>aws</code>·<code>psql</code>처럼 터미널에서 다 된다','r:skill-cli'],
+      ['없다 / OAuth·스키마가 복잡해 터미널로 다루기 번거롭다','r:mcp'],
+    ]},
   };
+  // 최대 질문 수는 분기 그래프에서 재서 쓴다 — 가지를 늘릴 때 "최대 N" 표시가 따로 틀어지지 않게
+  const MAXQ=(function depth(k){return 1+Math.max(0,...QS[k].opts.filter(o=>o[1].slice(0,2)==='q:').map(o=>depth(o[1].slice(2))));})('start');
   function esc2(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
   let path=['start'];     // 뒤로 가기용 — 답을 바꾸려고 처음부터 다시 하게 만들지 않는다
   function renderQ(key){
     const Q=QS[key];
-    pgw.innerHTML='<div class="pg-step">질문 '+path.length+' / 최대 2</div><div class="pg-q">'+Q.q+'</div><div class="pg-opts"></div><div class="pg-nav"></div>';
+    pgw.innerHTML='<div class="pg-step">질문 '+path.length+' / 최대 '+MAXQ+'</div><div class="pg-q">'+Q.q+'</div><div class="pg-opts"></div><div class="pg-nav"></div>';
     const box=pgw.querySelector('.pg-opts');
     Q.opts.forEach(([label,next])=>{
       const b=document.createElement('button'); b.type='button'; b.innerHTML=label;

@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 18건 + CDP Performance.getMetrics 지표.
+ * 검사 19건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -524,6 +524,53 @@ await check('놀이터 진단기 (분기·스니펫·뒤로)', async ({ page, no
     `뒤로가 2단계가 아닌 곳으로 감`);
 
   note(`결과 "${r.title}" · 스니펫 ${r.code.length}자`);
+});
+
+// 17'. 진단기 3단계 분기 — MCP vs 스킬. 예전에는 "복붙한다"가 곧장 MCP 결과였다.
+// 이 갈림길이 무너지면 "CLI 가 있어도 MCP 를 붙여라"로 되돌아가 10장과 어긋난다.
+await check('놀이터 진단기 (MCP vs 스킬 3단계)', async ({ page, note }) => {
+  await reachPlayground(page);
+  const step = () => page.$eval('.pg-wizard .pg-step', el => el.textContent);
+  const title = () => page.evaluate(() => document.querySelector('.pg-wizard .pg-result h4')?.textContent ?? null);
+
+  expect((await step()).includes('최대 3'), `단계 표시가 "최대 3"이 아님 (${await step()})`);
+
+  // 5번: 다른 도구의 데이터를 자꾸 복붙한다 → 결과가 아니라 질문 2 로 가야 한다
+  await page.click('.pg-wizard .pg-opts button:nth-child(5)');
+  expect(await title() === null, '복붙 선택이 아직 MCP 결과로 직행함');
+  expect((await step()).includes('질문 2'), `2단계로 안 갈라짐 (${await step()})`);
+
+  // 1번: 데이터를 읽어 와서 쓰고 싶다 → 질문 3(CLI 유무)
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  expect(await title() === null, '3단계 질문 없이 결과로 직행함');
+  expect((await step()).includes('질문 3'), `3단계로 안 갈라짐 (${await step()})`);
+  const q3 = await page.$eval('.pg-wizard .pg-q', el => el.textContent);
+  expect(/CLI/.test(q3), `3단계 질문이 CLI 유무를 안 물음: "${q3}"`);
+
+  // 1번: CLI 가 이미 있다 → MCP 가 아니라 CLI + 스킬
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  const cli = await page.evaluate(() => ({
+    title: document.querySelector('.pg-wizard .pg-result h4')?.textContent || '',
+    code: document.querySelector('.pg-wizard .pg-result pre code')?.textContent || '',
+    also: document.querySelector('.pg-wizard .pg-also')?.textContent || '',
+    copy: !!document.querySelector('.pg-wizard .pg-result .copy-btn'),
+  }));
+  expect(!/^MCP$/.test(cli.title), 'CLI 가 있다고 답했는데 MCP 를 추천함');
+  expect(cli.title.includes('CLI'), `결과 제목이 "${cli.title}"`);
+  // 스킬 스니펫은 8장과 같은 형식이어야 한다 — name/description 프런트매터가 핵심
+  expect(cli.code.includes('name:') && cli.code.includes('description:'),
+    '스킬 스니펫에 name/description 프런트매터가 없음');
+  expect(cli.code.includes('gh '), '스니펫이 CLI(gh) 를 쓰지 않음');
+  expect(cli.also.includes('컨텍스트'), '왜 MCP 가 아닌지(컨텍스트 상주) 설명이 없음');
+  expect(cli.copy, '스니펫에 복사 버튼이 없음');
+
+  // 뒤로 → 질문 3 으로. 반대편 답(CLI 없음)은 MCP 여야 한다
+  await page.click('.pg-wizard .pg-nav button:nth-child(1)');
+  expect((await step()).includes('질문 3'), `뒤로가 3단계가 아닌 곳으로 감 (${await step()})`);
+  await page.click('.pg-wizard .pg-opts button:nth-child(2)');
+  expect((await title() || '').includes('MCP'), `CLI 가 없다고 답했는데 결과가 "${await title()}"`);
+
+  note(`3단계 도달 · CLI 답 "${cli.title}" · 스니펫 ${cli.code.length}자`);
 });
 
 // 18. 비용 계산기 — 캐싱·배치·모델 비교
