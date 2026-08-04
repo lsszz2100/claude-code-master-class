@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 21건 + CDP Performance.getMetrics 지표.
+ * 검사 23건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -103,6 +103,57 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const chapterIds = page => page.$$eval('.toc-ch', as => as
   .map(a => a.getAttribute('href').slice(1))
   .filter(id => document.getElementById(id)?.classList.contains('chapter')));
+
+// ── 가로 넘침 스캐너 ────────────────────────────────────────────────
+// 규칙 하나: 내용이 자기 상자보다 넓으면 실패. 면제는 overflow:auto|scroll 뿐이다
+// (그건 사용자가 스크롤해 읽을 수단이 남아 있다는 뜻이라 결함이 아니다).
+//
+// overflow:hidden 만 보면 안 된다 — 처음에 그렇게 짰다가 음성 대조에서 걸렸다.
+// 실제로 놓쳤던 결함(요금제 판정 문구를 고정 폭 92px 열에 넣은 것)은 .verdict 에
+// overflow 지정이 없어서 잘리는 대신 옆 칸 위로 72px 삐져나갔고, 부모가 그걸
+// 흡수해 문서 가로 넘침도 0이었다. "잘림"만 찾는 검사는 그대로 통과한다.
+//
+// 세로는 보지 않는다. "지금은 감춰 둔다"가 정상인 패턴이 흔해서(접힌 목차
+// .toc-subs-inner 가 뷰포트마다 17건) 허용 목록이 끝없이 자라고 검사가 무뎌진다.
+const CLIP_TOL = 1;                 // 소수 픽셀 반올림
+const RANGE_SLOP = 6;               // input[type=range] 는 브라우저 기본 여백 탓에 부모보다 4px 넓다
+const scanClip = (page, within = null) => page.evaluate(([sel, tol, slop]) => {
+  const root = sel ? document.querySelector(sel) : document.body;
+  if (!root) return { bad: [], docOverflow: 0, scanned: 0 };
+  const label = el => {
+    if (el.id) return `${el.tagName.toLowerCase()}#${el.id}`;
+    const c = String(el.className || '').trim().split(/\s+/).filter(Boolean).slice(0, 2);
+    return el.tagName.toLowerCase() + (c.length ? '.' + c.join('.') : '');
+  };
+  const bad = [];
+  const all = [root, ...root.querySelectorAll('*')];
+  for (const el of all) {
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+    if (/auto|scroll/.test(cs.overflowX)) continue;
+    if (el.getBoundingClientRect().width <= 0) continue;
+    const over = el.scrollWidth - el.clientWidth;
+    if (over <= tol) continue;
+    // 슬라이더를 직접 품은 칸의 4px 는 콘텐츠가 아니라 네이티브 컨트롤의 상자 크기다
+    if (over <= slop && el.querySelector(':scope > input[type=range]')) continue;
+    bad.push({ sel: label(el), over: Math.round(over),
+      text: (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 40) });
+  }
+  return { bad, docOverflow: Math.round(document.documentElement.scrollWidth - window.innerWidth),
+    scanned: all.length };
+}, [within, CLIP_TOL, RANGE_SLOP]);
+
+// 실패했을 때만 증거를 남긴다. 기준 이미지를 두고 픽셀 비교를 하지 않는 이유는
+// 이 사이트의 콘텐츠·가격표가 정기 점검마다 정당하게 바뀌기 때문이다 — 기준 이미지는
+// 그때마다 깨지고, 매번 다시 뜨다 보면 진짜 회귀까지 같이 승인하게 된다.
+const SHOT_DIR = path.join(os.tmpdir(), 'regress-shots');
+async function shot(page, name) {
+  fs.mkdirSync(SHOT_DIR, { recursive: true });
+  const file = path.join(SHOT_DIR, `${name.replace(/[^\w가-힣-]+/g, '_')}.png`);
+  await page.screenshot({ path: file, fullPage: false }).catch(() => {});
+  return file;
+}
+const fmtClip = bad => bad.map(b => `${b.sel} +${b.over}px "${b.text}"`).join(' / ');
 
 // ── 러너 ────────────────────────────────────────────────────────────
 const results = [];
@@ -711,6 +762,88 @@ await check('놀이터 계산기 (요금제 vs 종량)', async ({ page, note }) 
   expect(/사용량 창/.test(heavy.caveat) && /API/.test(heavy.caveat), '요금제/종량 차이 설명이 없음');
 
   note(`가벼움 0승 → 무거움 ${wins}승 · 월 ₩${heavy.month.toLocaleString()}`);
+});
+
+// ── 레이아웃(눈에만 보이는 결함) ────────────────────────────────────
+// 19. 가로 넘침 없음 — 뷰포트 3종 × 전 챕터
+// content-visibility 를 켠 채로는 뷰포트 밖 챕터의 크기를 못 믿는다(추정값이다).
+// 스크롤로 훑으며 재면 챕터 수 × 뷰포트 수만큼 DOM 을 다시 걸어야 해서 느리다 —
+// 이 검사에 한해 전부 펼쳐 놓고 한 번에 잰다. 그래서 여기서 성능 수치를 읽으면 안 된다.
+await check('가로 넘침 없음 (뷰포트 3종)', async ({ page, note }) => {
+  await page.addStyleTag({ content: '.chapter{content-visibility:visible!important}' });
+  await page.evaluate(() => document.fonts.ready);
+  await sleep(300);
+
+  for (const [w, h] of [[1280, 900], [900, 800], [390, 844]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await sleep(250);                       // 리사이즈 후 레이아웃 반영
+    const r = await scanClip(page);
+    if (r.bad.length || r.docOverflow > CLIP_TOL) {
+      const file = await shot(page, `clip-${w}x${h}`);
+      expect(false, `${w}px: 문서 가로 넘침 ${r.docOverflow}px · 넘친 요소 ${r.bad.length}건`
+        + (r.bad.length ? ` — ${fmtClip(r.bad.slice(0, 4))}` : '') + `\n      스크린샷 ${file}`);
+    }
+    note(`${w}px 넘침 0 (문서 ${r.docOverflow}px)`);
+  }
+});
+
+// 20. 위젯 최대 상태 넘침 — 값이 가장 길어지는 조건에서 재야 의미가 있다
+// 실제로 놓쳤던 결함이 이 모양이었다. 기본 상태(하루 ₩1,242)로는 안 나오고,
+// 사용량을 끝까지 올려 "요금제가 ₩11,564,400 저렴" 처럼 문구가 길어져야 드러난다.
+await check('위젯 최대 상태 넘침 (계산기·진단기)', async ({ page, note }) => {
+  await reachPlayground(page);
+  const setRange = (id, v) => page.$eval(id, (el, val) => {
+    el.value = val; el.dispatchEvent(new Event('input', { bubbles: true }));
+  }, v);
+
+  // 가장 비싼 모델 × 최대 사용량 × 캐시 0% — 금액 자릿수가 최대가 된다
+  const priciest = await page.$eval('#ccModel', el => {
+    const last = [...el.options].at(-1); el.value = last.value;
+    el.dispatchEvent(new Event('input', { bubbles: true })); return last.textContent;
+  });
+  await setRange('#ccReq', 200);
+  await setRange('#ccIn', 80000);
+  await setRange('#ccOut', 12000);
+  await setRange('#ccHit', 0);
+  await sleep(150);
+
+  const verdict = await page.$eval('.pg-plan .row .verdict', el => el.textContent);
+  const won = await page.$eval('#ccKrw', el => el.textContent);
+  expect(/저렴/.test(verdict), `판정 문구가 "${verdict}"`);
+
+  // 계산기·진단기 순서로, 좁은 폭까지 내려가며 잰다.
+  // 520px 은 .pg-cmp/.pg-plan 이 열 수를 바꾸는 경계다 — 양쪽을 다 봐야 한다.
+  for (const [w, h] of [[1280, 900], [560, 900], [390, 844]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await sleep(250);
+    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal']) {
+      const r = await scanClip(page, sel);
+      if (r.bad.length) {
+        await page.locator(sel).scrollIntoViewIfNeeded();
+        const file = await shot(page, `widget-${w}-${sel.slice(1)}`);
+        expect(false, `${w}px ${sel}: 넘침 ${r.bad.length}건 — ${fmtClip(r.bad.slice(0, 4))}`
+          + `\n      스크린샷 ${file}`);
+      }
+    }
+  }
+
+  // 진단기는 결과 카드마다 문구 길이가 다르다. 가장 긴 경로(3단계 분기)를 펼쳐 놓고 다시 잰다.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await sleep(200);
+  await reachPlayground(page);
+  await page.click('.pg-wizard .pg-opts button:nth-child(3)');
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  await page.click('.pg-wizard .pg-opts button:nth-child(1)');
+  await sleep(150);
+  const title = await page.$eval('.pg-wizard .pg-result h4', el => el.textContent);
+  const rw = await scanClip(page, '.pg-wizard');
+  if (rw.bad.length) {
+    const file = await shot(page, 'wizard-390-result');
+    expect(false, `390px 진단기 결과 "${title}": 넘침 ${rw.bad.length}건 — ${fmtClip(rw.bad.slice(0, 4))}`
+      + `\n      스크린샷 ${file}`);
+  }
+
+  note(`${priciest} 최대 사용량 ${won} · 판정 "${verdict}" · 폭 3종 넘침 0`);
 });
 
 // ── 성능 지표 (CDP) ─────────────────────────────────────────────────
