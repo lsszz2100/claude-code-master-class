@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 23건 + CDP Performance.getMetrics 지표.
+ * 검사 25건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -764,8 +764,125 @@ await check('놀이터 계산기 (요금제 vs 종량)', async ({ page, note }) 
   note(`가벼움 0승 → 무거움 ${wins}승 · 월 ₩${heavy.month.toLocaleString()}`);
 });
 
+// 19. CLAUDE.md 검사기 — 규칙이 실제로 무는지, 그리고 좋은 예를 잘못 물지 않는지
+// 걸리는 줄 수를 박지 않는다(규칙 문구를 다듬으면 정당하게 바뀐다). 거는 것은 관계다:
+// 나쁜 예는 유형별로 걸려야 하고, 좋은 예는 지울 줄이 하나도 없어야 한다.
+await check('놀이터 검사기 (CLAUDE.md 규칙)', async ({ page, note }) => {
+  await page.locator('.pg-lint').scrollIntoViewIfNeeded();
+  await settle(page);
+  const read = () => page.evaluate(() => ({
+    size: document.querySelector('.pg-lint #clSize').textContent,
+    sum: document.querySelector('.pg-lint #clSum').textContent,
+    finds: [...document.querySelectorAll('.pg-lint .f')].map(f => ({
+      kind: f.querySelector('.kind').textContent,
+      cls: [...f.classList].find(c => c !== 'f'),
+      src: f.querySelector('.src').textContent,
+      why: f.querySelector('.why').textContent,
+    })),
+  }));
+  const preset = i => page.click(`.pg-lint .presets button:nth-child(${i})`);
+
+  // 빈 상태에서 0줄이어야 한다 — 빈 문자열을 split 하면 1줄로 세는 함정이 있다
+  expect(/^0줄/.test((await read()).size), `빈 상태 크기 표시가 "${(await read()).size}"`);
+
+  await preset(1);                       // 나쁜 예
+  const bad = await read();
+  const kinds = new Set(bad.finds.map(f => f.cls));
+  expect(kinds.has('cut'), '나쁜 예인데 "지울 것"이 하나도 안 잡힘');
+  expect(kinds.has('fix'), '나쁜 예인데 "고칠 것"이 하나도 안 잡힘');
+  expect(kinds.has('info'), '나쁜 예인데 "참고"가 하나도 안 잡힘');
+  // 5장이 가르치는 세 가지가 각각 이유로 나와야 한다 — 이유가 뭉개지면 배울 게 없다
+  const whys = bad.finds.map(f => f.why).join(' ');
+  expect(/자명한 지침/.test(whys), '"자명한 지침" 사유가 없음');
+  expect(/검증할 수 없는/.test(whys), '"검증할 수 없는 표현" 사유가 없음');
+  expect(/코드베이스 설명/.test(whys), '"파일별 코드베이스 설명" 사유가 없음');
+  // 훅 권고는 9장과 이어져야 한다(CLAUDE.md 는 조언일 뿐이라는 5장 진단표)
+  expect(/훅으로 강제/.test(whys), '반드시/절대에 훅 권고가 안 붙음');
+  expect(/지울 수 있는 줄/.test(bad.sum), `나쁜 예 판정이 "${bad.sum}"`);
+
+  await preset(2);                       // 좋은 예
+  const good = await read();
+  const badKinds = good.finds.filter(f => f.cls !== 'info');
+  expect(badKinds.length === 0,
+    `좋은 예를 잘못 물었다: ${badKinds.map(f => f.kind + ' "' + f.src + '"').join(' / ')}`);
+  expect(/지울 줄이 안 보입니다/.test(good.sum), `좋은 예 판정이 "${good.sum}"`);
+  // 좋은 예에는 IMPORTANT 가 있으므로 강조 안내가 뜨면 안 된다
+  expect(!/강조하면 준수율/.test(good.sum), '강조가 이미 있는데 강조 안내가 뜸');
+
+  // 직접 입력도 반영되는지 (예시 버튼만 도는 위젯이 아니어야 한다)
+  await page.fill('.pg-lint #clIn', '- 코드를 잘 짜라\n');
+  const typed = await read();
+  expect(typed.finds.length > 0, '직접 입력한 모호한 지침이 안 잡힘');
+
+  await preset(3);                       // 지우기
+  expect((await read()).finds.length === 0, '지우기를 눌렀는데 결과가 남아 있음');
+
+  note(`나쁜 예 ${bad.finds.length}건(${[...kinds].join('/')}) · 좋은 예 0건`);
+});
+
+// 20. 컨텍스트 예산 — 절대 수치를 박지 않는다. 거는 것은 관계다:
+// 프리셋을 무겁게 하면 총합이 늘고, 레버는 각자 맡은 칸만 줄이고, 창을 넘으면 경고가 뜬다.
+await check('놀이터 예산 (레버·창 초과)', async ({ page, note }) => {
+  await page.locator('.pg-ctx').scrollIntoViewIfNeeded();
+  await settle(page);
+  const read = () => page.evaluate(() => {
+    const num = s => +String(s).replace(/[^\d]/g, '');
+    return {
+      big: document.querySelector('.pg-ctx #cxBig').textContent,
+      over: document.querySelector('.pg-ctx #cxBig').classList.contains('over'),
+      sub: document.querySelector('.pg-ctx #cxSub').textContent,
+      adv: document.querySelector('.pg-ctx #cxAdv').textContent,
+      segs: [...document.querySelectorAll('.pg-ctx .stack i:not(.free)')].length,
+      free: !!document.querySelector('.pg-ctx .stack i.free'),
+      legend: [...document.querySelectorAll('.pg-ctx .lg .nm')].map(n => n.textContent),
+      vals: ['sys', 'md', 'mcp', 'out', 'hist'].map(id => +document.querySelector('#cx' + id).value),
+      total: num(document.querySelector('.pg-ctx #cxBig').textContent.split('/')[0]),
+    };
+  });
+  const preset = i => page.click(`.pg-ctx .presets button:nth-child(${i})`);
+  const lever = i => page.click(`.pg-ctx .levers button:nth-child(${i})`);
+
+  const start = await read();
+  expect(start.segs === 5, `막대 칸이 ${start.segs}개 (기대 5)`);
+  expect(start.legend.length === 5, `범례가 ${start.legend.length}개 (기대 5)`);
+
+  await preset(1);                       // 세션 시작
+  const light = await read();
+  await preset(3);                       // 긴 세션 · MCP 여러 개
+  const heavy = await read();
+  expect(heavy.total > light.total, `무거운 프리셋인데 총합이 안 늘었다 (${light.total} → ${heavy.total})`);
+  expect(heavy.free, '창이 남았는데 여유 칸이 안 보인다');
+
+  // 레버 3개가 각자 맡은 칸만 줄여야 한다 — 엉뚱한 칸을 건드리면 배우는 게 틀어진다
+  const before = heavy.vals;
+  await lever(1);                        // /compact → 대화 기록
+  const c = await read();
+  expect(c.vals[4] < before[4], `/compact 인데 대화 기록이 ${before[4]} → ${c.vals[4]}`);
+  expect(c.vals[3] === before[3], '/compact 가 파일·도구 출력까지 건드림');
+  await lever(2);                        // 서브에이전트 격리 → 파일·도구 출력
+  const s = await read();
+  expect(s.vals[3] < c.vals[3], `서브에이전트 격리인데 출력이 ${c.vals[3]} → ${s.vals[3]}`);
+  await lever(3);                        // MCP → CLI + 스킬
+  const m = await read();
+  expect(m.vals[2] === 0, `CLI + 스킬로 바꿨는데 MCP 도구 정의가 ${m.vals[2]}`);
+  expect(m.total < heavy.total, `레버를 셋 다 당겼는데 총합이 ${heavy.total} → ${m.total}`);
+
+  // 창을 넘기면 경고가 떠야 한다. 큰 창(1M)에서 안 넘던 설정이 200K 에서는 넘는다
+  await preset(3);
+  await page.selectOption('.pg-ctx #cxModel', 'claude-haiku-4-5');
+  const over = await read();
+  expect(over.over, '작은 창으로 바꿨는데 초과 표시가 없음');
+  expect(/넘었습니다/.test(over.sub) && /자동 압축/.test(over.adv), `초과 안내가 "${over.sub}"`);
+  expect(!over.free, '창을 넘었는데 여유 칸이 남아 있음');
+
+  // 12장의 핵심(성능 저하는 절벽이 아니다)이 빠지면 안 된다
+  expect(/완만한 하강/.test(over.adv), '컨텍스트 로트 설명이 없음');
+
+  note(`가벼움 ${light.total}K → 무거움 ${heavy.total}K → 레버 후 ${m.total}K · 200K 초과 경고 ✓`);
+});
+
 // ── 레이아웃(눈에만 보이는 결함) ────────────────────────────────────
-// 19. 가로 넘침 없음 — 뷰포트 3종 × 전 챕터
+// 21. 가로 넘침 없음 — 뷰포트 3종 × 전 챕터
 // content-visibility 를 켠 채로는 뷰포트 밖 챕터의 크기를 못 믿는다(추정값이다).
 // 스크롤로 훑으며 재면 챕터 수 × 뷰포트 수만큼 DOM 을 다시 걸어야 해서 느리다 —
 // 이 검사에 한해 전부 펼쳐 놓고 한 번에 잰다. 그래서 여기서 성능 수치를 읽으면 안 된다.
@@ -787,7 +904,7 @@ await check('가로 넘침 없음 (뷰포트 3종)', async ({ page, note }) => {
   }
 });
 
-// 20. 위젯 최대 상태 넘침 — 값이 가장 길어지는 조건에서 재야 의미가 있다
+// 22. 위젯 최대 상태 넘침 — 값이 가장 길어지는 조건에서 재야 의미가 있다
 // 실제로 놓쳤던 결함이 이 모양이었다. 기본 상태(하루 ₩1,242)로는 안 나오고,
 // 사용량을 끝까지 올려 "요금제가 ₩11,564,400 저렴" 처럼 문구가 길어져야 드러난다.
 await check('위젯 최대 상태 넘침 (계산기·진단기)', async ({ page, note }) => {
@@ -816,7 +933,7 @@ await check('위젯 최대 상태 넘침 (계산기·진단기)', async ({ page,
   for (const [w, h] of [[1280, 900], [560, 900], [390, 844]]) {
     await page.setViewportSize({ width: w, height: h });
     await sleep(250);
-    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal']) {
+    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal', '.pg-lint', '.pg-ctx']) {
       const r = await scanClip(page, sel);
       if (r.bad.length) {
         await page.locator(sel).scrollIntoViewIfNeeded();

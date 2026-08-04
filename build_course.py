@@ -761,16 +761,16 @@ pre.mermaid .copy-btn{display:none}
 
 /* 플레이그라운드 — 계산기 */
 .pg-cost{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
-.pg-cost .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.pg-cost .presets button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
-.pg-cost .presets button:hover,.pg-cost .presets button.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
-.pg-cost .fld{margin-bottom:17px}
-.pg-cost .fld .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--ink-dim);margin-bottom:8px}
-.pg-cost .fld .lab b{color:var(--ink);font-weight:600}
-.pg-cost .fld .val{color:var(--accent2);font-weight:700;font-family:"SF Mono",monospace;font-size:13px;white-space:nowrap}
-.pg-cost select{width:100%;font:inherit;font-size:14px;padding:10px 12px;background:var(--code-bg);border:1px solid var(--line);border-radius:9px;color:var(--ink);outline:none}
-.pg-cost input[type=range]{width:100%;height:6px;accent-color:var(--accent);cursor:pointer}
-.pg-cost select:focus{border-color:var(--accent)}
+.pg-cost .presets,.pg-lint .presets,.pg-ctx .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pg-cost .presets button,.pg-lint .presets button,.pg-ctx .presets button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
+.pg-cost .presets button:hover,.pg-cost .presets button.on,.pg-lint .presets button:hover,.pg-lint .presets button.on,.pg-ctx .presets button:hover,.pg-ctx .presets button.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
+.pg-cost .fld,.pg-ctx .fld{margin-bottom:17px}
+.pg-cost .fld .lab,.pg-ctx .fld .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--ink-dim);margin-bottom:8px}
+.pg-cost .fld .lab b,.pg-ctx .fld .lab b{color:var(--ink);font-weight:600}
+.pg-cost .fld .val,.pg-ctx .fld .val{color:var(--accent2);font-weight:700;font-family:"SF Mono",monospace;font-size:13px;white-space:nowrap}
+.pg-cost select,.pg-ctx select{width:100%;font:inherit;font-size:14px;padding:10px 12px;background:var(--code-bg);border:1px solid var(--line);border-radius:9px;color:var(--ink);outline:none}
+.pg-cost input[type=range],.pg-ctx input[type=range]{width:100%;height:6px;accent-color:var(--accent);cursor:pointer}
+.pg-cost select:focus,.pg-ctx select:focus{border-color:var(--accent)}
 .pg-cost .out{margin-top:4px;padding:20px;background:var(--code-bg);border:1px solid var(--line);border-radius:12px;text-align:center}
 .pg-cost .out .krw{font-size:40px;font-weight:800;color:var(--accent);font-family:"SF Mono",monospace;line-height:1.1}
 .pg-cost .out .usd{font-size:14px;color:var(--ink-dim);margin-top:5px;font-family:"SF Mono",monospace}
@@ -808,6 +808,74 @@ pre.mermaid .copy-btn{display:none}
 .pg-plan .cav{font-size:12px;color:var(--ink-dim);margin-top:9px;line-height:1.6}
 @media(max-width:520px){.pg-plan .row{grid-template-columns:1fr auto;gap:3px 10px}
   .pg-plan .verdict{grid-column:1/-1;text-align:left}}
+
+/* 플레이그라운드 — CLAUDE.md 검사기 */
+.pg-lint{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.pg-lint textarea{width:100%;min-height:210px;resize:vertical;box-sizing:border-box;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;
+  padding:13px 15px;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;color:var(--ink);outline:none}
+.pg-lint textarea:focus{border-color:var(--accent)}
+.pg-lint .gauge{margin:16px 0 2px}
+.pg-lint .gauge .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  font-size:13.5px;color:var(--ink-dim);margin-bottom:8px}
+.pg-lint .gauge .lab b{color:var(--ink);font-weight:600}
+.pg-lint .gauge .val{color:var(--accent2);font-weight:700;font-family:"SF Mono",monospace;font-size:13px;white-space:nowrap}
+.pg-lint .gauge .bar{height:9px;background:var(--panel2);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.pg-lint .gauge .bar i{display:block;height:100%;background:var(--accent);border-radius:20px;transition:width .2s}
+.pg-lint .gauge .bar i.over{background:#c2452c}
+.pg-lint .finds{margin-top:17px;display:flex;flex-direction:column;gap:8px}
+/* 원문 발췌는 길 수 있다 — 자르지 말고 접어야 한다(가로 넘침 검사가 잡는다) */
+.pg-lint .f{padding:10px 13px;font-size:13px;line-height:1.6;background:var(--code-bg);
+  border:1px solid var(--line);border-left:3px solid var(--line);border-radius:9px;overflow-wrap:anywhere}
+.pg-lint .f.cut{border-left-color:#c2452c}
+.pg-lint .f.fix{border-left-color:var(--accent)}
+.pg-lint .f.info{border-left-color:var(--accent2)}
+.pg-lint .f .hd{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:baseline;margin-bottom:4px}
+.pg-lint .f .ln{font-family:"SF Mono",monospace;font-size:11.5px;color:var(--ink-dim);white-space:nowrap}
+.pg-lint .f .kind{font-size:11.5px;font-weight:700;letter-spacing:.5px}
+.pg-lint .f.cut .kind{color:#c2452c}
+.pg-lint .f.fix .kind{color:var(--accent)}
+.pg-lint .f.info .kind{color:var(--accent2)}
+.pg-lint .f .src{font-family:"SF Mono",monospace;font-size:12px;color:var(--ink)}
+.pg-lint .f .why{color:var(--ink-dim);margin-top:3px}
+.pg-lint .f .why b{color:var(--ink)}
+.pg-lint .sum{margin-top:15px;padding:12px 15px;font-size:13.5px;line-height:1.7;color:var(--ink-dim);
+  background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:9px}
+.pg-lint .sum b{color:var(--ink)}
+.pg-lint .sum .good{color:#3aa76d;font-weight:700}
+.pg-lint .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
+
+/* 플레이그라운드 — 컨텍스트 예산
+   누적 막대 5색. 밝기·채도·색각 분리는 스크립트로 검증했고 라이트/다크를 따로 골랐다
+   (자동 반전이 아니다). 인접 쌍 하나가 색각 분리 6~8 구간이라 색만으로 구분하게 두면 안 된다
+   — 범례에 이름과 수치를 같이 적고 칸 사이를 2px 띄운다. */
+.pg-ctx{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;
+  --c1:#4d9bcc;--c2:#ab8838;--c3:#a87fd0;--c4:#35a877;--c5:#d9703f}
+:root[data-theme="light"] .pg-ctx{--c1:#2b7fb8;--c2:#a8813a;--c3:#9557a8;--c4:#1d8f62;--c5:#c25a2c}
+.pg-ctx .out{margin:4px 0 15px;padding:18px;background:var(--code-bg);border:1px solid var(--line);border-radius:12px}
+.pg-ctx .out .big{font-size:32px;font-weight:800;color:var(--accent);font-family:"SF Mono",monospace;line-height:1.15;text-align:center}
+.pg-ctx .out .big.over{color:#c2452c}
+.pg-ctx .out .sub{font-size:13px;color:var(--ink-dim);margin-top:5px;text-align:center;font-family:"SF Mono",monospace}
+.pg-ctx .stack{display:flex;gap:2px;height:24px;margin:15px 0 13px;padding:3px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:9px}
+.pg-ctx .stack i{display:block;height:100%;border-radius:4px;min-width:0;transition:flex-basis .2s}
+.pg-ctx .stack i.free{background:transparent;border:1px dashed var(--line);box-sizing:border-box}
+.pg-ctx .lg{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:8px 12px;font-size:13px}
+/* 클래스 이름을 sw 로 두면 저장소 설정의 토글 스위치(.sw::after 가 20px 손잡이를 그린다)와 부딪힌다 */
+.pg-ctx .lg .key{display:block;width:11px;height:11px;border-radius:3px}
+.pg-ctx .lg .nm{color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.pg-ctx .lg .amt,.pg-ctx .lg .pct{font-family:"SF Mono",monospace;font-size:12.5px;color:var(--ink-dim);text-align:right;white-space:nowrap}
+.pg-ctx .levers{display:flex;flex-wrap:wrap;gap:8px;margin:17px 0 0}
+.pg-ctx .levers button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
+.pg-ctx .levers button:hover{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
+.pg-ctx .advice{margin-top:15px;padding:12px 15px;font-size:13.5px;line-height:1.7;color:var(--ink-dim);
+  background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:9px}
+.pg-ctx .advice b{color:var(--ink)}
+.pg-ctx .advice .warn{color:#c2452c;font-weight:700}
+.pg-ctx .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
+@media(max-width:520px){.pg-ctx .lg{grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px}
+  .pg-ctx .lg .pct{grid-column:2/-1;text-align:left}}
 
 /* 약관·개인정보·저장소 설정 모달 */
 .legal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:none;
@@ -891,7 +959,7 @@ pre.mermaid .copy-btn{display:none}
 @media print{
   .sidebar,.topbar,.backdrop,.progress,.theme-toggle,#quizStat,.consent,
   .legal-backdrop,.search-backdrop,.copy-btn,.quiz-retry,.rp-reset,
-  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.site-footer .foot-links,
+  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-ctx,.site-footer .foot-links,
   .pg-chips,.pg-tip{display:none !important}
   :root,:root[data-theme="dark"],:root[data-theme="light"]{
     --bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#111;--ink-dim:#444;
@@ -1990,6 +2058,173 @@ if(pgc){
   Object.entries(P).forEach(([name,[pi,po,pn,ph]])=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.addEventListener('click',()=>{ti.value=pi;to.value=po;req.value=pn;hit.value=ph;[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');calc();});pre.appendChild(b);});
   [sel,req,ti,to,hit,batch].forEach(e=>e.addEventListener('input',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));calc();}));
   calc();
+}
+
+// ===== 플레이그라운드 · CLAUDE.md 검사기 =====
+// 규칙은 5장의 ✅/❌ 표와 작성 지침을 기계로 옮긴 것이다. 문구를 고칠 땐 5장과 대조할 것 —
+// 여기서만 다른 것을 가르치면 진단기 때처럼 강의와 위젯이 어긋난다.
+const pgl=document.querySelector('.pg-lint');
+if(pgl){
+  const GOAL=200;             // 5장 권장: 파일당 200줄 이하
+  const CHARS_PER_TOK=1.5;    // 한글 기준 어림치 — 비용 계산기와 같은 가정
+  const RULES=[
+    {k:'cut',re:/깨끗한 코드|깨끗하게|좋은 코드|가독성 (있게|좋게)|모범 사례|best practice|clean code|효율적으로 (짜|작성)|버그 없이|꼼꼼히/i,
+      why:'<b>자명한 지침</b> — 지워도 Claude가 실수하지 않습니다.'},
+    {k:'fix',re:/(^|[\s"'`([])(잘|적절히|가능하면|되도록|알아서|최대한|신경 써서)([\s"'`)\]]|$)/,
+      why:'<b>검증할 수 없는 표현</b> — 수치·명령으로 바꾸세요(예: "2칸 들여쓰기를 쓴다").'},
+    {k:'cut',re:/^\s*[-*]?\s*`?[\w./-]+\.(ts|tsx|js|jsx|py|go|rs|java|rb|php|c|cpp|h|css|html)`?\s*[:：—-]/,
+      why:'<b>파일별 코드베이스 설명</b> — 코드를 읽으면 알 수 있는 것은 빼세요.'},
+    {k:'info',re:/(반드시|절대|무조건)/,
+      why:'강조는 준수율을 올리지만, <b>정말 매번 실행돼야 하는 규칙</b>이라면 조언에 불과한 CLAUDE.md 대신 훅으로 강제하세요.'},
+    {k:'info',re:/^\s*@[\w./-]+\s*$/,
+      why:'<b>임포트한 파일의 내용도 그대로 컨텍스트에 들어옵니다</b> — 임포트 대상의 크기도 같이 세세요.'},
+  ];
+  const KIND={cut:'지울 것',fix:'고칠 것',info:'참고'};
+  const SAMPLES={
+    '📄 나쁜 예 불러오기':'# 프로젝트 지침\n\n- 깨끗한 코드를 작성하라\n- 가독성 좋게 짜고 커밋 메시지도 적절히 작성한다\n'
+      +'- 테스트는 가능하면 작성한다\n- 반드시 lint를 통과시켜야 한다\n\n# 코드베이스\n\n'
+      +'- src/api/client.ts: API 호출을 담당하는 파일\n- src/utils/date.ts: 날짜 포맷 유틸\n- src/hooks/useAuth.ts: 인증 훅\n',
+    '✅ 좋은 예 불러오기':'# 빌드 · 테스트\n\n- 빌드: `pnpm build` (Node 20 필요)\n- 테스트 1개만: `pnpm test -- -t "이름"`\n'
+      +'- 커밋 전 `pnpm lint --fix`\n\n# 코드 스타일\n\n- 들여쓰기 2칸, 세미콜론 없음\n- 날짜는 UTC로 저장하고 표시할 때만 변환\n\n'
+      +'# 워크플로\n\nIMPORTANT: 마이그레이션 파일은 직접 고치지 말고 `pnpm db:gen`으로 생성한다\n',
+  };
+  pgl.innerHTML='<div class="presets" id="clPre"></div>'
+    +'<textarea id="clIn" aria-label="검사할 CLAUDE.md 내용" spellcheck="false" '
+    +'placeholder="여기에 CLAUDE.md 내용을 붙여 넣으세요 — 위 버튼으로 예시를 불러올 수도 있습니다."></textarea>'
+    +'<div class="gauge"><div class="lab"><b>파일 크기</b><span class="val" id="clSize"></span></div>'
+    +'<div class="bar"><i id="clBar"></i></div></div>'
+    +'<div class="finds" id="clFinds"></div><div class="sum" id="clSum"></div>'
+    +'<div class="cav">규칙은 5장의 ✅/❌ 표를 기계로 옮긴 <b>어림 검사</b>입니다 — 걸리지 않았다고 좋은 지침은 아닙니다. '
+    +'최종 판단은 언제나 <b>"이 줄을 지우면 Claude가 실수하게 되는가?"</b>입니다.</div>';
+  const ta=pgl.querySelector('#clIn'), pre=pgl.querySelector('#clPre');
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function lint(){
+    const text=ta.value, lines=text?text.split('\n'):[];   // 빈 문자열도 split 하면 1줄이 된다
+    const chars=text.replace(/\s/g,'').length;
+    const toks=Math.round(chars/CHARS_PER_TOK);
+    pgl.querySelector('#clSize').textContent=lines.length+'줄 · 약 '+toks.toLocaleString()+' 토큰';
+    const bar=pgl.querySelector('#clBar'), pctRaw=lines.length/GOAL*100;
+    bar.style.width=Math.min(100,pctRaw).toFixed(1)+'%';
+    bar.classList.toggle('over',lines.length>GOAL);
+    // 코드 블록 안은 지침이 아니라 예시다 — 규칙을 걸면 잡음만 생긴다
+    const finds=[]; let fence=false;
+    lines.forEach((ln,i)=>{
+      if(/^\s*```/.test(ln)){fence=!fence;return;}
+      if(fence||!ln.trim())return;
+      for(const r of RULES) if(r.re.test(ln)){finds.push({n:i+1,ln:ln.trim(),k:r.k,why:r.why});break;}
+    });
+    const hasEmph=/IMPORTANT|YOU MUST/.test(text);
+    pgl.querySelector('#clFinds').innerHTML=finds.map(f=>'<div class="f '+f.k+'">'
+      +'<div class="hd"><span class="kind">'+KIND[f.k]+'</span><span class="ln">'+f.n+'행</span></div>'
+      +'<div class="src">'+esc(f.ln.length>90?f.ln.slice(0,90)+'…':f.ln)+'</div>'
+      +'<div class="why">'+f.why+'</div></div>').join('');
+    const cut=finds.filter(f=>f.k==='cut').length, fix=finds.filter(f=>f.k==='fix').length;
+    let sum;
+    if(!text.trim()) sum='내용을 붙여 넣으면 줄 단위로 검사합니다.';
+    else if(!cut&&!fix) sum='<span class="good">지울 줄이 안 보입니다.</span> 남은 것은 크기 관리입니다 — '
+      +(lines.length>GOAL?'<b>'+GOAL+'줄을 넘었으니</b> 주제별로 쪼개거나 가끔 쓰는 내용은 스킬로 옮기세요.':'현재 <b>'+lines.length+'줄</b>로 목표('+GOAL+'줄) 안입니다.');
+    else{
+      sum='<b>지울 수 있는 줄 '+cut+'개</b>'+(fix?' · <b>고칠 줄 '+fix+'개</b>':'')+' · 남길 '+(lines.length-cut)+'줄.';
+      if(cut) sum+=' 지우면 약 <b>'+Math.round(cut/Math.max(1,lines.length)*toks).toLocaleString()+' 토큰</b>이 매 세션 돌아옵니다.';
+    }
+    if(text.trim()&&!hasEmph) sum+='<br>잘 안 지켜지는 규칙이 있다면 <b>IMPORTANT</b>나 <b>YOU MUST</b>로 강조하면 준수율이 오릅니다.';
+    pgl.querySelector('#clSum').innerHTML=sum;
+  }
+  Object.entries(SAMPLES).forEach(([name,body])=>{
+    const b=document.createElement('button');b.type='button';b.textContent=name;
+    b.addEventListener('click',()=>{ta.value=body;[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');lint();});
+    pre.appendChild(b);
+  });
+  const clr=document.createElement('button');clr.type='button';clr.textContent='🧹 지우기';
+  clr.addEventListener('click',()=>{ta.value='';[...pre.children].forEach(c=>c.classList.remove('on'));lint();});
+  pre.appendChild(clr);
+  ta.addEventListener('input',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));lint();});
+  lint();
+}
+
+// ===== 플레이그라운드 · 컨텍스트 예산 =====
+const pgx=document.querySelector('.pg-ctx');
+if(pgx){
+  // 컨텍스트 창은 3장 모델 표와 같아야 한다. 표를 고치면 여기도 같이 고칠 것.
+  const WIN=[['claude-opus-5',1000000,'Opus 5'],['claude-fable-5',1000000,'Fable 5'],
+             ['claude-sonnet-5',1000000,'Sonnet 5'],['claude-haiku-4-5',200000,'Haiku 4.5']];
+  // [id, 이름, 최대, 색, 줄이는 방법(없으면 조절 대상이 아님)]
+  const SEG=[
+    ['sys','시스템 프롬프트 · 내장 도구',40000,'--c1',''],
+    ['md','CLAUDE.md · 기억 파일',40000,'--c2','200줄 목표로 줄이고, 가끔만 쓰는 내용은 스킬로 옮기세요'],
+    ['mcp','MCP 도구 정의',80000,'--c3','안 쓰는 MCP 서버를 끄세요. CLI로 되는 일은 CLI + 스킬이 상주 비용 0입니다'],
+    ['out','파일 · 도구 출력',400000,'--c4','고출력 탐색은 서브에이전트로 격리하면 요약만 돌아옵니다'],
+    ['hist','대화 기록',400000,'--c5','/compact 로 요약하거나, 작업이 바뀌면 /clear 로 리셋하세요'],
+  ];
+  const P={ // 시나리오 프리셋 — [sys, md, mcp, out, hist]
+    '🌱 세션 시작':[15000,5000,8000,4000,2000],
+    '🔨 한창 작업 중':[15000,8000,12000,60000,45000],
+    '🥵 긴 세션 · MCP 여러 개':[15000,25000,60000,260000,180000],
+    '🧊 압축 직후':[15000,8000,12000,8000,20000],
+  };
+  pgx.innerHTML='<div class="presets" id="cxPre"></div>'
+    +'<div class="fld"><div class="lab"><b>모델 (컨텍스트 창)</b></div><select id="cxModel" aria-label="모델"></select></div>'
+    +SEG.map(([id,nm,max])=>'<div class="fld"><div class="lab"><b>'+nm+'</b><span class="val" id="cx'+id+'V"></span></div>'
+      +'<input id="cx'+id+'" aria-label="'+nm+' 토큰 수" type="range" min="0" max="'+max+'" step="1000" value="0"></div>').join('')
+    +'<div class="out"><div class="big" id="cxBig"></div><div class="sub" id="cxSub"></div>'
+    +'<div class="stack" id="cxStack"></div><div class="lg" id="cxLg"></div></div>'
+    +'<div class="levers" id="cxLev"></div><div class="advice" id="cxAdv"></div>'
+    +'<div class="cav">절대 수치는 세션마다 다릅니다 — 내 세션의 진짜 값은 <b>/context</b>로 보세요. '
+    +'여기서 볼 것은 금액이 아니라 <b>무엇이 예산을 먹고 있는가</b>입니다.</div>';
+  const sel=pgx.querySelector('#cxModel');
+  WIN.forEach(([id,w,nm])=>{const o=document.createElement('option');o.value=id;
+    o.textContent=nm+' — '+(w/1000).toLocaleString()+'K';sel.appendChild(o);});
+  sel.value='claude-opus-5';
+  const inp=Object.fromEntries(SEG.map(([id])=>[id,pgx.querySelector('#cx'+id)]));
+  const pre=pgx.querySelector('#cxPre'), stack=pgx.querySelector('#cxStack'), lg=pgx.querySelector('#cxLg');
+  const k=v=>(v>=1000?Math.round(v/1000).toLocaleString()+'K':v.toLocaleString());
+  function setAll(vals){SEG.forEach(([id],i)=>{inp[id].value=vals[i];});}
+  function draw(){
+    const win=WIN.find(w=>w[0]===sel.value)[1];
+    const vals=SEG.map(([id])=>+inp[id].value);
+    const total=vals.reduce((a,b)=>a+b,0);
+    SEG.forEach(([id],i)=>{pgx.querySelector('#cx'+id+'V').textContent=k(vals[i])+' 토큰';});
+    const pct=total/win*100, over=total>win;
+    const big=pgx.querySelector('#cxBig');
+    big.textContent=k(total)+' / '+k(win)+'  ('+pct.toFixed(1)+'%)';
+    big.classList.toggle('over',over);
+    pgx.querySelector('#cxSub').textContent=over?'컨텍스트 창을 '+k(total-win)+' 넘었습니다'
+      :'남은 여유 '+k(win-total);
+    // 누적 막대 — 칸 사이를 2px 띄워 색만으로 구분하지 않게 한다
+    const denom=Math.max(total,win);
+    stack.innerHTML=SEG.map(([id,nm,mx,c],i)=>'<i style="flex:0 0 '+(vals[i]/denom*100).toFixed(2)
+      +'%;background:var('+c+')"></i>').join('')
+      +(over?'':'<i class="free" style="flex:1 1 auto"></i>');
+    lg.innerHTML=SEG.map(([id,nm,mx,c],i)=>'<span class="key" style="background:var('+c+')"></span>'
+      +'<span class="nm">'+nm+'</span><span class="amt">'+k(vals[i])+'</span>'
+      +'<span class="pct">'+(total?(vals[i]/total*100).toFixed(0):0)+'%</span>').join('');
+    // 판정 — 가장 많이 먹는 칸을 지목하고, 그 칸을 줄이는 방법을 알려 준다
+    let top=0; vals.forEach((v,i)=>{if(v>vals[top])top=i;});
+    let adv='';
+    if(over) adv+='<span class="warn">창을 넘었습니다.</span> 넘치면 자동 압축이 걸려 오래된 맥락이 요약으로 대체됩니다 — '
+      +'무엇이 요약될지는 고를 수 없으니, 넘기 전에 직접 줄이는 편이 낫습니다.<br>';
+    adv+='지금 가장 많이 먹는 것은 <b>'+SEG[top][1]+'</b>('+(total?(vals[top]/total*100).toFixed(0):0)+'%)입니다. ';
+    adv+=SEG[top][4]?SEG[top][4]+'.':'이건 줄일 수 없는 고정 비용입니다 — 나머지에서 아끼세요.';
+    adv+='<br><b>성능 저하는 절벽이 아니라 완만한 하강입니다</b> — "아직 창을 안 넘었으니 괜찮다"가 아니라, '
+      +'채울수록 앞선 지시를 잊기 시작합니다.';
+    pgx.querySelector('#cxAdv').innerHTML=adv;
+  }
+  // 레버 — 12장의 3대 기법과 10장의 CLI 권고를 그대로 눌러 본다
+  const LEV=[
+    ['/compact 실행','hist',v=>Math.round(v*0.25)],
+    ['탐색을 서브에이전트로 격리','out',()=>1500],
+    ['MCP → CLI + 스킬','mcp',()=>0],
+  ];
+  const lev=pgx.querySelector('#cxLev');
+  LEV.forEach(([label,id,fn])=>{const b=document.createElement('button');b.type='button';b.textContent=label;
+    b.addEventListener('click',()=>{inp[id].value=fn(+inp[id].value);
+      [...pre.children].forEach(c=>c.classList.remove('on'));draw();});lev.appendChild(b);});
+  Object.entries(P).forEach(([name,vals])=>{const b=document.createElement('button');b.type='button';b.textContent=name;
+    b.addEventListener('click',()=>{setAll(vals);[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');draw();});
+    pre.appendChild(b);});
+  [sel,...Object.values(inp)].forEach(e=>e.addEventListener('input',()=>{
+    [...pre.children].forEach(c=>c.classList.remove('on'));draw();}));
+  setAll(P['🔨 한창 작업 중']); pre.children[1].classList.add('on'); draw();
 }
 
 // ===== 이용약관 · 개인정보처리방침 · 저장소 설정 =====
