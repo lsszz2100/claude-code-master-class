@@ -665,7 +665,7 @@ pre.mermaid .copy-btn{display:none}
 @media screen{
 #ch1{contain-intrinsic-size:auto 4979px}
 #ch2{contain-intrinsic-size:auto 3977px}
-#ch3{contain-intrinsic-size:auto 5353px}
+#ch3{contain-intrinsic-size:auto 5596px}
 #ch4{contain-intrinsic-size:auto 5376px}
 #ch5{contain-intrinsic-size:auto 5378px}
 #ch6{contain-intrinsic-size:auto 4687px}
@@ -683,7 +683,7 @@ pre.mermaid .copy-btn{display:none}
 @media(max-width:900px){
 #ch1{contain-intrinsic-size:auto 6310px}
 #ch2{contain-intrinsic-size:auto 5651px}
-#ch3{contain-intrinsic-size:auto 8220px}
+#ch3{contain-intrinsic-size:auto 8867px}
 #ch4{contain-intrinsic-size:auto 7056px}
 #ch5{contain-intrinsic-size:auto 7633px}
 #ch6{contain-intrinsic-size:auto 6222px}
@@ -695,7 +695,7 @@ pre.mermaid .copy-btn{display:none}
 #ch12{contain-intrinsic-size:auto 7016px}
 #ch13{contain-intrinsic-size:auto 7534px}
 #ch14{contain-intrinsic-size:auto 6383px}
-#ch15{contain-intrinsic-size:auto 4520px}
+#ch15{contain-intrinsic-size:auto 4539px}
 #ch16{contain-intrinsic-size:auto 7260px}
 #ch17{contain-intrinsic-size:auto 6195px}
 }
@@ -1286,9 +1286,10 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 </table>
 <pre><code class="language-text">/effort xhigh
 </code></pre>
-<p><strong>effort를 지원하는 모델</strong>은 Fable 5·Opus 5·Sonnet 5와 레거시 Opus·Sonnet 계열입니다. <strong>Haiku 4.5는 effort도, 적응형 사고도 지원하지 않습니다</strong> — 저비용·저지연이 이미 그 모델의 성격이라 조절할 레버가 없다고 보면 됩니다. 레거시 중 <strong>Opus 4.6·Sonnet 4.6에는 <code>xhigh</code>가 없어</strong> 지정해도 <code>high</code>로 내려앉습니다(에러가 아니라 조용한 폴백이니, 올렸는데 안 달라졌다면 이걸 의심하세요).</p>
+<p><strong>effort를 지원하는 모델</strong>은 Fable 5·Opus 5·Sonnet 5와 레거시 Opus 4.8·4.7·4.6, Sonnet 4.6 <strong>뿐</strong>입니다 — 그보다 이전 모델은 목록에 아예 없습니다. <strong>Haiku 4.5는 effort도, 적응형 사고도 지원하지 않습니다</strong> — 저비용·저지연이 이미 그 모델의 성격이라 조절할 레버가 없다고 보면 됩니다. 레거시 중 <strong>Opus 4.6·Sonnet 4.6에는 <code>xhigh</code>가 없어</strong> 지정해도 <code>high</code>로 내려앉습니다(에러가 아니라 조용한 폴백 — Claude Code는 지정한 레벨 <strong>이하에서 가장 높은 지원 레벨</strong>로 떨어뜨립니다. 올렸는데 안 달라졌다면 이걸 의심하세요). 기본값은 effort를 지원하는 모든 모델이 <code>high</code>인데, <strong>Opus 4.7만 Claude Code 기본이 <code>xhigh</code></strong>입니다.</p>
 <blockquote>
 <p><strong><code>/effort</code> 메뉴의 <code>ultracode</code>는 effort 레벨이 아닙니다.</strong> 모델에는 <code>xhigh</code>를 보내고, 거기에 더해 Claude Code가 <strong>동적 워크플로를 오케스트레이션</strong>하도록 하는 Claude Code 쪽 설정입니다. 다른 레벨과 달리 <strong>현재 세션에만</strong> 적용됩니다.</p>
+<p><strong>이번 턴만 더 생각하게 하려면 <code>ultrathink</code>.</strong> 프롬프트 아무 곳에나 <code>ultrathink</code>를 넣으면 Claude Code가 키워드로 인식해 그 턴에만 더 깊이 생각하라는 지시를 붙입니다 — <strong>세션 effort 설정은 그대로</strong>이고 API로 보내는 레벨도 안 바뀝니다. 반대로 <strong>"think", "think hard", "think more"는 키워드가 아닙니다</strong> — 그냥 평범한 프롬프트 텍스트로 흘러갑니다. 예전 Claude Code의 "생각 단계(think &lt; think hard &lt; think harder &lt; ultrathink)"를 기억하고 있다면 지금은 <code>ultrathink</code> 하나만 남았다고 보면 됩니다.</p>
 <p><strong>effort는 "답변 길이" 레버가 아닙니다.</strong> 사고량과 토큰 총량을 조절할 뿐이라, Opus 5에서는 effort를 낮춰도 눈에 보이는 응답이 안정적으로 짧아지지 않습니다. 답변을 짧게 만들고 싶으면 effort가 아니라 <strong>프롬프트로 길이를 지시</strong>하세요(<a href="#ch14">14장</a>).</p>
 <p><strong>핵심(2026 최신):</strong> Opus 5·Sonnet 5의 기본 effort는 <strong><code>high</code></strong>입니다. <strong>기본(high)에서 시작</strong>해 자신의 평가셋으로 조정하세요 — <strong><code>low</code>·<code>medium</code>을 비용·속도의 주 레버로 적극 활용</strong>하고(품질이 유지되는 한), <strong>어려운 코딩·에이전틱엔 <code>xhigh</code>로 올립니다</strong>. 이전 모델의 effort 기본값을 그대로 가져왔다면 재튜닝하세요.</p>
 </blockquote>
@@ -1305,7 +1306,7 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 <pre><code class="language-text">/fast     # 토글 — 인터랙티브하게 빠른 피드백이 필요할 때
 </code></pre>
 <blockquote>
-<p><strong>Opus 4.7의 fast 모드는 2026-07-24에 제거됐습니다.</strong> 그런데 Claude Code는 4.7을 여전히 fast 모델로 취급해서 <strong>토글은 켜지지만 API가 요청을 거부</strong>합니다 — 조용히 표준 속도로 도는 게 아니라 실패합니다. 4.7에서 fast를 쓰던 설정이 남아 있다면 Opus 5나 4.8로 옮기세요.</p>
+<p><strong>Opus 4.7의 fast 모드는 2026-07-24에 제거됐습니다.</strong> 그런데 Claude Code는 4.7을 여전히 fast 모델로 취급해서 <strong>토글은 켜지지만 API가 요청을 거부</strong>합니다 — 조용히 표준 속도로 도는 게 아니라 실패합니다. 4.7에서 fast를 쓰던 설정이 남아 있다면 Opus 5나 4.8로 옮기세요. <strong>같은 "미지원"이라도 실패 방식이 다릅니다</strong> — Opus 4.6은 fast를 요청해도 조용히 표준 속도로 돌고 표준 요금으로 청구되지만, 4.7은 요청 자체가 거부됩니다.</p>
 </blockquote>
 <p><strong>비용을 반드시 알고 켜세요.</strong> fast 모드는 백만 토큰당 <strong>$10 / $50</strong> — 표준 Opus($5/$25)의 <strong>정확히 2배</strong>입니다. 그리고 두 가지가 더 있습니다.</p>
 <ul>
@@ -4439,7 +4440,7 @@ if(pgc){
     pgc.querySelector('#ccPlanCav').innerHTML='다만 <b>둘은 같은 것을 사는 게 아닙니다.</b> '
       +'요금제 한도는 금액이 아니라 <b>사용량 창</b>(5시간 롤링 + 주간 한도)이고 Claude 앱과 Claude Code가 그 한도를 나눠 씁니다 — 위 환산은 어림값입니다.'
       +'<br>요금제는 <b>내가 도구를 쓰는</b> 값이고, <b>내 서비스에 Claude를 붙이는</b> 것은 종량제(API)로만 됩니다. 그래서 보통 둘 중 하나가 아니라 둘 다 씁니다.'
-      +'<br>참고로 공식 문서가 밝힌 팀 배포 실측은 개발자 1인당 <b>하루 약 $13 · 한 달 $150~250</b>입니다.';
+      +'<br>참고로 공식 문서가 밝힌 팀 배포 실측은 개발자 1인당 <b>활동한 날 기준 하루 약 $13 · 한 달 $150~250</b>입니다(90%가 하루 $30 미만).';
   }
   Object.entries(P).forEach(([name,[pi,po,pn,ph]])=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.addEventListener('click',()=>{ti.value=pi;to.value=po;req.value=pn;hit.value=ph;[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');calc();});pre.appendChild(b);});
   [sel,req,ti,to,hit,batch].forEach(e=>e.addEventListener('input',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));calc();}));

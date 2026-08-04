@@ -1985,7 +1985,7 @@ if(pgc){
     pgc.querySelector('#ccPlanCav').innerHTML='다만 <b>둘은 같은 것을 사는 게 아닙니다.</b> '
       +'요금제 한도는 금액이 아니라 <b>사용량 창</b>(5시간 롤링 + 주간 한도)이고 Claude 앱과 Claude Code가 그 한도를 나눠 씁니다 — 위 환산은 어림값입니다.'
       +'<br>요금제는 <b>내가 도구를 쓰는</b> 값이고, <b>내 서비스에 Claude를 붙이는</b> 것은 종량제(API)로만 됩니다. 그래서 보통 둘 중 하나가 아니라 둘 다 씁니다.'
-      +'<br>참고로 공식 문서가 밝힌 팀 배포 실측은 개발자 1인당 <b>하루 약 $13 · 한 달 $150~250</b>입니다.';
+      +'<br>참고로 공식 문서가 밝힌 팀 배포 실측은 개발자 1인당 <b>활동한 날 기준 하루 약 $13 · 한 달 $150~250</b>입니다(90%가 하루 $30 미만).';
   }
   Object.entries(P).forEach(([name,[pi,po,pn,ph]])=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.addEventListener('click',()=>{ti.value=pi;to.value=po;req.value=pn;hit.value=ph;[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');calc();});pre.appendChild(b);});
   [sel,req,ti,to,hit,batch].forEach(e=>e.addEventListener('input',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));calc();}));
