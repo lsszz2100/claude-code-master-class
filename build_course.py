@@ -1976,7 +1976,7 @@ if(pgc){
   const KRW=1380; // 대략 환율(달러당)
   const M={ // [입력$, 출력$, 이름, 한줄 설명]
     'claude-haiku-4-5':[1,5,'Haiku 4.5','가볍고 빠름 · 가장 저렴'],
-    'claude-sonnet-5':[3,15,'Sonnet 5','균형 잡힌 실무용'],
+    'claude-sonnet-5':[2,10,'Sonnet 5','균형 잡힌 실무용'],
     'claude-opus-5':[5,25,'Opus 5','가장 똑똑 · 코딩 최강'],
     'claude-fable-5':[10,50,'Fable 5','최고 성능 · 가장 비쌈'],
   };
