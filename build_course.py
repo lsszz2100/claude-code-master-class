@@ -37,9 +37,10 @@ CHAPTERS = [
     ("12-context-engineering.md", "컨텍스트 엔지니어링"),
     ("13-harness-loop.md", "하네스 & 루프 엔지니어링"),
     ("14-prompt-guide.md", "최신 모델 프롬프트 가이드"),
-    ("15-playground.md", "플레이그라운드"),
-    ("16-appendix.md", "부록 · 알면 좋은 것들"),
-    ("17-references.md", "참고 자료 · GitHub 리소스"),
+    ("15-platform.md", "터미널 밖의 Claude Code"),
+    ("16-playground.md", "플레이그라운드"),
+    ("17-appendix.md", "부록 · 알면 좋은 것들"),
+    ("18-references.md", "참고 자료 · GitHub 리소스"),
 ]
 
 # 인페이지 앵커로 유지할 대상 (그 외 #앵커 링크는 굵은 텍스트로 치환)
@@ -201,7 +202,7 @@ QUIZZES = {
          ["태그 이름을 지목해 금지", "사고를 끄지 말고 effort를 low로 낮춰 비용 통제", "max_tokens를 늘림", "도구를 모두 제거"], 1,
          "대부분 '사고 켜짐 + low effort'가 '사고 꺼짐'보다 낫습니다. 끄면 도구호출·XML 태그 누수가 생깁니다."),
     ],
-    16: [
+    17: [
         ("가장 최근 세션을 이어서 여는 방법은?",
          ["claude --new", "claude --continue", "/reset", "claude --fresh"], 1,
          "`claude --continue`는 최근 세션을, `claude --resume`은 목록에서 골라 재개합니다. `/rename`으로 이름을 붙여 두면 찾기 쉽습니다."),
@@ -212,9 +213,20 @@ QUIZZES = {
          ["아무것도 안 해도 됨", "저장소 `.claude/skills/`에 커밋(또는 플러그인으로 배포)", "설정에서 켜기", "불가능"], 1,
          "클라우드/웹 세션은 로컬 `~/.claude/skills/`를 읽지 않습니다. 저장소에 커밋하거나 플러그인으로 배포해야 합니다."),
     ],
-    # 15장(놀이터)은 위젯 6종을 직접 만져 본 뒤 푸는 자리다. 그래서 문항도 "읽으면 아는 것"이
-    # 아니라 위젯을 돌려 보면 손에 남는 것으로 골랐다 — 위젯이 이미 가르친 사실만 묻는다.
     15: [
+        ("Remote Control과 Claude Code on the web의 가장 큰 차이는?",
+         ["요금제", "세션이 도는 곳 — 내 컴퓨터냐 클라우드냐", "쓸 수 있는 모델", "대화 기록 보관 기간"], 1,
+         "**Remote Control은 내 컴퓨터에서 세션이 돌고** 폰·웹은 그것을 들여다보는 창이라 로컬 파일·MCP·설정이 그대로 살아 있습니다. 웹/클라우드 세션은 클라우드 VM에서 돌아 로컬 준비가 필요 없는 대신 로컬 환경을 못 씁니다."),
+        ("아티팩트로 만들 수 **없는** 것은?",
+         ["주석 단 diff 훑어보기 페이지", "데이터 대시보드", "폼 입력을 저장하는 사내 도구", "선택지 비교 페이지"], 2,
+         "아티팩트는 **백엔드 없는 자체 완결 페이지 한 장**입니다. 폼 입력 저장·다중 경로·자체 API 호출이 안 됩니다(외부 데이터 경로는 MCP 커넥터뿐). 백엔드가 필요하면 직접 배포하세요."),
+        ("Chrome 연동을 쓸 수 없는 환경은?",
+         ["macOS", "Windows(네이티브)", "WSL", "Linux"], 2,
+         "Chrome·Edge와 Brave·Arc 같은 크로미움 계열에서 동작하지만 **WSL에서는 지원하지 않습니다.** Claude는 여러분의 브라우저 로그인 상태를 그대로 쓰고, 로그인 화면·CAPTCHA를 만나면 멈추고 사람에게 넘깁니다."),
+    ],
+    # 16장(놀이터)은 위젯 6종을 직접 만져 본 뒤 푸는 자리다. 그래서 문항도 "읽으면 아는 것"이
+    # 아니라 위젯을 돌려 보면 손에 남는 것으로 골랐다 — 위젯이 이미 가르친 사실만 묻는다.
+    16: [
         ("권한 규칙에서 `deny`에 `Bash(aws *)`, `allow`에 `Bash(aws s3 ls)`를 같이 적으면 `aws s3 ls`는?",
          ["allow가 더 구체적이라 자동 승인", "차단됨", "매번 물어봄", "설정 오류로 무시됨"], 1,
          "평가는 `deny`→`ask`→`allow` 순이고 **먼저 맞는 것이 이깁니다**. 구체성은 순서를 바꾸지 않으므로 넓은 deny에는 예외를 뚫을 수 없습니다 — 막을 것만 좁게 적으세요."),
@@ -469,7 +481,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <meta property="og:site_name" content="Claude Code 마스터 클래스">
 <meta property="og:url" content="https://claude-code-tutorial-ko.vercel.app/">
 <meta property="og:title" content="Claude Code 마스터 클래스">
-<meta property="og:description" content="설치부터 루프 엔지니어링까지 — Claude Code 한국어 종합 실전 강의. 17챕터, 각 챕터 확인 퀴즈 포함.">
+<meta property="og:description" content="설치부터 루프 엔지니어링까지 — Claude Code 한국어 종합 실전 강의. 18챕터, 각 챕터 확인 퀴즈 포함.">
 <meta property="og:image" content="https://claude-code-tutorial-ko.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -477,7 +489,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Claude Code 마스터 클래스">
-<meta name="twitter:description" content="설치부터 루프 엔지니어링까지 — Claude Code 한국어 종합 실전 강의. 17챕터, 퀴즈 포함.">
+<meta name="twitter:description" content="설치부터 루프 엔지니어링까지 — Claude Code 한국어 종합 실전 강의. 18챕터, 퀴즈 포함.">
 <meta name="twitter:image" content="https://claude-code-tutorial-ko.vercel.app/og.png">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" id="hljs-theme">
@@ -1285,7 +1297,7 @@ pre.mermaid .copy-btn{display:none}
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <span class="dot"></span>
-      <div><b>Claude Code 마스터 클래스</b><small>한국어 종합 실전 강의 · 17 chapters</small></div>
+      <div><b>Claude Code 마스터 클래스</b><small>한국어 종합 실전 강의 · 18 chapters</small></div>
     </div>
     <button class="search-trigger" id="searchBtn"><span>🔍</span><span>검색</span><kbd>Ctrl K</kbd></button>
     <div class="read-progress" id="readProgress"></div>

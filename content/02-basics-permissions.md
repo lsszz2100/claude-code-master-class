@@ -14,7 +14,7 @@ Claude가 파일을 수정하거나 명령을 실행할 때 **어디까지 묻�
 | **bypassPermissions** | 전부 (프롬프트 건너뜀) | 격리 환경의 무인 실행 (주의) |
 
 > **2026-08-14부터 새 세션의 기본이 오토 모드입니다.** Pro·Max·Team 요금제에서 **터미널이나 VS Code 확장**으로 세션을 열면 내장 기본값이 `auto`입니다(macOS·Linux·WSL은 v2.1.228+, 네이티브 Windows는 v2.1.233+). "Claude Code는 기본적으로 매번 물어본다"는 예전 상식은 이제 조건부입니다.
-> 반대로 **여전히 Manual(`default`)로 시작하는 경우**도 많습니다 — Enterprise 요금제·Console API 키, `claude -p`와 [Agent SDK](#ch16), Bedrock·Google Cloud·Microsoft Foundry 경유 세션, 관리 설정에서 `disableAutoMode`를 켠 조직, 그리고 **설치·업그레이드 직후 첫 세션**. 스스로 정해 둔 기본 모드가 있으면 그대로 유지되고, 한 번 물어보는 전환 제안을 거절하면 바뀌지 않습니다.
+> 반대로 **여전히 Manual(`default`)로 시작하는 경우**도 많습니다 — Enterprise 요금제·Console API 키, `claude -p`와 [Agent SDK](#ch15), Bedrock·Google Cloud·Microsoft Foundry 경유 세션, 관리 설정에서 `disableAutoMode`를 켠 조직, 그리고 **설치·업그레이드 직후 첫 세션**. 스스로 정해 둔 기본 모드가 있으면 그대로 유지되고, 한 번 물어보는 전환 제안을 거절하면 바뀌지 않습니다.
 > **`default`의 화면 이름이 "Manual"로 바뀌었습니다**(v2.1.200+). 설정값·훅·SDK가 읽는 값은 여전히 `default`이고, CLI에서는 `manual`이라고 써도 받습니다(`claude --permission-mode manual`).
 
 **모드 전환:** 프롬프트에서 **`Shift+Tab`**을 눌러 모드를 순환하거나, 실행 시 `--permission-mode` 플래그를 씁니다. 순환 경로는 생각보다 좁습니다 — 오토 모드에서 처음 누르면 `default`로 빠지고, 그다음은 **`default` → `acceptEdits` → `plan` → 다시 `default`**입니다. `auto`와 `bypassPermissions`는 **조건이 맞을 때만** `plan` 뒤에 끼어들고(둘 다면 `bypassPermissions`가 먼저, `auto`가 마지막), **`dontAsk`는 순환에 아예 나오지 않아** `--permission-mode dontAsk`로만 켭니다.
@@ -66,7 +66,7 @@ Bash 규칙에는 함정이 더 있습니다.
 
 **규칙은 Claude Code가 강제합니다 — 모델이 아닙니다.** `CLAUDE.md`에 "이건 하지 마"라고 쓰는 것은 시도를 유도할 뿐 경계가 아닙니다. 실제로 막으려면 규칙·모드·[훅](#ch9) 중 하나를 쓰세요.
 
-[15장 놀이터의 **권한 규칙 시뮬레이터**](#ch15)에 규칙과 명령을 넣어 보면, 어느 규칙이 먼저 맞았고 왜 그렇게 판정됐는지 단계별로 확인할 수 있습니다.
+[16장 놀이터의 **권한 규칙 시뮬레이터**](#ch16)에 규칙과 명령을 넣어 보면, 어느 규칙이 먼저 맞았고 왜 그렇게 판정됐는지 단계별로 확인할 수 있습니다.
 
 ---
 
