@@ -518,7 +518,7 @@ pre.mermaid .copy-btn{display:none}
 .pg-plan .row.win .verdict{color:#3aa76d}
 .pg-plan .sum{font-size:13.5px;color:var(--ink);margin-top:12px;line-height:1.65}
 .pg-plan .sum b{color:var(--accent2)}
-.pg-plan .cav{font-size:12px;color:var(--ink-dim);margin-top:9px;line-height:1.6}
+.pg-plan .cav,.pg-cmp .cav{font-size:12px;color:var(--ink-dim);margin-top:9px;line-height:1.6}
 @media(max-width:520px){.pg-plan .row{grid-template-columns:1fr auto;gap:3px 10px}
   .pg-plan .verdict{grid-column:1/-1;text-align:left}}
 
@@ -589,6 +589,53 @@ pre.mermaid .copy-btn{display:none}
 .pg-ctx .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
 @media(max-width:520px){.pg-ctx .lg{grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px}
   .pg-ctx .lg .pct{grid-column:2/-1;text-align:left}}
+
+/* 플레이그라운드 — 권한 규칙 시뮬레이터
+   판정 줄은 규칙 문자열·명령이 얼마든지 길어질 수 있다. 고정 폭 grid 를 쓰면 잘리거나
+   삐져나가므로(가로 넘침 검사가 잡는다) flex-wrap + overflow-wrap:anywhere 로만 짠다. */
+.pg-perm{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.pg-perm .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pg-perm .presets button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
+.pg-perm .presets button:hover,.pg-perm .presets button.on{border-color:var(--accent);color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
+.pg-perm .fld{margin-bottom:15px}
+.pg-perm .fld .lab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px;
+  font-size:13.5px;color:var(--ink-dim);margin-bottom:7px}
+.pg-perm .fld .lab b{color:var(--ink);font-weight:600}
+.pg-perm .fld .lab .hint{font-size:12px;font-family:"SF Mono",monospace}
+.pg-perm select{width:100%;font:inherit;font-size:14px;padding:10px 12px;background:var(--code-bg);
+  border:1px solid var(--line);border-radius:9px;color:var(--ink);outline:none}
+.pg-perm select:focus,.pg-perm textarea:focus{border-color:var(--accent)}
+.pg-perm textarea{width:100%;resize:vertical;box-sizing:border-box;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;
+  padding:12px 14px;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;color:var(--ink);outline:none}
+.pg-perm textarea#pmRules{min-height:150px}
+.pg-perm textarea#pmReqs{min-height:105px}
+.pg-perm .err{margin-top:9px;padding:11px 14px;font-size:13px;line-height:1.6;color:var(--ink);
+  background:var(--code-bg);border:1px solid var(--line);border-left:3px solid #c2452c;border-radius:9px}
+.pg-perm .rows{margin-top:4px;display:flex;flex-direction:column;gap:8px}
+.pg-perm .r{padding:11px 14px;background:var(--code-bg);border:1px solid var(--line);
+  border-left:3px solid var(--line);border-radius:9px;overflow-wrap:anywhere}
+.pg-perm .r.deny{border-left-color:#c2452c}
+.pg-perm .r.ask{border-left-color:var(--accent2)}
+.pg-perm .r.allow,.pg-perm .r.readonly{border-left-color:#3aa76d}
+.pg-perm .r.prompt{border-left-color:var(--ink-dim)}
+.pg-perm .r .hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px}
+.pg-perm .r .v{font-size:12.5px;font-weight:700;white-space:nowrap}
+.pg-perm .r.deny .v{color:#c2452c}
+.pg-perm .r.ask .v{color:var(--accent2)}
+.pg-perm .r.allow .v,.pg-perm .r.readonly .v{color:#3aa76d}
+.pg-perm .r.prompt .v{color:var(--ink-dim)}
+.pg-perm .r .q{font-family:"SF Mono",monospace;font-size:12.5px;color:var(--ink);min-width:0}
+.pg-perm .r .wy{font-size:13px;line-height:1.65;color:var(--ink-dim);margin-top:4px}
+.pg-perm .r .wy b{color:var(--ink)}
+.pg-perm .r .wy code{font-size:12px}
+.pg-perm .sum{margin-top:15px;padding:12px 15px;font-size:13.5px;line-height:1.7;color:var(--ink-dim);
+  background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:9px}
+.pg-perm .sum b{color:var(--ink)}
+.pg-perm .sum .warn{color:#c2452c;font-weight:700}
+.pg-perm .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
 
 /* 약관·개인정보·저장소 설정 모달 */
 .legal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:none;
@@ -672,7 +719,7 @@ pre.mermaid .copy-btn{display:none}
 @media print{
   .sidebar,.topbar,.backdrop,.progress,.theme-toggle,#quizStat,.consent,
   .legal-backdrop,.search-backdrop,.copy-btn,.quiz-retry,.rp-reset,
-  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-ctx,.site-footer .foot-links,
+  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-ctx,.pg-perm,.site-footer .foot-links,
   .pg-chips,.pg-tip{display:none !important}
   :root,:root[data-theme="dark"],:root[data-theme="light"]{
     --bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#111;--ink-dim:#444;
@@ -732,8 +779,8 @@ pre.mermaid .copy-btn{display:none}
 <style id="cv-sizes">
 @media screen{
 #ch1{contain-intrinsic-size:auto 4979px}
-#ch2{contain-intrinsic-size:auto 3977px}
-#ch3{contain-intrinsic-size:auto 5770px}
+#ch2{contain-intrinsic-size:auto 6508px}
+#ch3{contain-intrinsic-size:auto 5949px}
 #ch4{contain-intrinsic-size:auto 5376px}
 #ch5{contain-intrinsic-size:auto 5378px}
 #ch6{contain-intrinsic-size:auto 4687px}
@@ -741,17 +788,17 @@ pre.mermaid .copy-btn{display:none}
 #ch8{contain-intrinsic-size:auto 6376px}
 #ch9{contain-intrinsic-size:auto 7578px}
 #ch10{contain-intrinsic-size:auto 3897px}
-#ch11{contain-intrinsic-size:auto 5787px}
+#ch11{contain-intrinsic-size:auto 5908px}
 #ch12{contain-intrinsic-size:auto 4620px}
 #ch13{contain-intrinsic-size:auto 5500px}
 #ch14{contain-intrinsic-size:auto 4754px}
-#ch15{contain-intrinsic-size:auto 5510px}
-#ch16{contain-intrinsic-size:auto 5207px}
+#ch15{contain-intrinsic-size:auto 6832px}
+#ch16{contain-intrinsic-size:auto 5299px}
 #ch17{contain-intrinsic-size:auto 3795px}
 @media(max-width:900px){
 #ch1{contain-intrinsic-size:auto 6310px}
-#ch2{contain-intrinsic-size:auto 5651px}
-#ch3{contain-intrinsic-size:auto 9156px}
+#ch2{contain-intrinsic-size:auto 10563px}
+#ch3{contain-intrinsic-size:auto 9624px}
 #ch4{contain-intrinsic-size:auto 7056px}
 #ch5{contain-intrinsic-size:auto 7662px}
 #ch6{contain-intrinsic-size:auto 6222px}
@@ -759,12 +806,12 @@ pre.mermaid .copy-btn{display:none}
 #ch8{contain-intrinsic-size:auto 8427px}
 #ch9{contain-intrinsic-size:auto 9574px}
 #ch10{contain-intrinsic-size:auto 4796px}
-#ch11{contain-intrinsic-size:auto 7833px}
+#ch11{contain-intrinsic-size:auto 8099px}
 #ch12{contain-intrinsic-size:auto 7016px}
 #ch13{contain-intrinsic-size:auto 7534px}
 #ch14{contain-intrinsic-size:auto 6383px}
-#ch15{contain-intrinsic-size:auto 7414px}
-#ch16{contain-intrinsic-size:auto 7260px}
+#ch15{contain-intrinsic-size:auto 9453px}
+#ch16{contain-intrinsic-size:auto 7497px}
 #ch17{contain-intrinsic-size:auto 6195px}
 }
 }
@@ -982,7 +1029,7 @@ pre.mermaid .copy-btn{display:none}
     <nav aria-label="강의 목차">
       <a class="toc-ch" href="#top"><span class="toc-num">◆</span><span>개요</span></a>
       <div class="toc-group has-subs"><a class="toc-ch" href="#ch1"><span class="toc-num">01</span><span class="toc-label">Claude Code란? · 설치</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c1-claude-code란-무엇인가">Claude Code란 무엇인가</a><a class="toc-sub" href="#c1-설치하기">설치하기</a><a class="toc-sub" href="#c1-첫-세션-열기">첫 세션 열기</a><a class="toc-sub" href="#c1-claude-code를-강력하게-만드는-것들-이-강의의-지도">Claude Code를 강력하게 만드는 것들 — 이 강의의 지도</a><a class="toc-sub" href="#c1-핵심-요약">핵심 요약</a></div></div></div>
-<div class="toc-group has-subs"><a class="toc-ch" href="#ch2"><span class="toc-num">02</span><span class="toc-label">첫 세션 · 권한 · 플랜 모드</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c2-권한-모드-claude가-물어보는-빈도-조절">권한 모드 — Claude가 물어보는 빈도 조절</a><a class="toc-sub" href="#c2-플랜-모드-탐색과-실행을-분리">플랜 모드 — 탐색과 실행을 분리</a><a class="toc-sub" href="#c2-되돌리기-대화는-영속적이고-되돌릴-수-있다">되돌리기 — 대화는 영속적이고 되돌릴 수 있다</a><a class="toc-sub" href="#c2-컨텍스트-관리-처음부터-몸에-붙일-습관">컨텍스트 관리 — 처음부터 몸에 붙일 습관</a><a class="toc-sub" href="#c2-핵심-요약">핵심 요약</a></div></div></div>
+<div class="toc-group has-subs"><a class="toc-ch" href="#ch2"><span class="toc-num">02</span><span class="toc-label">첫 세션 · 권한 · 플랜 모드</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c2-권한-모드-claude가-물어보는-빈도-조절">권한 모드 — Claude가 물어보는 빈도 조절</a><a class="toc-sub" href="#c2-권한-규칙-모드보다-정확한-통제">권한 규칙 — 모드보다 정확한 통제</a><a class="toc-sub" href="#c2-플랜-모드-탐색과-실행을-분리">플랜 모드 — 탐색과 실행을 분리</a><a class="toc-sub" href="#c2-되돌리기-대화는-영속적이고-되돌릴-수-있다">되돌리기 — 대화는 영속적이고 되돌릴 수 있다</a><a class="toc-sub" href="#c2-컨텍스트-관리-처음부터-몸에-붙일-습관">컨텍스트 관리 — 처음부터 몸에 붙일 습관</a><a class="toc-sub" href="#c2-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch3"><span class="toc-num">03</span><span class="toc-label">모델과 성능</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c3-현재-모델-라인업-2026">현재 모델 라인업 (2026)</a><a class="toc-sub" href="#c3-모델-전환-model">모델 전환 — /model</a><a class="toc-sub" href="#c3-추론-강도-effort">추론 강도 — /effort</a><a class="toc-sub" href="#c3-빠른-모드-fast">빠른 모드 — /fast</a><a class="toc-sub" href="#c3-컨텍스트비용-함께-보기">컨텍스트·비용 함께 보기</a><a class="toc-sub" href="#c3-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch4"><span class="toc-num">04</span><span class="toc-label">명령어 · 슬래시 커맨드</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c4-명령의-세-가지-종류">명령의 세 가지 종류</a><a class="toc-sub" href="#c4-자주-쓰는-내장-명령어">자주 쓰는 내장 명령어</a><a class="toc-sub" href="#c4-명령-문법-인자셸파일-참조">명령 문법: 인자·셸·파일 참조</a><a class="toc-sub" href="#c4-실전-팁">실전 팁</a><a class="toc-sub" href="#c4-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch5"><span class="toc-num">05</span><span class="toc-label">CLAUDE.md · 프로젝트 지침</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c5-어디에-두는가-로드-순서와-스코프">어디에 두는가 — 로드 순서와 스코프</a><a class="toc-sub" href="#c5-효과적인-claudemd-작성법">효과적인 CLAUDE.md 작성법</a><a class="toc-sub" href="#c5-파일-임포트-경로">파일 임포트 (@경로)</a><a class="toc-sub" href="#c5-clauderules-규칙-모듈화와-경로-스코프">.claude/rules/ — 규칙 모듈화와 경로 스코프</a><a class="toc-sub" href="#c5-흔한-문제와-진단">흔한 문제와 진단</a><a class="toc-sub" href="#c5-핵심-요약">핵심 요약</a></div></div></div>
@@ -995,7 +1042,7 @@ pre.mermaid .copy-btn{display:none}
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch12"><span class="toc-num">12</span><span class="toc-label">컨텍스트 엔지니어링</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c12-프롬프트-컨텍스트-엔지니어링">프롬프트 → 컨텍스트 엔지니어링</a><a class="toc-sub" href="#c12-컨텍스트는-유한-자원-컨텍스트-로트">컨텍스트는 유한 자원 — 컨텍스트 로트</a><a class="toc-sub" href="#c12-4가지-큐레이션-영역">4가지 큐레이션 영역</a><a class="toc-sub" href="#c12-긴-작업의-3대-기법">긴 작업의 3대 기법</a><a class="toc-sub" href="#c12-claude-code에서의-실천">Claude Code에서의 실천</a><a class="toc-sub" href="#c12-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch13"><span class="toc-num">13</span><span class="toc-label">하네스 &amp; 루프 엔지니어링</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c13-네-가지-엔지니어링-계층">네 가지 엔지니어링 계층</a><a class="toc-sub" href="#c13-하네스-엔지니어링">하네스 엔지니어링</a><a class="toc-sub" href="#c13-루프-엔지니어링">루프 엔지니어링</a><a class="toc-sub" href="#c13-커뮤니티-인기-기술리소스">커뮤니티 인기 기술·리소스</a><a class="toc-sub" href="#c13-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch14"><span class="toc-num">14</span><span class="toc-label">최신 모델 프롬프트 가이드</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c14-1-응답이-길어졌다-간결하게-지시">1) 응답이 길어졌다 → 간결하게 지시</a><a class="toc-sub" href="#c14-2-진행-상황을-많이-내레이션한다-케이던스-지정">2) 진행 상황을 많이 내레이션한다 → 케이던스 지정</a><a class="toc-sub" href="#c14-3-파일-산출물도-길어졌다-길이-보정">3) 파일 산출물도 길어졌다 → 길이 보정</a><a class="toc-sub" href="#c14-4-스스로-검증한다-검증-지시를-빼라-범위-제약">4) 스스로 검증한다 → 검증 지시를 빼라 + 범위 제약</a><a class="toc-sub" href="#c14-5-서브에이전트를-더-적극-위임한다-캡을-걸어라">5) 서브에이전트를 더 적극 위임한다 → 캡을 걸어라</a><a class="toc-sub" href="#c14-6-스스로-고친다-재확인-지시를-빼라">6) 스스로 고친다 → 재확인 지시를 빼라</a><a class="toc-sub" href="#c14-7-thinking을-끄면-생기는-아티팩트">7) thinking을 끄면 생기는 아티팩트</a><a class="toc-sub" href="#c14-마이그레이션-노트-opus-48-opus-5">마이그레이션 노트 (Opus 4.8 → Opus 5)</a><a class="toc-sub" href="#c14-핵심-요약">핵심 요약</a></div></div></div>
-<div class="toc-group has-subs"><a class="toc-ch" href="#ch15"><span class="toc-num">15</span><span class="toc-label">플레이그라운드</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c15-터미널-놀이터">🖥 터미널 놀이터</a><a class="toc-sub" href="#c15-어떤-확장을-쓸까-진단기">🧭 어떤 확장을 쓸까? — 진단기</a><a class="toc-sub" href="#c15-비용-계산기">💰 비용 계산기</a><a class="toc-sub" href="#c15-내-claudemd-검사기">📋 내 CLAUDE.md 검사기</a><a class="toc-sub" href="#c15-컨텍스트-예산">🧮 컨텍스트 예산</a><a class="toc-sub" href="#c15-핵심-요약">핵심 요약</a></div></div></div>
+<div class="toc-group has-subs"><a class="toc-ch" href="#ch15"><span class="toc-num">15</span><span class="toc-label">플레이그라운드</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c15-터미널-놀이터">🖥 터미널 놀이터</a><a class="toc-sub" href="#c15-어떤-확장을-쓸까-진단기">🧭 어떤 확장을 쓸까? — 진단기</a><a class="toc-sub" href="#c15-비용-계산기">💰 비용 계산기</a><a class="toc-sub" href="#c15-내-claudemd-검사기">📋 내 CLAUDE.md 검사기</a><a class="toc-sub" href="#c15-컨텍스트-예산">🧮 컨텍스트 예산</a><a class="toc-sub" href="#c15-권한-규칙-시뮬레이터">🔐 권한 규칙 시뮬레이터</a><a class="toc-sub" href="#c15-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch16"><span class="toc-num">16</span><span class="toc-label">부록 · 알면 좋은 것들</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c16-세션-관리-대화를-브랜치처럼">세션 관리 — 대화를 브랜치처럼</a><a class="toc-sub" href="#c16-인터페이스워크플로-소소한-도구들">인터페이스·워크플로 소소한 도구들</a><a class="toc-sub" href="#c16-통합-ide-github-slack-데스크톱-모바일">통합 — IDE · GitHub · Slack · 데스크톱 · 모바일</a><a class="toc-sub" href="#c16-claude-code-on-the-web-클라우드-세션-예약-실행">Claude Code on the web · 클라우드 세션 · 예약 실행</a><a class="toc-sub" href="#c16-자동화프로그래밍">자동화·프로그래밍</a><a class="toc-sub" href="#c16-번들-스킬-이미-들어-있는-강력한-도구들">번들 스킬 — 이미 들어 있는 강력한 도구들</a><a class="toc-sub" href="#c16-비용성능-관리">비용·성능 관리</a><a class="toc-sub" href="#c16-더-배우기-anthropic-공식-무료-강좌">더 배우기 — Anthropic 공식 무료 강좌</a><a class="toc-sub" href="#c16-안전하게-쓰기-빠른-체크리스트">안전하게 쓰기 — 빠른 체크리스트</a><a class="toc-sub" href="#c16-핵심-요약">핵심 요약</a></div></div></div>
 <div class="toc-group has-subs"><a class="toc-ch" href="#ch17"><span class="toc-num">17</span><span class="toc-label">참고 자료 · GitHub 리소스</span><span class="toc-caret" aria-hidden="true">›</span></a><div class="toc-subs"><div class="toc-subs-inner"><a class="toc-sub" href="#c17-공식-자료-1차-출처">공식 자료 (1차 출처)</a><a class="toc-sub" href="#c17-개념-아티클-신규-개념의-출처">개념 아티클 (신규 개념의 출처)</a><a class="toc-sub" href="#c17-커뮤니티-큐레이션-인기-리소스-모음">커뮤니티 큐레이션 (인기 리소스 모음)</a><a class="toc-sub" href="#c17-바로-쓸-만한-자산-스킬claudemd-예시">바로 쓸 만한 자산 (스킬·CLAUDE.md 예시)</a><a class="toc-sub" href="#c17-어떻게-활용하면-좋은가">어떻게 활용하면 좋은가</a><a class="toc-sub" href="#c17-마치며">마치며</a><a class="toc-sub" href="#c17-수료증-만들기">🎓 수료증 만들기</a><a class="toc-sub" href="#c17-핵심-요약">핵심 요약</a></div></div></div>
     </nav>
@@ -1147,7 +1194,7 @@ CustomerOnboardingFlow는 어떤 엣지케이스를 처리하지?
 </ul><div class="quiz"><div class="quiz-head">확인 퀴즈<button class="quiz-retry" type="button" hidden>다시 풀기</button></div><div class="quiz-q" data-answer="1" data-qid="q1-1"><p class="quiz-question"><span class="quiz-n">Q1.</span> Claude Code를 사용하려면 어떤 계정이 필요한가요?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>무료 Claude.ai 요금제면 충분</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Pro/Max/Team/Enterprise/Console 중 하나</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>GitHub 계정만 있으면 됨</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>계정 불필요</button></div><div class="quiz-explain"><b>해설</b> · 무료 Claude.ai로는 사용할 수 없습니다. Pro/Max/Team/Enterprise/Console 또는 제3자 API 제공자가 필요합니다.</div></div><div class="quiz-q" data-answer="1" data-qid="q1-2"><p class="quiz-question"><span class="quiz-n">Q2.</span> 자동 업데이트를 지원하는 권장 설치 방법은?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>npm install -g</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>네이티브 설치 (curl … | bash / irm … | iex)</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>소스 빌드</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Homebrew</button></div><div class="quiz-explain"><b>해설</b> · 네이티브 설치가 가장 간단하고 백그라운드 자동 업데이트됩니다. brew·winget·npm은 수동 업데이트가 필요합니다.</div></div><div class="quiz-q" data-answer="1" data-qid="q1-3"><p class="quiz-question"><span class="quiz-n">Q3.</span> 새 코드베이스에 온보딩하는 가장 효과적인 방법은?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>전체 파일을 한 번에 읽게 시킨다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>시니어 엔지니어에게 하듯 질문을 던진다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>CLAUDE.md부터 작성한다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>테스트부터 돌린다</button></div><div class="quiz-explain"><b>해설</b> · &quot;로깅은 어떻게 동작해?&quot; 같은 질문을 직접 던지는 것이 가장 효과적인 온보딩입니다.</div></div></div></section>
 <section class="chapter" id="ch2"><div class="ch-badge">CHAPTER 02</div><h1 class="ch-title">첫 세션 · 권한 · 플랜 모드</h1><p>첫 세션을 열었다면, 이제 <strong>Claude를 안전하게 다루는 기본기</strong>를 익힐 차례입니다. 핵심은 세 가지 — <strong>권한(무엇을 허용할지), 플랜 모드(먼저 계획하기), 되돌리기(실수 복구)</strong>입니다.</p>
 <h2 id="c2-권한-모드-claude가-물어보는-빈도-조절">권한 모드 — Claude가 물어보는 빈도 조절</h2>
-<p>Claude가 파일을 수정하거나 명령을 실행하려 하면 기본적으로 <strong>멈추고 승인을 요청</strong>합니다. 권한 모드는 이 멈춤의 빈도를 조절합니다. 민감한 작업엔 감독을 늘리고, 신뢰하는 방향이면 방해를 줄이세요.</p>
+<p>Claude가 파일을 수정하거나 명령을 실행할 때 <strong>어디까지 묻지 않고 진행할지</strong>를 정하는 것이 권한 모드입니다. 민감한 작업엔 감독을 늘리고, 신뢰하는 방향이면 방해를 줄이세요.</p>
 <table>
 <thead>
 <tr>
@@ -1158,9 +1205,9 @@ CustomerOnboardingFlow는 어떤 엣지케이스를 처리하지?
 </thead>
 <tbody>
 <tr>
-<td><strong>default</strong></td>
+<td><strong>default</strong> (화면 표시는 <strong>Manual</strong>)</td>
 <td>읽기만</td>
-<td>시작 단계, 민감한 작업</td>
+<td>모든 행동을 직접 검토, 민감한 작업</td>
 </tr>
 <tr>
 <td><strong>acceptEdits</strong></td>
@@ -1169,13 +1216,18 @@ CustomerOnboardingFlow는 어떤 엣지케이스를 처리하지?
 </tr>
 <tr>
 <td><strong>plan</strong></td>
-<td>읽기 전용 탐색 (수정·실행 불가)</td>
+<td>읽기 전용 탐색 + (오토 모드를 쓸 수 있는 계정이면) 분류기가 승인한 명령</td>
 <td>계획 먼저 세우기</td>
 </tr>
 <tr>
 <td><strong>auto</strong></td>
-<td>분류기 모델이 위험한 것만 차단</td>
+<td>전부 — 대신 분류기가 뒤에서 검사</td>
 <td>방향은 신뢰하되 매 단계 클릭하기 싫을 때</td>
+</tr>
+<tr>
+<td><strong>dontAsk</strong></td>
+<td>미리 승인해 둔 도구만 (나머지는 묻지 않고 거부)</td>
+<td>잠가 둔 CI·스크립트</td>
 </tr>
 <tr>
 <td><strong>bypassPermissions</strong></td>
@@ -1184,14 +1236,50 @@ CustomerOnboardingFlow는 어떤 엣지케이스를 처리하지?
 </tr>
 </tbody>
 </table>
-<p><strong>모드 전환:</strong> 프롬프트에서 <strong><code>Shift+Tab</code></strong>을 눌러 모드를 순환하거나, 실행 시 <code>--permission-mode</code> 플래그를 씁니다.</p>
+<blockquote>
+<p><strong>2026-08-14부터 새 세션의 기본이 오토 모드입니다.</strong> Pro·Max·Team 요금제에서 <strong>터미널이나 VS Code 확장</strong>으로 세션을 열면 내장 기본값이 <code>auto</code>입니다(macOS·Linux·WSL은 v2.1.228+, 네이티브 Windows는 v2.1.233+). "Claude Code는 기본적으로 매번 물어본다"는 예전 상식은 이제 조건부입니다.
+반대로 <strong>여전히 Manual(<code>default</code>)로 시작하는 경우</strong>도 많습니다 — Enterprise 요금제·Console API 키, <code>claude -p</code>와 <a href="#ch16">Agent SDK</a>, Bedrock·Google Cloud·Microsoft Foundry 경유 세션, 관리 설정에서 <code>disableAutoMode</code>를 켠 조직, 그리고 <strong>설치·업그레이드 직후 첫 세션</strong>. 스스로 정해 둔 기본 모드가 있으면 그대로 유지되고, 한 번 물어보는 전환 제안을 거절하면 바뀌지 않습니다.
+<strong><code>default</code>의 화면 이름이 "Manual"로 바뀌었습니다</strong>(v2.1.200+). 설정값·훅·SDK가 읽는 값은 여전히 <code>default</code>이고, CLI에서는 <code>manual</code>이라고 써도 받습니다(<code>claude --permission-mode manual</code>).</p>
+</blockquote>
+<p><strong>모드 전환:</strong> 프롬프트에서 <strong><code>Shift+Tab</code></strong>을 눌러 모드를 순환하거나, 실행 시 <code>--permission-mode</code> 플래그를 씁니다. 순환 경로는 생각보다 좁습니다 — 오토 모드에서 처음 누르면 <code>default</code>로 빠지고, 그다음은 <strong><code>default</code> → <code>acceptEdits</code> → <code>plan</code> → 다시 <code>default</code></strong>입니다. <code>auto</code>와 <code>bypassPermissions</code>는 <strong>조건이 맞을 때만</strong> <code>plan</code> 뒤에 끼어들고(둘 다면 <code>bypassPermissions</code>가 먼저, <code>auto</code>가 마지막), <strong><code>dontAsk</code>는 순환에 아예 나오지 않아</strong> <code>--permission-mode dontAsk</code>로만 켭니다.</p>
 <pre><code class="language-bash">claude --permission-mode plan          <span class="hljs-comment"># 플랜 모드로 시작</span>
 claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint errors&quot;</span>   <span class="hljs-comment"># 오토 모드 무인 실행</span>
 </code></pre>
 <blockquote>
-<p><strong>오토 모드</strong>는 별도 분류기 모델이 명령을 검토해 스코프 이탈·미지의 인프라·적대적 콘텐츠 기반 동작만 차단하고, 나머지 루틴 작업은 통과시킵니다. "방향은 맞다고 믿지만 열 번째 승인쯤 되면 사실 검토가 아니라 그냥 클릭하는" 상태를 없애 줍니다.</p>
+<p><strong>오토 모드</strong>는 별도 분류기 모델이 명령을 검토해 스코프 이탈·미지의 인프라·적대적 콘텐츠 기반 동작만 차단하고, 나머지 루틴 작업은 통과시킵니다. "방향은 맞다고 믿지만 열 번째 승인쯤 되면 사실 검토가 아니라 그냥 클릭하는" 상태를 없애 줍니다. <strong>Pro·Max·Team에서는 분류기 호출이 사용량 한도에 잡히지 않습니다.</strong> 다만 <strong>모델을 가립니다</strong> — Opus 4.6 이상·Sonnet 4.6 이상·Fable 5에서만 쓸 수 있고(클라우드 경유는 Sonnet 5·Opus 4.7 이상·Fable 5), Haiku나 구형 모델에서는 "사용 불가"가 뜹니다. 이건 일시적 장애가 아니라 요건 미충족이라는 뜻입니다.</p>
+<p><strong>어떤 모드도 자동 승인하지 않는 것이 있습니다.</strong> <code>ask</code> 규칙에 걸린 도구, 조직이 <code>ask</code>로 지정한 커넥터, 사용자 입력이 필요한 도구(<code>AskUserQuestion</code> 등), 그리고 <strong><code>/</code>나 <code>~</code> 같은 크리티컬 경로를 지우는 <code>rm</code>·<code>rmdir</code></strong> — 이들은 <code>bypassPermissions</code>에서도 그냥 통과하지 않습니다. 반대로 <strong>deny 규칙은 모든 모드에서 막고</strong>, <code>bypassPermissions</code>에서는 allow 규칙이 무의미해집니다.</p>
 </blockquote>
-<p><strong>권한을 세밀하게 통제</strong>하려면 <code>/permissions</code>로 특정 도구·명령을 허용/거부 규칙에 추가하거나(<code>npm run lint</code> 같은 안전한 것만 허용), <code>/sandbox</code>로 OS 레벨 격리를 켤 수 있습니다.</p>
+<p><strong>권한을 세밀하게 통제</strong>하려면 <code>/permissions</code>로 특정 도구·명령을 허용/거부 규칙에 추가하거나(<code>npm run lint</code> 같은 안전한 것만 허용), <code>/sandbox</code>로 OS 레벨 격리를 켤 수 있습니다. 시작 모드를 고정하고 싶으면 <code>~/.claude/settings.json</code>의 <code>permissions.defaultMode</code>에 적으세요 — <strong><code>"auto"</code>만은 프로젝트 설정(<code>.claude/settings.json</code>·<code>settings.local.json</code>)에서 무시됩니다.</strong> 프로젝트 설정에 <code>auto</code>를 적어 놓고 "왜 계속 Manual로 시작하지?" 하며 헤매기 쉽습니다.</p>
+<hr />
+<h2 id="c2-권한-규칙-모드보다-정확한-통제">권한 규칙 — 모드보다 정확한 통제</h2>
+<p>모드가 "얼마나 물어볼지"라면, <strong>규칙</strong>은 "무엇을 어떻게 다룰지"입니다. <code>settings.json</code>의 <code>permissions</code>에 세 갈래로 적습니다.</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;permissions&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;deny&quot;</span><span class="hljs-punctuation">:</span>  <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;Bash(git push --force *)&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;Read(./.env)&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;ask&quot;</span><span class="hljs-punctuation">:</span>   <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;Bash(git push *)&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;allow&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;Bash(npm run *)&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;Edit(/src/**)&quot;</span><span class="hljs-punctuation">]</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>규칙 형식은 <strong><code>Tool</code></strong> 또는 <strong><code>Tool(지정자)</code></strong>입니다. 괄호 없는 <code>Bash</code>는 그 도구의 모든 사용에 맞고, <code>Bash(*)</code>도 같습니다. 여기서 반드시 알아야 할 것이 셋 있습니다.</p>
+<blockquote>
+<p><strong>1. 평가 순서는 <code>deny</code> → <code>ask</code> → <code>allow</code>, 먼저 맞는 것이 이깁니다.</strong> <strong>구체적인 규칙이 이기는 게 아닙니다.</strong> 그래서 <strong>넓은 deny에는 예외를 뚫을 수 없습니다</strong> — <code>Bash(aws *)</code>를 막아 두면 <code>Bash(aws s3 ls)</code>를 allow에 넣어도 막힙니다. ask와 allow 사이도 같아서, ask에 맞으면 더 구체적인 allow가 있어도 물어봅니다. 예외를 두고 싶다면 deny를 넓게 쓰지 말고 <strong>막을 것만 좁게</strong> 적어야 합니다.</p>
+<p><strong>2. <code>*</code> 앞의 공백이 의미를 바꿉니다.</strong> 끝에 붙은 <code>*</code>(공백+별표)는 <strong>단어 경계</strong>를 요구합니다 — <code>Bash(ls *)</code>는 <code>ls -la</code>에 맞지만 <code>lsof</code>에는 안 맞습니다. 반면 <code>Bash(ls*)</code>는 <strong>둘 다</strong> 맞습니다. <code>:*</code> 접미사는 <code>*</code>와 같은 뜻이라 <code>Bash(ls:*)</code> = <code>Bash(ls *)</code>인데, <strong>끝에서만</strong> 그렇게 읽힙니다(<code>Bash(git:* push)</code>의 콜론은 그냥 문자).</p>
+<p><strong>3. 경로 규칙의 맨 앞 <code>/</code>는 파일시스템 루트가 아닙니다.</strong> <code>Read</code>·<code>Edit</code>은 gitignore 문법을 쓰는데, 앞머리가 넷으로 갈립니다 — <code>//절대경로</code>, <code>~/홈</code>, <strong><code>/설정_파일_기준</code></strong>, <code>상대경로</code>(또는 <code>./</code>). 즉 사용자 설정(<code>~/.claude/settings.json</code>)에 적은 <code>Read(/secrets/**)</code>는 프로젝트의 <code>secrets/</code>가 아니라 홈의 <code>~/.claude/secrets/</code> 쪽을 막습니다. 모든 프로젝트에 걸리게 하려면 <code>//</code>나 <code>~/</code>를 쓰세요.</p>
+</blockquote>
+<p>Bash 규칙에는 함정이 더 있습니다.</p>
+<ul>
+<li><strong>복합 명령은 조각마다 따로 맞아야 합니다.</strong> <code>Bash(safe-cmd *)</code>가 있어도 <code>safe-cmd &amp;&amp; other-cmd</code>는 통과하지 못합니다(구분자 <code>&amp;&amp;</code> <code>||</code> <code>;</code> <code>|</code> <code>&amp;</code> 및 줄바꿈을 인식).</li>
+<li><strong>일부 래퍼는 벗겨진 뒤 매칭됩니다</strong> — <code>timeout</code>·<code>time</code>·<code>nice</code>·<code>nohup</code>·<code>stdbuf</code>·<code>command</code>·<code>builtin</code>·<code>noglob</code>, 그리고 플래그 없는 <code>xargs</code>. 그래서 <code>Bash(npm test *)</code>가 <code>timeout 30 npm test</code>에도 맞습니다.</li>
+<li><strong>반대로 실행기(runner)는 안 벗겨집니다.</strong> <code>npx</code>·<code>docker exec</code>·<code>devbox run</code> 등은 목록에 없어서 <code>Bash(devbox run *)</code>를 allow에 넣으면 <strong><code>devbox run rm -rf .</code>까지 허용</strong>됩니다. 실행기는 내부 명령까지 못 박아 <code>Bash(devbox run npm test)</code>처럼 적으세요.</li>
+<li><strong>읽기 전용 명령 세트</strong>(<code>ls</code>·<code>cat</code>·<code>grep</code>·<code>head</code>·<code>wc</code>·읽기용 <code>git</code> 등)는 <strong>모든 모드에서 규칙 없이 통과</strong>합니다. 이들을 굳이 allow에 적을 필요는 없고, 반대로 <strong>물어보게 만들려면 ask·deny에 적어야</strong> 합니다.</li>
+<li><code>Bash(command:rm *)</code>처럼 <strong>본문 필드를 파라미터로 적은 규칙은 무시</strong>되고 시작 시 경고가 납니다(복합 명령으로 우회되니까). <code>Bash(rm *)</code>로 적으세요.</li>
+</ul>
+<blockquote>
+<p><strong>deny의 두 얼굴:</strong> 이름만 적은 <code>Bash</code>는 그 <strong>도구를 컨텍스트에서 아예 제거</strong>해 Claude가 존재조차 모르게 하고, <code>Bash(rm *)</code>처럼 범위를 준 규칙은 도구를 남긴 채 맞는 호출만 막습니다. 또 <strong><code>Read</code> deny는 같은 경로의 Edit·Write까지 막습니다</strong>(NotebookEdit은 예외이므로 아무 도구도 못 바꾸게 하려면 <code>Edit</code> deny를 따로 적으세요).</p>
+</blockquote>
+<p><strong>규칙은 Claude Code가 강제합니다 — 모델이 아닙니다.</strong> <code>CLAUDE.md</code>에 "이건 하지 마"라고 쓰는 것은 시도를 유도할 뿐 경계가 아닙니다. 실제로 막으려면 규칙·모드·<a href="#ch9">훅</a> 중 하나를 쓰세요.</p>
+<p><a href="#ch15">15장 놀이터의 <strong>권한 규칙 시뮬레이터</strong></a>에 규칙과 명령을 넣어 보면, 어느 규칙이 먼저 맞았고 왜 그렇게 판정됐는지 단계별로 확인할 수 있습니다.</p>
 <hr />
 <h2 id="c2-플랜-모드-탐색과-실행을-분리">플랜 모드 — 탐색과 실행을 분리</h2>
 <p>바로 코딩에 뛰어들면 <strong>엉뚱한 문제를 푸는 코드</strong>가 나옵니다. 플랜 모드는 Claude를 <strong>읽기 전용</strong>으로 두어, 변경 없이 코드베이스를 이해하고 계획부터 세우게 합니다.</p>
@@ -1251,11 +1339,12 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 <hr />
 <h2 id="c2-핵심-요약">핵심 요약</h2>
 <ul>
-<li><strong>권한 모드</strong>(<code>Shift+Tab</code>으로 순환): default→acceptEdits→plan→auto→bypassPermissions. 민감할수록 감독을, 신뢰할수록 자율을.</li>
+<li><strong>권한 모드</strong>: Pro·Max·Team의 새 세션은 <strong>2026-08-14부터 오토 모드로 시작</strong>한다. <code>Shift+Tab</code> 순환은 <code>default</code>(화면엔 Manual)→<code>acceptEdits</code>→<code>plan</code>이고, <code>auto</code>·<code>bypassPermissions</code>는 조건이 맞을 때만 뒤에 붙으며 <code>dontAsk</code>는 순환에 없다.</li>
+<li><strong>권한 규칙</strong>은 <code>deny</code>→<code>ask</code>→<code>allow</code> 순으로 <strong>먼저 맞는 것이 이긴다</strong>(구체성 무관) — 넓은 deny에 예외를 뚫을 수 없고, <code>Bash(ls *)</code>와 <code>Bash(ls*)</code>는 다르며, 경로 규칙의 앞 <code>/</code>는 <strong>설정 파일 기준</strong>이다.</li>
 <li><strong>플랜 모드</strong>로 탐색·계획을 실행과 분리해 엉뚱한 문제 풀기를 막는다(작은 변경은 건너뛰기).</li>
 <li><strong><code>Esc</code>·<code>/rewind</code>·체크포인트</strong>로 과감히 시도하고 되돌린다. 단, git을 대체하진 않는다.</li>
 <li>작업 전환마다 <strong><code>/clear</code></strong>, 방향은 <strong>일찍 교정</strong> — 컨텍스트 관리가 곧 성능이다.</li>
-</ul><div class="quiz"><div class="quiz-head">확인 퀴즈<button class="quiz-retry" type="button" hidden>다시 풀기</button></div><div class="quiz-q" data-answer="1" data-qid="q2-1"><p class="quiz-question"><span class="quiz-n">Q1.</span> 권한 모드를 순환 전환하는 단축키는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+C</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Shift+Tab</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Tab</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+R</button></div><div class="quiz-explain"><b>해설</b> · Shift+Tab으로 default→acceptEdits→plan→auto→bypassPermissions를 순환합니다.</div></div><div class="quiz-q" data-answer="1" data-qid="q2-2"><p class="quiz-question"><span class="quiz-n">Q2.</span> 변경 없이 코드베이스를 이해하고 계획만 세우는 모드는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>acceptEdits</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>plan</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>auto</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>bypassPermissions</button></div><div class="quiz-explain"><b>해설</b> · plan 모드는 읽기 전용 탐색으로, 엉뚱한 문제를 푸는 것을 막아 줍니다.</div></div><div class="quiz-q" data-answer="0" data-qid="q2-3"><p class="quiz-question"><span class="quiz-n">Q3.</span> 실행 중인 Claude를 멈추되 컨텍스트를 보존해 방향을 바꾸는 키는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Esc</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+D</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>q</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+Z</button></div><div class="quiz-explain"><b>해설</b> · Esc로 중단하면 컨텍스트가 보존되어 바로 방향을 재지정할 수 있습니다. Esc 두 번은 되감기 메뉴.</div></div></div></section>
+</ul><div class="quiz"><div class="quiz-head">확인 퀴즈<button class="quiz-retry" type="button" hidden>다시 풀기</button></div><div class="quiz-q" data-answer="1" data-qid="q2-1"><p class="quiz-question"><span class="quiz-n">Q1.</span> 권한 모드를 순환 전환하는 단축키는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+C</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Shift+Tab</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Tab</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+R</button></div><div class="quiz-explain"><b>해설</b> · Shift+Tab으로 default(화면엔 Manual)→acceptEdits→plan을 순환합니다. auto·bypassPermissions는 조건이 맞을 때만 뒤에 끼어들고, dontAsk는 순환에 나오지 않습니다.</div></div><div class="quiz-q" data-answer="1" data-qid="q2-2"><p class="quiz-question"><span class="quiz-n">Q2.</span> 변경 없이 코드베이스를 이해하고 계획만 세우는 모드는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>acceptEdits</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>plan</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>auto</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>bypassPermissions</button></div><div class="quiz-explain"><b>해설</b> · plan 모드는 읽기 전용 탐색으로, 엉뚱한 문제를 푸는 것을 막아 줍니다.</div></div><div class="quiz-q" data-answer="0" data-qid="q2-3"><p class="quiz-question"><span class="quiz-n">Q3.</span> 실행 중인 Claude를 멈추되 컨텍스트를 보존해 방향을 바꾸는 키는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Esc</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+D</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>q</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>Ctrl+Z</button></div><div class="quiz-explain"><b>해설</b> · Esc로 중단하면 컨텍스트가 보존되어 바로 방향을 재지정할 수 있습니다. Esc 두 번은 되감기 메뉴.</div></div></div></section>
 <section class="chapter" id="ch3"><div class="ch-badge">CHAPTER 03</div><h1 class="ch-title">모델과 성능</h1><p>Claude Code는 여러 Claude 모델 위에서 돌아갑니다. <strong>어떤 모델을, 어느 강도로 쓰느냐</strong>가 결과 품질·속도·비용을 좌우합니다. 이 챕터는 현재(2026년) 모델 라인업과, Claude Code에서 이를 통제하는 <code>/model</code>·<code>/effort</code>·<code>/fast</code>를 다룹니다.</p>
 <h2 id="c3-현재-모델-라인업-2026">현재 모델 라인업 (2026)</h2>
 <p>Claude 5 세대가 핵심입니다. 티어별로 지능·속도·가격이 다릅니다.</p>
@@ -1354,7 +1443,7 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 </table>
 <pre><code class="language-text">/effort xhigh
 </code></pre>
-<p><strong>effort를 지원하는 모델</strong>은 Fable 5·Opus 5·Sonnet 5와 레거시 Opus 4.8·4.7·4.6, Sonnet 4.6, Opus 4.5 <strong>뿐</strong>입니다 — 그보다 이전 모델은 목록에 아예 없습니다. <strong>Opus 4.5는 예외적인 한 칸</strong>으로, 적응형 사고가 없는 확장 사고(<code>budget_tokens</code>) 전용 모델 중 유일하게 effort를 지원하되 <code>xhigh</code>·<code>max</code>가 없어 <code>low</code>/<code>medium</code>/<code>high</code> 셋뿐입니다. <strong>Haiku 4.5는 effort도, 적응형 사고도 지원하지 않습니다</strong> — 저비용·저지연이 이미 그 모델의 성격이라 조절할 레버가 없다고 보면 됩니다. 레거시 중 <strong>Opus 4.6·Sonnet 4.6에는 <code>xhigh</code>가 없어</strong> 지정해도 <code>high</code>로 내려앉습니다(에러가 아니라 조용한 폴백 — Claude Code는 지정한 레벨 <strong>이하에서 가장 높은 지원 레벨</strong>로 떨어뜨립니다. 올렸는데 안 달라졌다면 이걸 의심하세요). 기본값은 effort를 지원하는 모든 모델이 <code>high</code>인데, <strong>Opus 4.7만 Claude Code 기본이 <code>xhigh</code></strong>입니다.</p>
+<p><strong>effort를 지원하는 모델</strong>은 Fable 5·Opus 5·Sonnet 5와 레거시 Opus 4.8·4.7·4.6, Sonnet 4.6, Opus 4.5 <strong>뿐</strong>입니다 — 그보다 이전 모델은 목록에 아예 없습니다. <strong>Opus 4.5는 예외적인 한 칸</strong>으로, 적응형 사고가 없는 확장 사고(<code>budget_tokens</code>) 전용 모델 중 유일하게 effort를 지원하되 <code>xhigh</code>·<code>max</code>가 없어 <code>low</code>/<code>medium</code>/<code>high</code> 셋뿐입니다. <strong>Haiku 4.5는 effort도, 적응형 사고도 지원하지 않습니다</strong> — 대신 구세대 방식인 <strong>확장 사고(<code>thinking.type: "enabled"</code>)는 지원</strong>하므로, 사고량을 조절하려면 <code>budget_tokens</code>로 직접 예산을 잡아야 합니다. 최신 3종(Fable 5·Opus 5·Sonnet 5)은 반대로 확장 사고를 안 받고 적응형 사고 + effort로 움직입니다. 레거시 중 <strong>Opus 4.6·Sonnet 4.6에는 <code>xhigh</code>가 없어</strong> 지정해도 <code>high</code>로 내려앉습니다(에러가 아니라 조용한 폴백 — Claude Code는 지정한 레벨 <strong>이하에서 가장 높은 지원 레벨</strong>로 떨어뜨립니다. 올렸는데 안 달라졌다면 이걸 의심하세요). 기본값은 effort를 지원하는 모든 모델이 <code>high</code>인데, <strong>Opus 4.7만 Claude Code 기본이 <code>xhigh</code></strong>입니다.</p>
 <blockquote>
 <p><strong><code>/effort</code> 메뉴의 <code>ultracode</code>는 effort 레벨이 아닙니다.</strong> 모델에는 <code>xhigh</code>를 보내고, 거기에 더해 Claude Code가 <strong>동적 워크플로를 오케스트레이션</strong>하도록 하는 Claude Code 쪽 설정입니다. 다른 레벨과 달리 <strong>현재 세션에만</strong> 적용됩니다.</p>
 <p><strong>이번 턴만 더 생각하게 하려면 <code>ultrathink</code>.</strong> 프롬프트 아무 곳에나 <code>ultrathink</code>를 넣으면 Claude Code가 키워드로 인식해 그 턴에만 더 깊이 생각하라는 지시를 붙입니다 — <strong>세션 effort 설정은 그대로</strong>이고 API로 보내는 레벨도 안 바뀝니다. 반대로 <strong>"think", "think hard", "think more"는 키워드가 아닙니다</strong> — 그냥 평범한 프롬프트 텍스트로 흘러갑니다. 예전 Claude Code의 "생각 단계(think &lt; think hard &lt; think harder &lt; ultrathink)"를 기억하고 있다면 지금은 <code>ultrathink</code> 하나만 남았다고 보면 됩니다.</p>
@@ -1366,7 +1455,7 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 <li><strong>높은 effort + 긴 작업</strong>이면 출력 토큰 여유(<code>max_tokens</code>)를 넉넉히 — 사고가 예산의 큰 몫을 쓸 수 있습니다.</li>
 </ul>
 <blockquote>
-<p><strong>적응형 사고(adaptive thinking):</strong> Opus 5·Sonnet 5·Fable 5는 언제·얼마나 생각할지 <strong>스스로 정합니다</strong>(고정 "thinking budget" 개념은 폐기). <strong>Opus 5는 사고가 기본으로 켜져</strong> 있고(이전 세대인 Opus 4.8·4.7은 꺼짐이 기본이었습니다), <strong>Fable 5는 항상 켜져</strong> 있어 끌 수 없습니다. effort가 그 깊이를 조절하는 주 레버입니다. 모델별 프롬프트 튜닝은 <a href="#ch14">14장 최신 모델 프롬프트 가이드</a>에서 자세히 다룹니다.</p>
+<p><strong>적응형 사고(adaptive thinking):</strong> Opus 5·Sonnet 5·Fable 5는 언제·얼마나 생각할지 <strong>스스로 정합니다</strong>(고정 "thinking budget" 개념은 폐기). <strong>Opus 5는 사고가 기본으로 켜져</strong> 있고(이전 세대인 Opus 4.8·4.7은 꺼짐이 기본이었습니다), <strong>Fable 5는 항상 켜져</strong> 있어 끌 수 없습니다. Opus 5도 <strong><code>xhigh</code>·<code>max</code>에서는 사고를 끌 수 없어</strong>, 그 레벨에서 <code>thinking: {"type": "disabled"}</code>를 보내면 400 에러가 돌아옵니다. effort가 그 깊이를 조절하는 주 레버입니다. 모델별 프롬프트 튜닝은 <a href="#ch14">14장 최신 모델 프롬프트 가이드</a>에서 자세히 다룹니다.</p>
 </blockquote>
 <hr />
 <h2 id="c3-빠른-모드-fast">빠른 모드 — <code>/fast</code></h2>
@@ -1385,6 +1474,7 @@ claude --permission-mode auto -p <span class="hljs-string">&quot;fix all lint er
 <hr />
 <h2 id="c3-컨텍스트비용-함께-보기">컨텍스트·비용 함께 보기</h2>
 <ul>
+<li><strong>토큰 자체가 세대마다 다릅니다.</strong> Opus 4.7부터 도입된 새 토크나이저를 쓰는 모델(<strong>Fable 5·Opus 5·Sonnet 5</strong>)은 <strong>같은 텍스트가 약 30% 더 많은 토큰</strong>이 됩니다. Sonnet 4.6 이전과 <strong>Haiku 4.5는 옛 토크나이저</strong>입니다 — 그래서 백만 토큰당 단가만 나란히 놓고 비교하면 최신 모델 쪽 실제 비용이 <strong>과소평가</strong>되고, 1M 창에 들어가는 실제 분량도 그만큼 줄어듭니다. 정확한 증가율은 내용에 따라 다릅니다.</li>
 <li><strong>컨텍스트 창</strong>: Fable 5·Opus 5·Sonnet 5는 <strong>1M 토큰</strong>(기본이자 최대), Haiku 4.5는 200K. 크다고 다 채우라는 뜻은 아닙니다 — 찰수록 성능이 떨어지므로 <a href="#ch2">자동 압축·<code>/clear</code></a>와 <a href="#ch12">컨텍스트 엔지니어링</a>으로 관리하세요.</li>
 <li><strong>비용 통제</strong>: <code>/usage</code>로 사용량·비용 확인. 저비용이 필요하면 <strong>effort를 low/medium으로</strong> 내리거나 모델을 낮추고(Sonnet/Haiku), 반복 컨텍스트가 크면 프롬프트 캐싱이 자동으로 절감합니다.</li>
 <li><strong>세션 중간에 모델을 바꾸면</strong> 프롬프트 캐시가 무효화됩니다. <strong>effort를 바꿔도 마찬가지</strong>입니다 — effort가 프롬프트 구성에 반영되기 때문입니다. 둘 다 잦은 전환보다 작업 성격에 맞춰 초반에 정하는 편이 낫습니다.</li>
@@ -2890,6 +2980,7 @@ claude mcp add --<span class="hljs-built_in">env</span> AIRTABLE_API_KEY=YOUR_KE
 <ul>
 <li><strong>비대화 모드</strong>: <code>claude -p "프롬프트"</code>를 CI·pre-commit·스크립트에. <code>--output-format json</code>으로 결과 파싱, <code>--allowedTools</code>로 무인 실행 권한 제한.</li>
 <li><strong>병렬 세션</strong>: <strong>git 워크트리</strong>로 충돌 없는 격리 체크아웃, 데스크톱 앱의 시각적 다중 세션, 에이전트 팀의 자동 조율.</li>
+<li><strong>세션 간 메시지</strong>(v2.1.224+, macOS·Linux): 세션끼리 직접 메시지를 주고받습니다 — <code>ListAgents</code>로 다른 세션을 찾고 <code>SendMessage</code>로 보냅니다. 한쪽에서 바뀐 사실을 다른 쪽에 <strong>여러분이 다시 설명하지 않아도</strong> 되는 것이 요점입니다. 오가는 것은 Claude가 쓴 <strong>텍스트뿐</strong>이고 대화 기록이나 파일은 넘어가지 않으며, <a href="#ch2">오토 모드</a>에서는 보내는 메시지도 분류기가 검사합니다.</li>
 <li><strong>Writer/Reviewer 패턴</strong>: 새 컨텍스트는 리뷰 품질을 높입니다(Claude가 자기가 쓴 코드에 편향되지 않음). 한 세션이 구현하면, 다른 세션이 리뷰.</li>
 <li><strong>파일 팬아웃</strong>: 대규모 마이그레이션은 파일 목록을 만들고 루프로 <code>claude -p</code> 호출.</li>
 </ul>
@@ -3310,7 +3401,7 @@ XML tags in your response.
 <li><strong>범위를 좁히고, 서브에이전트 위임에 캡</strong>을 걸어 과잉 행동·비용을 막는다.</li>
 <li><strong>사고는 끄지 말고 <code>low</code> effort로</strong> 비용을 통제한다 — 끄면 도구호출 누수·XML 태그 누수가 생긴다.</li>
 </ul><div class="quiz"><div class="quiz-head">확인 퀴즈<button class="quiz-retry" type="button" hidden>다시 풀기</button></div><div class="quiz-q" data-answer="1" data-qid="q14-1"><p class="quiz-question"><span class="quiz-n">Q1.</span> 최신 모델(Opus 5 등)에서, 예전 프롬프트의 &#x27;최종 검증 단계를 넣어라&#x27; 같은 지시는?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>더 강하게 강조한다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>제거하는 것이 개선이다 — 모델이 스스로 검증하므로</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>그대로 둔다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>서브에이전트로 옮긴다</button></div><div class="quiz-explain"><b>해설</b> · 최신 모델은 시키지 않아도 자기 작업을 검증합니다. 검증 강제 지시는 과잉 검증을 유발해 토큰만 낭비하므로 빼는 게 낫습니다.</div></div><div class="quiz-q" data-answer="1" data-qid="q14-2"><p class="quiz-question"><span class="quiz-n">Q2.</span> Opus 5의 길어진 응답(장황함)을 줄이는 올바른 방법은?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>effort를 낮춘다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>간결하게 하라고 명시적으로 프롬프트한다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>max_tokens를 줄인다</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>모델을 바꾼다</button></div><div class="quiz-explain"><b>해설</b> · effort는 &#x27;얼마나 생각하는지&#x27;를 조절할 뿐 응답 길이가 아닙니다. 길이는 명시적 지시로 조절하세요.</div></div><div class="quiz-q" data-answer="1" data-qid="q14-3"><p class="quiz-question"><span class="quiz-n">Q3.</span> Opus 5에서 thinking을 끄면 생기는 아티팩트(도구호출 텍스트 누수 등)의 최선 완화책은?</p><div class="quiz-opts"><button class="quiz-opt" type="button"><span class="quiz-mark"></span>태그 이름을 지목해 금지</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>사고를 끄지 말고 effort를 low로 낮춰 비용 통제</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>max_tokens를 늘림</button><button class="quiz-opt" type="button"><span class="quiz-mark"></span>도구를 모두 제거</button></div><div class="quiz-explain"><b>해설</b> · 대부분 &#x27;사고 켜짐 + low effort&#x27;가 &#x27;사고 꺼짐&#x27;보다 낫습니다. 끄면 도구호출·XML 태그 누수가 생깁니다.</div></div></div></section>
-<section class="chapter" id="ch15"><div class="ch-badge">CHAPTER 15</div><h1 class="ch-title">플레이그라운드</h1><p>이론은 충분히 봤으니, 이제 <strong>직접 만져 볼</strong> 차례입니다. 이 챕터는 읽기만 하는 게 아니라 <strong>가지고 노는</strong> 다섯 가지 도구 — 터미널 놀이터, 확장 진단기, 비용 계산기, CLAUDE.md 검사기, 컨텍스트 예산 — 을 담았습니다. (모두 브라우저 안에서 도는 학습용 시뮬레이터입니다. 실제 Claude Code를 실행하지는 않습니다.)</p>
+<section class="chapter" id="ch15"><div class="ch-badge">CHAPTER 15</div><h1 class="ch-title">플레이그라운드</h1><p>이론은 충분히 봤으니, 이제 <strong>직접 만져 볼</strong> 차례입니다. 이 챕터는 읽기만 하는 게 아니라 <strong>가지고 노는</strong> 여섯 가지 도구 — 터미널 놀이터, 확장 진단기, 비용 계산기, CLAUDE.md 검사기, 컨텍스트 예산, 권한 규칙 시뮬레이터 — 을 담았습니다. (모두 브라우저 안에서 도는 학습용 시뮬레이터입니다. 실제 Claude Code를 실행하지는 않습니다.)</p>
 <hr />
 <h2 id="c15-터미널-놀이터">🖥 터미널 놀이터</h2>
 <p>아래 가짜 Claude Code 터미널에 슬래시 커맨드를 쳐 보세요. <strong>미션</strong>이 상황을 하나씩 던져 주니, 명령을 외우는 대신 <strong>상황에서 떠올리는</strong> 연습이 됩니다. 실제 터미널처럼 <code>Tab</code> 자동완성 · <code>↑</code> <code>↓</code> 히스토리 · <code>Ctrl+L</code>도 동작합니다. <a href="#ch4">4장 명령어</a>에서 배운 것들을 손으로 익히는 코너입니다.</p>
@@ -3337,10 +3428,16 @@ XML tags in your response.
 <div class="pg-ctx"></div>
 
 <hr />
+<h2 id="c15-권한-규칙-시뮬레이터">🔐 권한 규칙 시뮬레이터</h2>
+<p><a href="#ch2">2장의 권한 규칙</a>은 <strong>글로만 읽으면 반드시 한 번 틀립니다.</strong> 규칙과 명령을 넣으면 <code>deny</code>→<code>ask</code>→<code>allow</code>를 실제 순서대로 훑어 <strong>어느 규칙이 먼저 맞았는지</strong>와 그 이유를 보여 줍니다. 프리셋 네 개는 각각 사람들이 실제로 밟는 함정입니다 — 넓은 deny에 예외를 뚫으려는 시도, <code>*</code>의 단어 경계, 복합 명령·래퍼, 그리고 경로 앞 <code>/</code>가 설정 파일 기준이라는 것. 규칙을 고쳐 가며 판정이 어떻게 뒤집히는지 확인해 보세요.</p>
+<div class="pg-perm"></div>
+
+<hr />
 <h2 id="c15-핵심-요약">핵심 요약</h2>
 <ul>
 <li><strong>터미널 놀이터</strong>의 미션 6개로 슬래시 커맨드를 손에 익히고, <strong>진단기</strong>로 확장 선택 기준을 체득한 뒤 나온 설정 조각을 실제 저장소에 붙여 보고, <strong>계산기</strong>로 캐싱·배치가 비용을 얼마나 바꾸는지 확인하세요.</li>
 <li><strong>검사기</strong>에는 지금 쓰는 <code>CLAUDE.md</code>를 그대로 붙여 넣어 지울 줄부터 찾고, <strong>예산</strong>에서는 레버를 눌러 무엇이 컨텍스트를 가장 많이 돌려주는지 직접 확인하세요.</li>
+<li><strong>권한 규칙 시뮬레이터</strong>에는 실제로 쓰는 <code>settings.json</code>의 <code>permissions</code>를 붙여 넣어 보세요 — 의도대로 막히는지, 혹시 넓은 deny가 필요한 allow까지 삼키고 있는지 여기서 먼저 드러납니다.</li>
 <li>여기서 감을 잡았다면, 이제 진짜 <a href="#ch1">설치</a>하고 여러분의 프로젝트에 적용할 차례입니다.</li>
 </ul></section>
 <section class="chapter" id="ch16"><div class="ch-badge">CHAPTER 16</div><h1 class="ch-title">부록 · 알면 좋은 것들</h1><p>핵심 개념은 모두 다뤘습니다. 이 부록은 실무에서 자주 쓰이지만 앞 챕터에 자연스럽게 넣기 어려웠던 <strong>알아 두면 좋은 기능·팁</strong>을 모았습니다. 필요할 때 찾아보는 참조용으로 쓰세요.</p>
@@ -3527,6 +3624,7 @@ XML tags in your response.
 <li><strong><code>/usage</code></strong>로 API 사용량·비용 확인. 저비용이 필요하면 <a href="#ch3">모델·effort</a>를 낮추세요.</li>
 <li><strong>프롬프트 캐싱</strong>: 반복되는 큰 컨텍스트(예: <code>CLAUDE.md</code>)는 자동으로 캐시되어 최대 90% 절감. 세션 중 모델을 바꾸면 캐시가 무효화되니 잦은 전환은 피하세요.</li>
 <li><strong>릴리스 채널</strong>: 네이티브 설치는 자동 업데이트. <code>/config</code>의 <strong>Auto-update channel</strong>에서 <code>latest</code>(최신) 또는 <code>stable</code>(약 1주 지연, 회귀 회피)을 고를 수 있습니다.</li>
+<li><strong>사용량 한도에 걸려도 세션은 이어집니다</strong>(v2.1.234+): claude.ai 사용량 한도가 리셋되면 Claude Code가 <strong>자동으로 이어서</strong> 진행합니다. 원치 않으면 <code>/config</code>의 "Continue automatically at usage limit"에서 끄세요.</li>
 <li><strong><code>claude doctor</code></strong>로 설치·설정 상태를 언제든 진단.</li>
 </ul>
 <hr />
@@ -3535,7 +3633,7 @@ XML tags in your response.
 <hr />
 <h2 id="c16-안전하게-쓰기-빠른-체크리스트">안전하게 쓰기 — 빠른 체크리스트</h2>
 <ul>
-<li>민감 작업은 <strong>default/plan 모드</strong>로, 신뢰 작업은 <strong>auto 모드</strong>로(<a href="#ch2">2장</a>).</li>
+<li>민감 작업은 <strong>Manual(<code>default</code>)/plan 모드</strong>로, 신뢰 작업은 <strong>auto 모드</strong>로(<a href="#ch2">2장</a>). Pro·Max·Team의 새 세션은 이제 <strong>auto로 시작</strong>하니, 민감한 저장소에서는 시작 모드를 직접 확인하세요.</li>
 <li>반드시 막아야 하는 동작은 <strong>CLAUDE.md 조언이 아니라 <a href="#ch9">훅</a></strong>으로 강제.</li>
 <li>무인 실행(<a href="#ch13">루프</a>)에는 <strong>검증(테스트·<code>/goal</code>·검증 서브에이전트)</strong>을 반드시 게이트로.</li>
 <li>외부 자산(서브에이전트·스킬·플러그인·MCP)은 <strong>도입 전 내용 검토</strong>.</li>
@@ -4192,7 +4290,7 @@ if(pgt){
     '/agents':()=>['<span class="k">서브에이전트</span> Explore · Plan · general-purpose(내장)','.claude/agents/ 에 커스텀 정의를 추가할 수 있습니다.','<span class="dim">고출력 작업을 격리하면 메인 컨텍스트에는 요약만 돌아옵니다.</span>'],
     '/mcp':()=>['<span class="k">MCP 서버</span> 연결된 서버 없음. <span class="k">claude mcp add</span> 로 외부 도구를 연결하세요.'],
     '/hooks':()=>['<span class="k">훅</span> 구성된 훅 없음. .claude/settings.json 의 hooks 블록에 정의합니다.','<span class="dim">PreToolUse 는 막을 수 있고, PostToolUse 는 이미 일어난 뒤에 돕습니다.</span>'],
-    '/permissions':()=>['<span class="k">권한</span> 기본(default) 모드. Shift+Tab 으로 순환합니다.','<span class="dim">default → acceptEdits → plan. 규칙은 allow·ask·deny 세 갈래.</span>'],
+    '/permissions':()=>['<span class="k">권한</span> 현재 <span class="k">auto</span> 모드 — Pro·Max·Team 의 새 세션 기본값(2026-08-14~). Shift+Tab 으로 순환합니다.','<span class="dim">Manual(default) → acceptEdits → plan. 규칙은 allow·ask·deny 세 갈래.</span>'],
     '/config':()=>['<span class="k">설정</span> 테마 · 모델 · 알림 · 자동 업데이트를 이 화면에서 바꿉니다.'],
     '/add-dir':a=>a?['<span class="ok">✓ 작업 디렉터리 추가:</span> '+esc(a)]:['<span class="k">작업 디렉터리</span> 저장소 밖 경로를 세션에 추가합니다. 예: /add-dir ../shared-lib'],
     '/review':()=>['<span class="k">리뷰</span> 변경 diff 를 읽고 문제를 지적합니다.','<span class="dim">근거 없는 지적을 줄이려면 “무엇을 기준으로 볼지”를 함께 주세요.</span>'],
@@ -4466,7 +4564,10 @@ if(pgc){
     '<div class="fld"><div class="lab"><b>⑤ 입력 중 캐시로 재사용되는 비율</b><span class="val" id="ccHitV"></span></div><input id="ccHit" aria-label="프롬프트 캐시 히트 비율" type="range" min="0" max="90" step="5" value="0"></div>'+
     '<div class="toggles"><label><input id="ccBatch" type="checkbox">배치 API로 보내기 <span class="val">−50%</span></label></div>'+
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note" id="ccNote"></div></div>'+
-    '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div></div>'+
+    '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div>'+
+    '<div class="cav">같은 <b>토큰 수</b>로 비교한 값입니다. 실제로는 Opus 4.7부터 도입된 새 토크나이저를 쓰는 '
+    +'<b>Fable 5·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
+    +'옛 토크나이저인 <b>Haiku 4.5</b>와 나란히 놓으면 위쪽 세 모델이 그만큼 싸 보인다는 뜻입니다.</div></div>'+
     '<div class="pg-plan"><div class="h">요금제(정액)로 쓰면? — 한 달 30일 환산 비교</div><div id="ccPlan"></div>'+
     '<div class="sum" id="ccPlanSum"></div><div class="cav" id="ccPlanCav"></div></div>';
   const sel=pgc.querySelector('#ccModel');
@@ -4691,6 +4792,263 @@ if(pgx){
   [sel,...Object.values(inp)].forEach(e=>e.addEventListener('input',()=>{
     [...pre.children].forEach(c=>c.classList.remove('on'));draw();}));
   setAll(P['🔨 한창 작업 중']); pre.children[1].classList.add('on'); draw();
+}
+
+// ===== 플레이그라운드 · 권한 규칙 시뮬레이터 =====
+// 판정 규칙은 code.claude.com/docs/en/permissions 의 서술을 옮긴 것이고, 2장 "권한 규칙" 절과
+// 같이 움직인다. 한쪽만 고치면 어긋난다.
+const pgp=document.querySelector('.pg-perm');
+if(pgp){
+  // 경로 앵커를 보여 주기 위한 고정 좌표
+  const HOME='/home/me', PROJ='/home/me/app', UCFG=HOME+'/.claude';
+  // 문서에 명시된 내장 래퍼 목록(설정으로 못 바꾼다). 벗긴 뒤에 매칭한다.
+  const WRAP=['timeout','time','nice','nohup','stdbuf','command','builtin','noglob'];
+  // 읽기 전용 명령 세트(발췌) — 모든 모드에서 규칙 없이 통과한다
+  const RO=['ls','cat','echo','pwd','head','tail','grep','find','wc','which','diff','stat','du','cd'];
+  // git 은 하위 명령으로 갈린다 — 읽기용만 통과하고 push·commit 은 규칙을 탄다
+  const ROGIT=['status','log','diff','show','blame','branch','tag','describe','rev-parse','ls-files'];
+  const isRO=c=>{const t=c.split(/\s+/); return RO.indexOf(t[0])>=0||(t[0]==='git'&&ROGIT.indexOf(t[1])>=0);};
+  // 반대로 실행기는 안 벗겨진다 — 접두 규칙이 내부 명령까지 통째로 허용해 버린다
+  const RUNNERS=['npx','docker exec','devbox run','mise exec','direnv exec'];
+  const V={deny:['🚫 차단','deny'],ask:['❓ 항상 물어봄','ask'],allow:['✅ 자동 승인','allow'],
+           readonly:['✅ 규칙 없이 통과','readonly'],prompt:['💬 기본 권한 흐름','prompt']};
+  const P={
+    '🪤 넓은 deny 에 예외 뚫기':{src:'project',
+      rules:{deny:['Bash(aws *)'],allow:['Bash(aws s3 ls)','Bash(npm run *)']},
+      reqs:['Bash: aws s3 ls','Bash: aws s3 rm s3://bucket/key','Bash: npm run build']},
+    '🔤 " *" 의 단어 경계':{src:'project',
+      rules:{deny:['Bash(rm *)','Bash(ls*)'],allow:['Bash(npm run *)']},
+      reqs:['Bash: rm -rf build','Bash: rmdir tmp','Bash: ls -la','Bash: lsof -i :3000']},
+    '⛓ 복합 명령 · 래퍼':{src:'project',
+      rules:{allow:['Bash(npm test *)','Bash(devbox run *)']},
+      reqs:['Bash: npm test -- -t auth','Bash: timeout 30 npm test','Bash: npm test && rm -rf build',
+            'Bash: devbox run rm -rf .','Bash: npx rimraf build']},
+    '📁 경로 앞 "/" 는 설정 기준':{src:'user',
+      rules:{deny:['Read(/secrets/**)','Read(.env)']},
+      reqs:['Read: secrets/key.pem','Read: ~/.claude/secrets/key.pem','Read: src/app/.env','Edit: .env']},
+  };
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cd=s=>'<code>'+esc(s)+'</code>';
+  const rxEsc=s=>s.replace(/[.+?^${}()|[\]\\]/g,'\\$&');
+
+  // 복합 명령 구분자 — 조각마다 따로 매칭해야 한다
+  const subs=c=>c.split(/\s*(?:&&|\|\||\|&|;|\||&|\n)\s*/).map(s=>s.trim()).filter(Boolean);
+  function unwrap(c){
+    let s=c;
+    for(let i=0;i<6;i++){
+      const m=s.match(/^([A-Za-z_][\w-]*)\s+([\s\S]*)$/);
+      if(!m) break;
+      if(WRAP.indexOf(m[1])>=0){
+        // 조회 형식 command -v 는 명령을 실행하지 않으므로 벗기지 않는다
+        if((m[1]==='command'||m[1]==='builtin')&&/^-[vV](?:\s|$)/.test(m[2])) break;
+        // 래퍼 자신의 인수도 먹는다 — timeout 30 / nice -n 10 / stdbuf -o0
+        let rest=m[2];
+        while(/^(?:-{1,2}[\w-]+(?:=\S+)?|\d+(?:\.\d+)?[smhd]?)\s+/.test(rest)) rest=rest.replace(/^\S+\s+/,'');
+        s=rest; continue;
+      }
+      if(m[1]==='xargs'&&!/^-/.test(m[2])){ s=m[2]; continue; }  // 플래그 없는 xargs 만 벗겨진다
+      break;
+    }
+    return s;
+  }
+  function bashRe(spec){
+    let s=spec.trim(), bd=false;
+    if(/:\*$/.test(s)) s=s.slice(0,-2)+' *';            // :* 는 끝에서만 " *" 와 같다
+    if(/\s\*$/.test(s)){ bd=true; s=s.replace(/\s+\*$/,''); }
+    return new RegExp('^'+s.split('*').map(rxEsc).join('.*')+(bd?'(?:\\s[\\s\\S]*)?':'')+'$');
+  }
+  function pathInfo(spec,src,kind){
+    let p=spec.trim(), base, anyDepth=false;
+    if(p.slice(0,2)==='//'){ base=''; p=p.slice(1); }              // // 만 파일시스템 루트
+    else if(p.slice(0,2)==='~/'){ base=HOME; p=p.slice(1); }
+    else if(p[0]==='/'){ base=(src==='user'?UCFG:PROJ); }          // 앞 / 는 설정 파일 기준
+    else { anyDepth=p.slice(0,2)!=='./'; p='/'+p.replace(/^\.\//,''); base=PROJ; }
+    const bare=anyDepth&&p.slice(1).indexOf('/')<0;                // 맨 이름은 어느 깊이에서나(.env == **/.env)
+    // 한 세그먼트짜리 디렉터리 패턴(secrets/**)은 deny·ask 에서만 깊이가 열린다.
+    // allow 의 Edit(src/**) 는 cwd 의 src 한 곳뿐이다 — 규칙 종류로 갈리는 유일한 자리다.
+    const seg=anyDepth&&kind!=='allow'&&/^\/[^\/*]+\/\*\*$/.test(p);
+    if(bare||seg) p='/**'+p;
+    // 글롭은 이스케이프 전에 처리해야 한다 — rxEsc 는 * 를 건드리지 않으므로
+    // "이스케이프한 뒤 \\* 를 찾아 바꾸기"는 아무것도 못 찾고 * 를 정규식 반복자로 흘려보낸다.
+    const full=base+p; let rx='';
+    for(let i=0;i<full.length;i++){
+      if(full[i]==='*'&&full[i+1]==='*'){                          // ** 는 깊이 무제한
+        if(rx.slice(-1)==='/') rx=rx.slice(0,-1)+'(?:/[\\s\\S]*)?';// /** 는 0단계(부모 자신)도 포함
+        else rx+='[\\s\\S]*';
+        i++; continue;
+      }
+      if(full[i]==='*'){ rx+='[^/]*'; continue; }                  // * 한 개는 한 세그먼트 안에서만
+      rx+=rxEsc(full[i]);
+    }
+    return {re:new RegExp('^'+rx+'$'),
+      desc:bare
+        ?cd(base)+' 아래 <b>어느 깊이에서나</b> 맞습니다 — 맨 이름은 gitignore 규칙대로 '+cd(spec)+' = '+cd('**/'+spec)+' 입니다.'
+        :seg
+        ?cd(base)+' 아래 <b>어느 깊이에서나</b> 맞습니다 — 한 세그먼트짜리 디렉터리 패턴은 <b>deny·ask 에서만</b> 깊이가 열립니다(같은 규칙을 allow 에 적으면 '+cd(base+'/'+spec.trim().replace(/^\.\//,''))+' 한 곳뿐입니다).'
+        :cd(full)+' 를 가리킵니다.'};
+  }
+  const abs=p=>p.slice(0,2)==='~/'?HOME+p.slice(1):(p[0]==='/'?p:PROJ+'/'+p.replace(/^\.\//,''));
+
+  function matchRule(rule,req,src,kind){
+    const m=String(rule).match(/^\s*([A-Za-z_*][\w*]*)\s*(?:\(([\s\S]*)\))?\s*$/);
+    if(!m) return {bad:true};
+    const tool=m[1], spec=m[2];
+    const hasSpec=spec!==undefined&&spec.trim()!=='';
+    const whole=!hasSpec||spec.trim()==='*';                        // Bash 와 Bash(*) 는 같은 규칙이다
+    // 본문 필드를 파라미터로 적은 규칙은 무시되고 시작 시 경고가 난다
+    if(hasSpec&&/^(?:command|file_path|path|url|notebook_path)\s*:/.test(spec))
+      return {ignored:'는 <b>본문 필드를 파라미터로 적은 규칙</b>이라 Claude Code 가 읽지 않고 시작 시 경고합니다 — 복합 명령으로 우회되기 때문입니다. <code>Bash(rm *)</code>처럼 적으세요.'};
+    // 파일 권한은 Read·Edit 규칙으로만 확인한다 — 다른 도구에 적은 경로 규칙은 받아들이고도 보지 않는다
+    if(hasSpec&&!whole&&/^(?:Write|NotebookEdit|Glob|MultiEdit)$/.test(tool)&&!/^\w+\s*:/.test(spec))
+      return {ignored:'는 경로 규칙인데 파일 권한은 <b>Read·Edit 규칙으로만</b> 확인합니다 — 규칙을 받아들이고도 보지 않고 시작 시 경고합니다. <code>Edit(...)</code>·<code>Read(...)</code>로 옮겨 적으세요.'};
+    // Read deny 는 같은 경로의 Edit·Write 까지 막는다(NotebookEdit 은 예외).
+    // 경로를 준 규칙만 그렇다 — 범위 없는 deny 는 Read 도구 자체를 뺄 뿐 Edit 은 남는다.
+    const covers=(kind==='deny'&&tool==='Read'&&!whole&&(req.tool==='Edit'||req.tool==='Write'));
+    // 도구 이름의 글롭도 split 으로 처리한다(rxEsc 가 * 를 남기므로 사후 치환은 안 먹는다)
+    if(!new RegExp('^'+tool.split('*').map(rxEsc).join('[\\s\\S]*')+'$').test(req.tool)&&!covers) return {};
+    if(whole)
+      return {hit:true,why:'범위 없이 도구만 가리키는 규칙이라 <b>'+esc(req.tool)+' 호출 전체</b>에 맞습니다'
+        +(hasSpec?'(<code>'+esc(tool)+'(*)</code>는 <code>'+esc(tool)+'</code>와 같습니다)':'')+'.'
+        +(kind==='deny'?' 이런 deny 는 도구를 <b>컨텍스트에서 아예 제거</b>합니다 — Claude 는 존재조차 모릅니다.':'')};
+    if(req.tool==='Bash'||req.tool==='PowerShell'){
+      const re=bashRe(spec), parts=subs(req.arg), un=parts.map(unwrap);
+      const hits=un.map(c=>re.test(c)), wrapped=un.some((c,i)=>c!==parts[i]);
+      const wnote=wrapped?' 래퍼를 벗긴 뒤 '+cd(un.join(' ; '))+'로 비교했습니다.':'';
+      if(kind==='allow'){
+        if(hits.every(Boolean)) return {hit:true,
+          why:(parts.length>1?'복합 명령의 <b>조각 '+parts.length+'개가 모두</b> 맞습니다.':'명령이 맞습니다.')+wnote};
+        if(hits.some(Boolean)) return {partial:true};
+        return {};
+      }
+      const i=hits.indexOf(true);
+      if(i>=0) return {hit:true,why:(parts.length>1
+        ?'복합 명령의 조각 '+cd(parts[i])+'가 맞습니다 — <b>조각 하나만 맞아도 호출 전체가 막힙니다.</b>'
+        :'명령이 맞습니다.')+wnote};
+      return {};
+    }
+    if(tool==='Read'||tool==='Edit'){
+      const pi=pathInfo(spec,src,kind);
+      if(!pi.re.test(abs(req.arg))) return {};
+      return {hit:true,why:'이 규칙은 '+pi.desc+(covers
+        ?' 그리고 <b>Read deny 는 같은 경로의 Edit·Write 까지 막습니다</b> — 아무 도구도 못 바꾸게 하려면 <code>Edit</code> deny 를 따로 적으세요(NotebookEdit 은 Read 규칙이 안 걸립니다).'
+        :'')};
+    }
+    // 그 밖의 도구는 param:value 형태 — deny·ask 전용이다.
+    // WebFetch 의 domain: 만 예외인데, 그건 파라미터 규칙이 아니라 WebFetch 자신의 지정자 문법이라 그렇다.
+    const pm=spec.match(/^([\w]+)\s*:\s*([\s\S]*)$/);
+    if(!pm) return {};
+    if(kind==='allow'&&!(tool==='WebFetch'&&pm[1]==='domain'))
+      return {ignored:'는 <b>allow 에 적은 파라미터 규칙</b>이라 동작하지 않습니다 — 파라미터 하나가 맞았다고 호출 전체가 안전하다고 볼 수 없어서, <code>Tool(param:value)</code> 형태는 deny·ask 에서만 쓸 수 있습니다.'};
+    return new RegExp('^'+spec.split('*').map(rxEsc).join('[\\s\\S]*')+'$').test(req.arg)
+      ? {hit:true,why:'입력 파라미터가 규칙과 같습니다.'} : {};
+  }
+  function judge(rules,req,src){
+    let partial=null; const ignored=[];
+    for(const kind of ['deny','ask','allow'])
+      for(const rule of (rules[kind]||[])){
+        const r=matchRule(rule,req,src,kind);
+        if(r.ignored){ ignored.push([rule,r.ignored]); continue; }
+        if(r.bad) continue;
+        if(r.hit) return {v:kind,rule:rule,why:r.why,ignored:ignored};
+        if(r.partial&&!partial) partial=rule;
+      }
+    if(req.tool==='Bash'){
+      const un=subs(req.arg).map(unwrap);
+      if(un.length&&un.every(isRO))
+        return {v:'readonly',ignored:ignored,
+          why:'<b>읽기 전용 명령 세트</b>라 규칙이 없어도 어떤 모드에서든 프롬프트 없이 실행됩니다. 굳이 allow 에 적을 필요가 없고, 반대로 <b>물어보게 만들려면 ask·deny 에 적어야</b> 합니다.'};
+    }
+    return {v:'prompt',ignored:ignored,rule:partial,
+      why:partial?'allow 의 '+cd(partial)+'는 <b>복합 명령의 일부에만</b> 맞아 승인이 되지 않습니다 — 규칙은 <b>조각마다 따로</b> 맞아야 합니다.'
+        :'맞는 규칙이 없어 <b>권한 모드에 따른 기본 흐름</b>을 탑니다(default 모드면 프롬프트).'};
+  }
+
+  pgp.innerHTML='<div class="presets" id="pmPre"></div>'
+    +'<div class="fld"><div class="lab"><b>규칙을 적은 곳</b>'
+    +'<span class="hint">경로 규칙의 앞 <code>/</code>가 프로젝트 루트냐 <code>~/.claude</code>냐를 바꿉니다</span></div>'
+    +'<select id="pmSrc" aria-label="권한 규칙을 적은 설정 파일">'
+    +'<option value="project">프로젝트 · .claude/settings.json</option>'
+    +'<option value="user">사용자 · ~/.claude/settings.json</option></select></div>'
+    +'<div class="fld"><div class="lab"><b>permissions 규칙</b><span class="hint">settings.json 을 그대로 붙여도 됩니다</span></div>'
+    +'<textarea id="pmRules" aria-label="permissions 권한 규칙 JSON" spellcheck="false"></textarea></div>'
+    +'<div class="fld"><div class="lab"><b>Claude 가 시도하는 호출</b><span class="hint">한 줄에 하나 · 도구: 인수</span></div>'
+    +'<textarea id="pmReqs" aria-label="판정할 도구 호출 목록" spellcheck="false"></textarea></div>'
+    +'<div id="pmErr"></div><div class="rows" id="pmRows"></div><div class="sum" id="pmSum"></div>'
+    +'<div class="cav">작업 디렉터리는 <code>'+PROJ+'</code>, 홈은 <code>'+HOME+'</code>로 가정합니다. '
+    +'실제 Claude Code 판정의 <b>부분집합</b>입니다 — 환경변수 할당·PowerShell 별칭·MCP 서버 규칙·오토 모드 분류기는 단순화했거나 빠져 있습니다. '
+    +'규칙을 강제하는 주체는 모델이 아니라 <b>Claude Code</b>라는 점도 기억하세요.</div>';
+  const pre=pgp.querySelector('#pmPre'), sel=pgp.querySelector('#pmSrc');
+  const taR=pgp.querySelector('#pmRules'), taQ=pgp.querySelector('#pmReqs');
+
+  function run(){
+    const src=sel.value; let rules=null, err='';
+    try{
+      const o=JSON.parse(taR.value||'{}');
+      const p=(o&&typeof o==='object'&&o.permissions)?o.permissions:(o||{});
+      rules={deny:p.deny||[],ask:p.ask||[],allow:p.allow||[]};
+    }catch(e){ err='규칙을 JSON 으로 읽을 수 없습니다 — '+e.message; }
+    pgp.querySelector('#pmErr').innerHTML=err?'<div class="err">⚠ '+esc(err)+'</div>':'';
+    if(!rules){ pgp.querySelector('#pmRows').innerHTML=''; pgp.querySelector('#pmSum').innerHTML=
+      '규칙을 고치는 중이라면 괄호·쉼표를 확인하세요. 판정은 JSON 이 읽히는 순간 다시 계산됩니다.'; return; }
+    const reqs=taQ.value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const m=l.match(/^([A-Za-z_][\w]*)\s*:\s*([\s\S]+)$/);
+      return m?{tool:m[1],arg:m[2].trim()}:{tool:'Bash',arg:l};
+    });
+    const res=reqs.map(q=>({q:q,j:judge(rules,q,src)}));
+    pgp.querySelector('#pmRows').innerHTML=res.map(({q,j})=>{
+      const [label,cls]=V[j.v];
+      return '<div class="r '+cls+'"><div class="hd"><span class="v">'+label+'</span>'
+        +'<code class="q">'+esc(q.tool+': '+q.arg)+'</code></div>'
+        +'<div class="wy">'+(j.rule&&j.v!=='prompt'?'<b>'+(j.v==='deny'?'deny':j.v==='ask'?'ask':'allow')+'</b> 의 '+cd(j.rule)+'가 먼저 맞았습니다. ':'')
+        +j.why+'</div></div>';
+    }).join('');
+    // 함정 진단 — 왜 이 판정이 놀라운지 짚어 준다
+    const tips=[], n=v=>res.filter(r=>r.j.v===v).length;
+    const shadowed=res.filter(({q,j})=>j.v==='deny'&&(rules.allow||[]).some(r=>matchRule(r,q,src,'allow').hit));
+    if(shadowed.length) tips.push('<span class="warn">allow 에 있어도 deny 가 이깁니다</span> — '+shadowed.length
+      +'건이 그 경우입니다. 평가는 <b>deny → ask → allow 순이고 먼저 맞는 것이 이기며, 구체성은 순서를 바꾸지 않습니다.</b> 예외를 두려면 deny 를 좁게 적으세요.');
+    const askWin=res.filter(({q,j})=>j.v==='ask'&&(rules.allow||[]).some(r=>matchRule(r,q,src,'allow').hit));
+    if(askWin.length) tips.push('ask 에 맞은 '+askWin.length+'건은 <b>더 구체적인 allow 가 있어도</b> 물어봅니다.');
+    // 실행기는 "명령의 앞머리"일 때만 위험하다 — 인수 안에 이름이 스쳐 지나가는 것과 구별한다
+    const isRunner=c=>RUNNERS.some(r=>c===r||c.indexOf(r+' ')===0);
+    const risky=res.filter(({q,j})=>j.v==='allow'&&q.tool==='Bash'&&subs(q.arg).map(unwrap).some(isRunner));
+    if(risky.length) tips.push('<span class="warn">실행기는 래퍼처럼 벗겨지지 않습니다</span> — '
+      +cd(risky[0].q.arg)+' 가 자동 승인됐습니다. <code>npx</code>·<code>docker exec</code>·<code>devbox run</code> 류는 뒤에 오는 <b>아무 명령이나</b> 실행하므로, 접두 규칙 대신 <code>Bash(devbox run npm test)</code>처럼 내부 명령까지 못 박으세요.');
+    // 앵커 함정 — 앞 / 로 시작하는 경로 규칙이 있는데 프로젝트 파일이 안 걸렸다면 십중팔구 이것이다
+    const anchored=[].concat(rules.deny,rules.ask).filter(r=>/^(?:Read|Edit)\(\/(?!\/)/.test(String(r)));
+    const missed=res.filter(({q,j})=>j.v==='prompt'&&(q.tool==='Read'||q.tool==='Edit'));
+    if(anchored.length&&missed.length) tips.push('경로 규칙 앞의 <code>/</code>는 파일시스템 루트가 아니라 <b>규칙을 적은 설정 파일 기준</b>입니다 — 지금 출처가 '
+      +(src==='user'?cd(UCFG):cd(PROJ))+' 라서 '+cd(anchored[0])+'는 그 아래만 막습니다. '
+      +(src==='user'?'모든 프로젝트에 걸리게 하려면 <code>//</code>(절대 경로)나 <code>~/</code>(홈)을 쓰세요.':'출처를 사용자 설정으로 바꿔 보면 같은 규칙이 다른 곳을 가리키는 것이 보입니다.'));
+    // 무시되는 규칙은 조용히 안 맞는 것처럼 보인다 — 이유를 규칙마다 붙여 준다
+    const ign=new Map(); res.forEach(r=>(r.j.ignored||[]).forEach(([rule,why])=>ign.set(rule,why)));
+    if(ign.size) tips.push('<span class="warn">적용되지 않는 규칙 '+ign.size+'개</span> — '
+      +[...ign].map(([rule,why])=>cd(rule)+why).join(' · '));
+    let sum;
+    if(!reqs.length) sum='아래 칸에 호출을 한 줄씩 적으면 판정합니다 — 예: <code>Bash: rm -rf build</code>, <code>Read: .env</code>.';
+    else{
+      sum='<b>차단 '+n('deny')+' · 물어봄 '+n('ask')+' · 자동 승인 '+n('allow')
+        +' · 규칙 없이 통과 '+n('readonly')+' · 기본 흐름 '+n('prompt')+'</b>'
+        +' (규칙 deny '+rules.deny.length+' · ask '+rules.ask.length+' · allow '+rules.allow.length+'개)';
+      if(tips.length) sum+='<br>'+tips.join('<br>');
+    }
+    pgp.querySelector('#pmSum').innerHTML=sum;
+  }
+  function load(name){
+    const p=P[name];
+    sel.value=p.src;
+    taR.value=JSON.stringify({permissions:p.rules},null,2);
+    taQ.value=p.reqs.join('\n');
+    run();
+  }
+  Object.keys(P).forEach(name=>{
+    const b=document.createElement('button');b.type='button';b.textContent=name;
+    b.addEventListener('click',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');load(name);});
+    pre.appendChild(b);
+  });
+  [sel,taR,taQ].forEach(el=>el.addEventListener('input',()=>{
+    [...pre.children].forEach(c=>c.classList.remove('on'));run();}));
+  load(Object.keys(P)[0]); pre.children[0].classList.add('on');
 }
 
 // ===== 이용약관 · 개인정보처리방침 · 저장소 설정 =====

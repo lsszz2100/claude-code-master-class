@@ -138,7 +138,7 @@ QUIZZES = {
     2: [
         ("권한 모드를 순환 전환하는 단축키는?",
          ["Ctrl+C", "Shift+Tab", "Tab", "Ctrl+R"], 1,
-         "Shift+Tab으로 default→acceptEdits→plan→auto→bypassPermissions를 순환합니다."),
+         "Shift+Tab으로 default(화면엔 Manual)→acceptEdits→plan을 순환합니다. auto·bypassPermissions는 조건이 맞을 때만 뒤에 끼어들고, dontAsk는 순환에 나오지 않습니다."),
         ("변경 없이 코드베이스를 이해하고 계획만 세우는 모드는?",
          ["acceptEdits", "plan", "auto", "bypassPermissions"], 1,
          "plan 모드는 읽기 전용 탐색으로, 엉뚱한 문제를 푸는 것을 막아 줍니다."),
@@ -805,7 +805,7 @@ pre.mermaid .copy-btn{display:none}
 .pg-plan .row.win .verdict{color:#3aa76d}
 .pg-plan .sum{font-size:13.5px;color:var(--ink);margin-top:12px;line-height:1.65}
 .pg-plan .sum b{color:var(--accent2)}
-.pg-plan .cav{font-size:12px;color:var(--ink-dim);margin-top:9px;line-height:1.6}
+.pg-plan .cav,.pg-cmp .cav{font-size:12px;color:var(--ink-dim);margin-top:9px;line-height:1.6}
 @media(max-width:520px){.pg-plan .row{grid-template-columns:1fr auto;gap:3px 10px}
   .pg-plan .verdict{grid-column:1/-1;text-align:left}}
 
@@ -876,6 +876,53 @@ pre.mermaid .copy-btn{display:none}
 .pg-ctx .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
 @media(max-width:520px){.pg-ctx .lg{grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px}
   .pg-ctx .lg .pct{grid-column:2/-1;text-align:left}}
+
+/* 플레이그라운드 — 권한 규칙 시뮬레이터
+   판정 줄은 규칙 문자열·명령이 얼마든지 길어질 수 있다. 고정 폭 grid 를 쓰면 잘리거나
+   삐져나가므로(가로 넘침 검사가 잡는다) flex-wrap + overflow-wrap:anywhere 로만 짠다. */
+.pg-perm{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.pg-perm .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pg-perm .presets button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
+.pg-perm .presets button:hover,.pg-perm .presets button.on{border-color:var(--accent);color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
+.pg-perm .fld{margin-bottom:15px}
+.pg-perm .fld .lab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px;
+  font-size:13.5px;color:var(--ink-dim);margin-bottom:7px}
+.pg-perm .fld .lab b{color:var(--ink);font-weight:600}
+.pg-perm .fld .lab .hint{font-size:12px;font-family:"SF Mono",monospace}
+.pg-perm select{width:100%;font:inherit;font-size:14px;padding:10px 12px;background:var(--code-bg);
+  border:1px solid var(--line);border-radius:9px;color:var(--ink);outline:none}
+.pg-perm select:focus,.pg-perm textarea:focus{border-color:var(--accent)}
+.pg-perm textarea{width:100%;resize:vertical;box-sizing:border-box;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;
+  padding:12px 14px;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;color:var(--ink);outline:none}
+.pg-perm textarea#pmRules{min-height:150px}
+.pg-perm textarea#pmReqs{min-height:105px}
+.pg-perm .err{margin-top:9px;padding:11px 14px;font-size:13px;line-height:1.6;color:var(--ink);
+  background:var(--code-bg);border:1px solid var(--line);border-left:3px solid #c2452c;border-radius:9px}
+.pg-perm .rows{margin-top:4px;display:flex;flex-direction:column;gap:8px}
+.pg-perm .r{padding:11px 14px;background:var(--code-bg);border:1px solid var(--line);
+  border-left:3px solid var(--line);border-radius:9px;overflow-wrap:anywhere}
+.pg-perm .r.deny{border-left-color:#c2452c}
+.pg-perm .r.ask{border-left-color:var(--accent2)}
+.pg-perm .r.allow,.pg-perm .r.readonly{border-left-color:#3aa76d}
+.pg-perm .r.prompt{border-left-color:var(--ink-dim)}
+.pg-perm .r .hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px}
+.pg-perm .r .v{font-size:12.5px;font-weight:700;white-space:nowrap}
+.pg-perm .r.deny .v{color:#c2452c}
+.pg-perm .r.ask .v{color:var(--accent2)}
+.pg-perm .r.allow .v,.pg-perm .r.readonly .v{color:#3aa76d}
+.pg-perm .r.prompt .v{color:var(--ink-dim)}
+.pg-perm .r .q{font-family:"SF Mono",monospace;font-size:12.5px;color:var(--ink);min-width:0}
+.pg-perm .r .wy{font-size:13px;line-height:1.65;color:var(--ink-dim);margin-top:4px}
+.pg-perm .r .wy b{color:var(--ink)}
+.pg-perm .r .wy code{font-size:12px}
+.pg-perm .sum{margin-top:15px;padding:12px 15px;font-size:13.5px;line-height:1.7;color:var(--ink-dim);
+  background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:9px}
+.pg-perm .sum b{color:var(--ink)}
+.pg-perm .sum .warn{color:#c2452c;font-weight:700}
+.pg-perm .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
 
 /* 약관·개인정보·저장소 설정 모달 */
 .legal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:none;
@@ -959,7 +1006,7 @@ pre.mermaid .copy-btn{display:none}
 @media print{
   .sidebar,.topbar,.backdrop,.progress,.theme-toggle,#quizStat,.consent,
   .legal-backdrop,.search-backdrop,.copy-btn,.quiz-retry,.rp-reset,
-  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-ctx,.site-footer .foot-links,
+  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-ctx,.pg-perm,.site-footer .foot-links,
   .pg-chips,.pg-tip{display:none !important}
   :root,:root[data-theme="dark"],:root[data-theme="light"]{
     --bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#111;--ink-dim:#444;
@@ -1726,7 +1773,7 @@ if(pgt){
     '/agents':()=>['<span class="k">서브에이전트</span> Explore · Plan · general-purpose(내장)','.claude/agents/ 에 커스텀 정의를 추가할 수 있습니다.','<span class="dim">고출력 작업을 격리하면 메인 컨텍스트에는 요약만 돌아옵니다.</span>'],
     '/mcp':()=>['<span class="k">MCP 서버</span> 연결된 서버 없음. <span class="k">claude mcp add</span> 로 외부 도구를 연결하세요.'],
     '/hooks':()=>['<span class="k">훅</span> 구성된 훅 없음. .claude/settings.json 의 hooks 블록에 정의합니다.','<span class="dim">PreToolUse 는 막을 수 있고, PostToolUse 는 이미 일어난 뒤에 돕습니다.</span>'],
-    '/permissions':()=>['<span class="k">권한</span> 기본(default) 모드. Shift+Tab 으로 순환합니다.','<span class="dim">default → acceptEdits → plan. 규칙은 allow·ask·deny 세 갈래.</span>'],
+    '/permissions':()=>['<span class="k">권한</span> 현재 <span class="k">auto</span> 모드 — Pro·Max·Team 의 새 세션 기본값(2026-08-14~). Shift+Tab 으로 순환합니다.','<span class="dim">Manual(default) → acceptEdits → plan. 규칙은 allow·ask·deny 세 갈래.</span>'],
     '/config':()=>['<span class="k">설정</span> 테마 · 모델 · 알림 · 자동 업데이트를 이 화면에서 바꿉니다.'],
     '/add-dir':a=>a?['<span class="ok">✓ 작업 디렉터리 추가:</span> '+esc(a)]:['<span class="k">작업 디렉터리</span> 저장소 밖 경로를 세션에 추가합니다. 예: /add-dir ../shared-lib'],
     '/review':()=>['<span class="k">리뷰</span> 변경 diff 를 읽고 문제를 지적합니다.','<span class="dim">근거 없는 지적을 줄이려면 “무엇을 기준으로 볼지”를 함께 주세요.</span>'],
@@ -2000,7 +2047,10 @@ if(pgc){
     '<div class="fld"><div class="lab"><b>⑤ 입력 중 캐시로 재사용되는 비율</b><span class="val" id="ccHitV"></span></div><input id="ccHit" aria-label="프롬프트 캐시 히트 비율" type="range" min="0" max="90" step="5" value="0"></div>'+
     '<div class="toggles"><label><input id="ccBatch" type="checkbox">배치 API로 보내기 <span class="val">−50%</span></label></div>'+
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note" id="ccNote"></div></div>'+
-    '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div></div>'+
+    '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div>'+
+    '<div class="cav">같은 <b>토큰 수</b>로 비교한 값입니다. 실제로는 Opus 4.7부터 도입된 새 토크나이저를 쓰는 '
+    +'<b>Fable 5·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
+    +'옛 토크나이저인 <b>Haiku 4.5</b>와 나란히 놓으면 위쪽 세 모델이 그만큼 싸 보인다는 뜻입니다.</div></div>'+
     '<div class="pg-plan"><div class="h">요금제(정액)로 쓰면? — 한 달 30일 환산 비교</div><div id="ccPlan"></div>'+
     '<div class="sum" id="ccPlanSum"></div><div class="cav" id="ccPlanCav"></div></div>';
   const sel=pgc.querySelector('#ccModel');
@@ -2225,6 +2275,263 @@ if(pgx){
   [sel,...Object.values(inp)].forEach(e=>e.addEventListener('input',()=>{
     [...pre.children].forEach(c=>c.classList.remove('on'));draw();}));
   setAll(P['🔨 한창 작업 중']); pre.children[1].classList.add('on'); draw();
+}
+
+// ===== 플레이그라운드 · 권한 규칙 시뮬레이터 =====
+// 판정 규칙은 code.claude.com/docs/en/permissions 의 서술을 옮긴 것이고, 2장 "권한 규칙" 절과
+// 같이 움직인다. 한쪽만 고치면 어긋난다.
+const pgp=document.querySelector('.pg-perm');
+if(pgp){
+  // 경로 앵커를 보여 주기 위한 고정 좌표
+  const HOME='/home/me', PROJ='/home/me/app', UCFG=HOME+'/.claude';
+  // 문서에 명시된 내장 래퍼 목록(설정으로 못 바꾼다). 벗긴 뒤에 매칭한다.
+  const WRAP=['timeout','time','nice','nohup','stdbuf','command','builtin','noglob'];
+  // 읽기 전용 명령 세트(발췌) — 모든 모드에서 규칙 없이 통과한다
+  const RO=['ls','cat','echo','pwd','head','tail','grep','find','wc','which','diff','stat','du','cd'];
+  // git 은 하위 명령으로 갈린다 — 읽기용만 통과하고 push·commit 은 규칙을 탄다
+  const ROGIT=['status','log','diff','show','blame','branch','tag','describe','rev-parse','ls-files'];
+  const isRO=c=>{const t=c.split(/\s+/); return RO.indexOf(t[0])>=0||(t[0]==='git'&&ROGIT.indexOf(t[1])>=0);};
+  // 반대로 실행기는 안 벗겨진다 — 접두 규칙이 내부 명령까지 통째로 허용해 버린다
+  const RUNNERS=['npx','docker exec','devbox run','mise exec','direnv exec'];
+  const V={deny:['🚫 차단','deny'],ask:['❓ 항상 물어봄','ask'],allow:['✅ 자동 승인','allow'],
+           readonly:['✅ 규칙 없이 통과','readonly'],prompt:['💬 기본 권한 흐름','prompt']};
+  const P={
+    '🪤 넓은 deny 에 예외 뚫기':{src:'project',
+      rules:{deny:['Bash(aws *)'],allow:['Bash(aws s3 ls)','Bash(npm run *)']},
+      reqs:['Bash: aws s3 ls','Bash: aws s3 rm s3://bucket/key','Bash: npm run build']},
+    '🔤 " *" 의 단어 경계':{src:'project',
+      rules:{deny:['Bash(rm *)','Bash(ls*)'],allow:['Bash(npm run *)']},
+      reqs:['Bash: rm -rf build','Bash: rmdir tmp','Bash: ls -la','Bash: lsof -i :3000']},
+    '⛓ 복합 명령 · 래퍼':{src:'project',
+      rules:{allow:['Bash(npm test *)','Bash(devbox run *)']},
+      reqs:['Bash: npm test -- -t auth','Bash: timeout 30 npm test','Bash: npm test && rm -rf build',
+            'Bash: devbox run rm -rf .','Bash: npx rimraf build']},
+    '📁 경로 앞 "/" 는 설정 기준':{src:'user',
+      rules:{deny:['Read(/secrets/**)','Read(.env)']},
+      reqs:['Read: secrets/key.pem','Read: ~/.claude/secrets/key.pem','Read: src/app/.env','Edit: .env']},
+  };
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cd=s=>'<code>'+esc(s)+'</code>';
+  const rxEsc=s=>s.replace(/[.+?^${}()|[\]\\]/g,'\\$&');
+
+  // 복합 명령 구분자 — 조각마다 따로 매칭해야 한다
+  const subs=c=>c.split(/\s*(?:&&|\|\||\|&|;|\||&|\n)\s*/).map(s=>s.trim()).filter(Boolean);
+  function unwrap(c){
+    let s=c;
+    for(let i=0;i<6;i++){
+      const m=s.match(/^([A-Za-z_][\w-]*)\s+([\s\S]*)$/);
+      if(!m) break;
+      if(WRAP.indexOf(m[1])>=0){
+        // 조회 형식 command -v 는 명령을 실행하지 않으므로 벗기지 않는다
+        if((m[1]==='command'||m[1]==='builtin')&&/^-[vV](?:\s|$)/.test(m[2])) break;
+        // 래퍼 자신의 인수도 먹는다 — timeout 30 / nice -n 10 / stdbuf -o0
+        let rest=m[2];
+        while(/^(?:-{1,2}[\w-]+(?:=\S+)?|\d+(?:\.\d+)?[smhd]?)\s+/.test(rest)) rest=rest.replace(/^\S+\s+/,'');
+        s=rest; continue;
+      }
+      if(m[1]==='xargs'&&!/^-/.test(m[2])){ s=m[2]; continue; }  // 플래그 없는 xargs 만 벗겨진다
+      break;
+    }
+    return s;
+  }
+  function bashRe(spec){
+    let s=spec.trim(), bd=false;
+    if(/:\*$/.test(s)) s=s.slice(0,-2)+' *';            // :* 는 끝에서만 " *" 와 같다
+    if(/\s\*$/.test(s)){ bd=true; s=s.replace(/\s+\*$/,''); }
+    return new RegExp('^'+s.split('*').map(rxEsc).join('.*')+(bd?'(?:\\s[\\s\\S]*)?':'')+'$');
+  }
+  function pathInfo(spec,src,kind){
+    let p=spec.trim(), base, anyDepth=false;
+    if(p.slice(0,2)==='//'){ base=''; p=p.slice(1); }              // // 만 파일시스템 루트
+    else if(p.slice(0,2)==='~/'){ base=HOME; p=p.slice(1); }
+    else if(p[0]==='/'){ base=(src==='user'?UCFG:PROJ); }          // 앞 / 는 설정 파일 기준
+    else { anyDepth=p.slice(0,2)!=='./'; p='/'+p.replace(/^\.\//,''); base=PROJ; }
+    const bare=anyDepth&&p.slice(1).indexOf('/')<0;                // 맨 이름은 어느 깊이에서나(.env == **/.env)
+    // 한 세그먼트짜리 디렉터리 패턴(secrets/**)은 deny·ask 에서만 깊이가 열린다.
+    // allow 의 Edit(src/**) 는 cwd 의 src 한 곳뿐이다 — 규칙 종류로 갈리는 유일한 자리다.
+    const seg=anyDepth&&kind!=='allow'&&/^\/[^\/*]+\/\*\*$/.test(p);
+    if(bare||seg) p='/**'+p;
+    // 글롭은 이스케이프 전에 처리해야 한다 — rxEsc 는 * 를 건드리지 않으므로
+    // "이스케이프한 뒤 \\* 를 찾아 바꾸기"는 아무것도 못 찾고 * 를 정규식 반복자로 흘려보낸다.
+    const full=base+p; let rx='';
+    for(let i=0;i<full.length;i++){
+      if(full[i]==='*'&&full[i+1]==='*'){                          // ** 는 깊이 무제한
+        if(rx.slice(-1)==='/') rx=rx.slice(0,-1)+'(?:/[\\s\\S]*)?';// /** 는 0단계(부모 자신)도 포함
+        else rx+='[\\s\\S]*';
+        i++; continue;
+      }
+      if(full[i]==='*'){ rx+='[^/]*'; continue; }                  // * 한 개는 한 세그먼트 안에서만
+      rx+=rxEsc(full[i]);
+    }
+    return {re:new RegExp('^'+rx+'$'),
+      desc:bare
+        ?cd(base)+' 아래 <b>어느 깊이에서나</b> 맞습니다 — 맨 이름은 gitignore 규칙대로 '+cd(spec)+' = '+cd('**/'+spec)+' 입니다.'
+        :seg
+        ?cd(base)+' 아래 <b>어느 깊이에서나</b> 맞습니다 — 한 세그먼트짜리 디렉터리 패턴은 <b>deny·ask 에서만</b> 깊이가 열립니다(같은 규칙을 allow 에 적으면 '+cd(base+'/'+spec.trim().replace(/^\.\//,''))+' 한 곳뿐입니다).'
+        :cd(full)+' 를 가리킵니다.'};
+  }
+  const abs=p=>p.slice(0,2)==='~/'?HOME+p.slice(1):(p[0]==='/'?p:PROJ+'/'+p.replace(/^\.\//,''));
+
+  function matchRule(rule,req,src,kind){
+    const m=String(rule).match(/^\s*([A-Za-z_*][\w*]*)\s*(?:\(([\s\S]*)\))?\s*$/);
+    if(!m) return {bad:true};
+    const tool=m[1], spec=m[2];
+    const hasSpec=spec!==undefined&&spec.trim()!=='';
+    const whole=!hasSpec||spec.trim()==='*';                        // Bash 와 Bash(*) 는 같은 규칙이다
+    // 본문 필드를 파라미터로 적은 규칙은 무시되고 시작 시 경고가 난다
+    if(hasSpec&&/^(?:command|file_path|path|url|notebook_path)\s*:/.test(spec))
+      return {ignored:'는 <b>본문 필드를 파라미터로 적은 규칙</b>이라 Claude Code 가 읽지 않고 시작 시 경고합니다 — 복합 명령으로 우회되기 때문입니다. <code>Bash(rm *)</code>처럼 적으세요.'};
+    // 파일 권한은 Read·Edit 규칙으로만 확인한다 — 다른 도구에 적은 경로 규칙은 받아들이고도 보지 않는다
+    if(hasSpec&&!whole&&/^(?:Write|NotebookEdit|Glob|MultiEdit)$/.test(tool)&&!/^\w+\s*:/.test(spec))
+      return {ignored:'는 경로 규칙인데 파일 권한은 <b>Read·Edit 규칙으로만</b> 확인합니다 — 규칙을 받아들이고도 보지 않고 시작 시 경고합니다. <code>Edit(...)</code>·<code>Read(...)</code>로 옮겨 적으세요.'};
+    // Read deny 는 같은 경로의 Edit·Write 까지 막는다(NotebookEdit 은 예외).
+    // 경로를 준 규칙만 그렇다 — 범위 없는 deny 는 Read 도구 자체를 뺄 뿐 Edit 은 남는다.
+    const covers=(kind==='deny'&&tool==='Read'&&!whole&&(req.tool==='Edit'||req.tool==='Write'));
+    // 도구 이름의 글롭도 split 으로 처리한다(rxEsc 가 * 를 남기므로 사후 치환은 안 먹는다)
+    if(!new RegExp('^'+tool.split('*').map(rxEsc).join('[\\s\\S]*')+'$').test(req.tool)&&!covers) return {};
+    if(whole)
+      return {hit:true,why:'범위 없이 도구만 가리키는 규칙이라 <b>'+esc(req.tool)+' 호출 전체</b>에 맞습니다'
+        +(hasSpec?'(<code>'+esc(tool)+'(*)</code>는 <code>'+esc(tool)+'</code>와 같습니다)':'')+'.'
+        +(kind==='deny'?' 이런 deny 는 도구를 <b>컨텍스트에서 아예 제거</b>합니다 — Claude 는 존재조차 모릅니다.':'')};
+    if(req.tool==='Bash'||req.tool==='PowerShell'){
+      const re=bashRe(spec), parts=subs(req.arg), un=parts.map(unwrap);
+      const hits=un.map(c=>re.test(c)), wrapped=un.some((c,i)=>c!==parts[i]);
+      const wnote=wrapped?' 래퍼를 벗긴 뒤 '+cd(un.join(' ; '))+'로 비교했습니다.':'';
+      if(kind==='allow'){
+        if(hits.every(Boolean)) return {hit:true,
+          why:(parts.length>1?'복합 명령의 <b>조각 '+parts.length+'개가 모두</b> 맞습니다.':'명령이 맞습니다.')+wnote};
+        if(hits.some(Boolean)) return {partial:true};
+        return {};
+      }
+      const i=hits.indexOf(true);
+      if(i>=0) return {hit:true,why:(parts.length>1
+        ?'복합 명령의 조각 '+cd(parts[i])+'가 맞습니다 — <b>조각 하나만 맞아도 호출 전체가 막힙니다.</b>'
+        :'명령이 맞습니다.')+wnote};
+      return {};
+    }
+    if(tool==='Read'||tool==='Edit'){
+      const pi=pathInfo(spec,src,kind);
+      if(!pi.re.test(abs(req.arg))) return {};
+      return {hit:true,why:'이 규칙은 '+pi.desc+(covers
+        ?' 그리고 <b>Read deny 는 같은 경로의 Edit·Write 까지 막습니다</b> — 아무 도구도 못 바꾸게 하려면 <code>Edit</code> deny 를 따로 적으세요(NotebookEdit 은 Read 규칙이 안 걸립니다).'
+        :'')};
+    }
+    // 그 밖의 도구는 param:value 형태 — deny·ask 전용이다.
+    // WebFetch 의 domain: 만 예외인데, 그건 파라미터 규칙이 아니라 WebFetch 자신의 지정자 문법이라 그렇다.
+    const pm=spec.match(/^([\w]+)\s*:\s*([\s\S]*)$/);
+    if(!pm) return {};
+    if(kind==='allow'&&!(tool==='WebFetch'&&pm[1]==='domain'))
+      return {ignored:'는 <b>allow 에 적은 파라미터 규칙</b>이라 동작하지 않습니다 — 파라미터 하나가 맞았다고 호출 전체가 안전하다고 볼 수 없어서, <code>Tool(param:value)</code> 형태는 deny·ask 에서만 쓸 수 있습니다.'};
+    return new RegExp('^'+spec.split('*').map(rxEsc).join('[\\s\\S]*')+'$').test(req.arg)
+      ? {hit:true,why:'입력 파라미터가 규칙과 같습니다.'} : {};
+  }
+  function judge(rules,req,src){
+    let partial=null; const ignored=[];
+    for(const kind of ['deny','ask','allow'])
+      for(const rule of (rules[kind]||[])){
+        const r=matchRule(rule,req,src,kind);
+        if(r.ignored){ ignored.push([rule,r.ignored]); continue; }
+        if(r.bad) continue;
+        if(r.hit) return {v:kind,rule:rule,why:r.why,ignored:ignored};
+        if(r.partial&&!partial) partial=rule;
+      }
+    if(req.tool==='Bash'){
+      const un=subs(req.arg).map(unwrap);
+      if(un.length&&un.every(isRO))
+        return {v:'readonly',ignored:ignored,
+          why:'<b>읽기 전용 명령 세트</b>라 규칙이 없어도 어떤 모드에서든 프롬프트 없이 실행됩니다. 굳이 allow 에 적을 필요가 없고, 반대로 <b>물어보게 만들려면 ask·deny 에 적어야</b> 합니다.'};
+    }
+    return {v:'prompt',ignored:ignored,rule:partial,
+      why:partial?'allow 의 '+cd(partial)+'는 <b>복합 명령의 일부에만</b> 맞아 승인이 되지 않습니다 — 규칙은 <b>조각마다 따로</b> 맞아야 합니다.'
+        :'맞는 규칙이 없어 <b>권한 모드에 따른 기본 흐름</b>을 탑니다(default 모드면 프롬프트).'};
+  }
+
+  pgp.innerHTML='<div class="presets" id="pmPre"></div>'
+    +'<div class="fld"><div class="lab"><b>규칙을 적은 곳</b>'
+    +'<span class="hint">경로 규칙의 앞 <code>/</code>가 프로젝트 루트냐 <code>~/.claude</code>냐를 바꿉니다</span></div>'
+    +'<select id="pmSrc" aria-label="권한 규칙을 적은 설정 파일">'
+    +'<option value="project">프로젝트 · .claude/settings.json</option>'
+    +'<option value="user">사용자 · ~/.claude/settings.json</option></select></div>'
+    +'<div class="fld"><div class="lab"><b>permissions 규칙</b><span class="hint">settings.json 을 그대로 붙여도 됩니다</span></div>'
+    +'<textarea id="pmRules" aria-label="permissions 권한 규칙 JSON" spellcheck="false"></textarea></div>'
+    +'<div class="fld"><div class="lab"><b>Claude 가 시도하는 호출</b><span class="hint">한 줄에 하나 · 도구: 인수</span></div>'
+    +'<textarea id="pmReqs" aria-label="판정할 도구 호출 목록" spellcheck="false"></textarea></div>'
+    +'<div id="pmErr"></div><div class="rows" id="pmRows"></div><div class="sum" id="pmSum"></div>'
+    +'<div class="cav">작업 디렉터리는 <code>'+PROJ+'</code>, 홈은 <code>'+HOME+'</code>로 가정합니다. '
+    +'실제 Claude Code 판정의 <b>부분집합</b>입니다 — 환경변수 할당·PowerShell 별칭·MCP 서버 규칙·오토 모드 분류기는 단순화했거나 빠져 있습니다. '
+    +'규칙을 강제하는 주체는 모델이 아니라 <b>Claude Code</b>라는 점도 기억하세요.</div>';
+  const pre=pgp.querySelector('#pmPre'), sel=pgp.querySelector('#pmSrc');
+  const taR=pgp.querySelector('#pmRules'), taQ=pgp.querySelector('#pmReqs');
+
+  function run(){
+    const src=sel.value; let rules=null, err='';
+    try{
+      const o=JSON.parse(taR.value||'{}');
+      const p=(o&&typeof o==='object'&&o.permissions)?o.permissions:(o||{});
+      rules={deny:p.deny||[],ask:p.ask||[],allow:p.allow||[]};
+    }catch(e){ err='규칙을 JSON 으로 읽을 수 없습니다 — '+e.message; }
+    pgp.querySelector('#pmErr').innerHTML=err?'<div class="err">⚠ '+esc(err)+'</div>':'';
+    if(!rules){ pgp.querySelector('#pmRows').innerHTML=''; pgp.querySelector('#pmSum').innerHTML=
+      '규칙을 고치는 중이라면 괄호·쉼표를 확인하세요. 판정은 JSON 이 읽히는 순간 다시 계산됩니다.'; return; }
+    const reqs=taQ.value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const m=l.match(/^([A-Za-z_][\w]*)\s*:\s*([\s\S]+)$/);
+      return m?{tool:m[1],arg:m[2].trim()}:{tool:'Bash',arg:l};
+    });
+    const res=reqs.map(q=>({q:q,j:judge(rules,q,src)}));
+    pgp.querySelector('#pmRows').innerHTML=res.map(({q,j})=>{
+      const [label,cls]=V[j.v];
+      return '<div class="r '+cls+'"><div class="hd"><span class="v">'+label+'</span>'
+        +'<code class="q">'+esc(q.tool+': '+q.arg)+'</code></div>'
+        +'<div class="wy">'+(j.rule&&j.v!=='prompt'?'<b>'+(j.v==='deny'?'deny':j.v==='ask'?'ask':'allow')+'</b> 의 '+cd(j.rule)+'가 먼저 맞았습니다. ':'')
+        +j.why+'</div></div>';
+    }).join('');
+    // 함정 진단 — 왜 이 판정이 놀라운지 짚어 준다
+    const tips=[], n=v=>res.filter(r=>r.j.v===v).length;
+    const shadowed=res.filter(({q,j})=>j.v==='deny'&&(rules.allow||[]).some(r=>matchRule(r,q,src,'allow').hit));
+    if(shadowed.length) tips.push('<span class="warn">allow 에 있어도 deny 가 이깁니다</span> — '+shadowed.length
+      +'건이 그 경우입니다. 평가는 <b>deny → ask → allow 순이고 먼저 맞는 것이 이기며, 구체성은 순서를 바꾸지 않습니다.</b> 예외를 두려면 deny 를 좁게 적으세요.');
+    const askWin=res.filter(({q,j})=>j.v==='ask'&&(rules.allow||[]).some(r=>matchRule(r,q,src,'allow').hit));
+    if(askWin.length) tips.push('ask 에 맞은 '+askWin.length+'건은 <b>더 구체적인 allow 가 있어도</b> 물어봅니다.');
+    // 실행기는 "명령의 앞머리"일 때만 위험하다 — 인수 안에 이름이 스쳐 지나가는 것과 구별한다
+    const isRunner=c=>RUNNERS.some(r=>c===r||c.indexOf(r+' ')===0);
+    const risky=res.filter(({q,j})=>j.v==='allow'&&q.tool==='Bash'&&subs(q.arg).map(unwrap).some(isRunner));
+    if(risky.length) tips.push('<span class="warn">실행기는 래퍼처럼 벗겨지지 않습니다</span> — '
+      +cd(risky[0].q.arg)+' 가 자동 승인됐습니다. <code>npx</code>·<code>docker exec</code>·<code>devbox run</code> 류는 뒤에 오는 <b>아무 명령이나</b> 실행하므로, 접두 규칙 대신 <code>Bash(devbox run npm test)</code>처럼 내부 명령까지 못 박으세요.');
+    // 앵커 함정 — 앞 / 로 시작하는 경로 규칙이 있는데 프로젝트 파일이 안 걸렸다면 십중팔구 이것이다
+    const anchored=[].concat(rules.deny,rules.ask).filter(r=>/^(?:Read|Edit)\(\/(?!\/)/.test(String(r)));
+    const missed=res.filter(({q,j})=>j.v==='prompt'&&(q.tool==='Read'||q.tool==='Edit'));
+    if(anchored.length&&missed.length) tips.push('경로 규칙 앞의 <code>/</code>는 파일시스템 루트가 아니라 <b>규칙을 적은 설정 파일 기준</b>입니다 — 지금 출처가 '
+      +(src==='user'?cd(UCFG):cd(PROJ))+' 라서 '+cd(anchored[0])+'는 그 아래만 막습니다. '
+      +(src==='user'?'모든 프로젝트에 걸리게 하려면 <code>//</code>(절대 경로)나 <code>~/</code>(홈)을 쓰세요.':'출처를 사용자 설정으로 바꿔 보면 같은 규칙이 다른 곳을 가리키는 것이 보입니다.'));
+    // 무시되는 규칙은 조용히 안 맞는 것처럼 보인다 — 이유를 규칙마다 붙여 준다
+    const ign=new Map(); res.forEach(r=>(r.j.ignored||[]).forEach(([rule,why])=>ign.set(rule,why)));
+    if(ign.size) tips.push('<span class="warn">적용되지 않는 규칙 '+ign.size+'개</span> — '
+      +[...ign].map(([rule,why])=>cd(rule)+why).join(' · '));
+    let sum;
+    if(!reqs.length) sum='아래 칸에 호출을 한 줄씩 적으면 판정합니다 — 예: <code>Bash: rm -rf build</code>, <code>Read: .env</code>.';
+    else{
+      sum='<b>차단 '+n('deny')+' · 물어봄 '+n('ask')+' · 자동 승인 '+n('allow')
+        +' · 규칙 없이 통과 '+n('readonly')+' · 기본 흐름 '+n('prompt')+'</b>'
+        +' (규칙 deny '+rules.deny.length+' · ask '+rules.ask.length+' · allow '+rules.allow.length+'개)';
+      if(tips.length) sum+='<br>'+tips.join('<br>');
+    }
+    pgp.querySelector('#pmSum').innerHTML=sum;
+  }
+  function load(name){
+    const p=P[name];
+    sel.value=p.src;
+    taR.value=JSON.stringify({permissions:p.rules},null,2);
+    taQ.value=p.reqs.join('\n');
+    run();
+  }
+  Object.keys(P).forEach(name=>{
+    const b=document.createElement('button');b.type='button';b.textContent=name;
+    b.addEventListener('click',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');load(name);});
+    pre.appendChild(b);
+  });
+  [sel,taR,taQ].forEach(el=>el.addEventListener('input',()=>{
+    [...pre.children].forEach(c=>c.classList.remove('on'));run();}));
+  load(Object.keys(P)[0]); pre.children[0].classList.add('on');
 }
 
 // ===== 이용약관 · 개인정보처리방침 · 저장소 설정 =====

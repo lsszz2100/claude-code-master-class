@@ -87,6 +87,7 @@ Claude Code는 **CLI·데스크톱 앱(Mac/Win/Linux)·웹·IDE 확장** 어디�
 - **`/usage`**로 API 사용량·비용 확인. 저비용이 필요하면 [모델·effort](#ch3)를 낮추세요.
 - **프롬프트 캐싱**: 반복되는 큰 컨텍스트(예: `CLAUDE.md`)는 자동으로 캐시되어 최대 90% 절감. 세션 중 모델을 바꾸면 캐시가 무효화되니 잦은 전환은 피하세요.
 - **릴리스 채널**: 네이티브 설치는 자동 업데이트. `/config`의 **Auto-update channel**에서 `latest`(최신) 또는 `stable`(약 1주 지연, 회귀 회피)을 고를 수 있습니다.
+- **사용량 한도에 걸려도 세션은 이어집니다**(v2.1.234+): claude.ai 사용량 한도가 리셋되면 Claude Code가 **자동으로 이어서** 진행합니다. 원치 않으면 `/config`의 "Continue automatically at usage limit"에서 끄세요.
 - **`claude doctor`**로 설치·설정 상태를 언제든 진단.
 
 ---
@@ -99,7 +100,7 @@ Anthropic Academy의 **[Claude Code in Action](https://anthropic.skilljar.com/cl
 
 ## 안전하게 쓰기 — 빠른 체크리스트
 
-- 민감 작업은 **default/plan 모드**로, 신뢰 작업은 **auto 모드**로([2장](#ch2)).
+- 민감 작업은 **Manual(`default`)/plan 모드**로, 신뢰 작업은 **auto 모드**로([2장](#ch2)). Pro·Max·Team의 새 세션은 이제 **auto로 시작**하니, 민감한 저장소에서는 시작 모드를 직접 확인하세요.
 - 반드시 막아야 하는 동작은 **CLAUDE.md 조언이 아니라 [훅](#ch9)**으로 강제.
 - 무인 실행([루프](#ch13))에는 **검증(테스트·`/goal`·검증 서브에이전트)**을 반드시 게이트로.
 - 외부 자산(서브에이전트·스킬·플러그인·MCP)은 **도입 전 내용 검토**.

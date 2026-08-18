@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 25건 + CDP Performance.getMetrics 지표.
+ * 검사 26건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -328,7 +328,9 @@ await check('검색 제목 히트 이동', async ({ page, note }) => {
   await page.keyboard.press('Control+k');
   await page.waitForSelector('#searchModal.open');
   await page.fill('#searchInput', q);
-  await sleep(200);
+  // 고정 대기는 부하가 걸리면 부족해 조용히 깨진다(검색 인덱스는 유휴 시점에 만들어지고
+  // 입력에도 디바운스가 있다). 결과가 실제로 그려질 때까지 기다린다 — 안 그려지면 타임아웃으로 실패.
+  await page.waitForFunction(() => document.querySelectorAll('#searchResults a').length > 0, null, { timeout: 5000 });
   const href = await page.$eval('#searchResults a', a => a.getAttribute('href'));
   await page.keyboard.press('Enter');
   await settle(page);
@@ -350,7 +352,7 @@ await check('검색 본문 히트 이동 + 강조', async ({ page, note }) => {
   await page.keyboard.press('Control+k');
   await page.waitForSelector('#searchModal.open');
   await page.fill('#searchInput', q);
-  await sleep(250);
+  await page.waitForFunction(() => document.querySelectorAll('#searchResults a').length > 0, null, { timeout: 5000 });
   const idx = await page.$$eval('#searchResults a',
     as => as.findIndex(a => a.querySelector('.r-num')?.textContent.trim() === '¶'));
   expect(idx >= 0, `"${q}" 로 본문 히트가 안 나옴`);
@@ -881,8 +883,124 @@ await check('놀이터 예산 (레버·창 초과)', async ({ page, note }) => {
   note(`가벼움 ${light.total}K → 무거움 ${heavy.total}K → 레버 후 ${m.total}K · 200K 초과 경고 ✓`);
 });
 
+// 21. 권한 규칙 시뮬레이터 — 판정 결과가 아니라 "왜 그렇게 되는가"를 건다.
+// 2장 권한 규칙 절과 같은 사실을 가르쳐야 하므로, 프리셋 네 개가 각자 노리는 함정이
+// 실제로 재현되는지 확인한다. 이 위젯은 예외가 나면 옛 결과를 그대로 남기므로
+// (프리셋을 눌렀는데 이전 판정이 보이는 형태) 프리셋마다 자기 호출이 있는지도 같이 본다.
+await check('놀이터 권한 (평가 순서·경계·앵커)', async ({ page, note }) => {
+  await page.locator('.pg-perm').scrollIntoViewIfNeeded();
+  await settle(page);
+  const read = () => page.evaluate(() => ({
+    src: document.querySelector('.pg-perm #pmSrc').value,
+    rows: [...document.querySelectorAll('.pg-perm .r')].map(r => ({
+      v: [...r.classList].find(c => c !== 'r'),
+      q: r.querySelector('.q').textContent,
+      why: r.querySelector('.wy').textContent,
+    })),
+    sum: document.querySelector('.pg-perm #pmSum').textContent,
+    err: document.querySelector('.pg-perm #pmErr').textContent,
+  }));
+  const preset = async i => { await page.click(`.pg-perm .presets button:nth-child(${i})`); await sleep(80); };
+  // 프리셋이 실제로 로드됐는지(예외로 옛 결과가 남지 않았는지) 확인하며 판정을 꺼낸다
+  const verdict = (r, q) => {
+    const row = r.rows.find(x => x.q === q);
+    expect(!!row, `"${q}" 줄이 없다 — 프리셋이 안 바뀌었거나 판정이 죽었다 (지금 ${r.rows.map(x => x.q).join(' / ')})`);
+    return row;
+  };
+
+  // ① deny → ask → allow, 먼저 맞는 것이 이긴다. allow 에 같은 명령이 그대로 있어도 진다.
+  await preset(1);
+  const p1 = await read();
+  expect(verdict(p1, 'Bash: aws s3 ls').v === 'deny',
+    `넓은 deny 를 좁은 allow 가 뚫었다 (${verdict(p1, 'Bash: aws s3 ls').v})`);
+  expect(verdict(p1, 'Bash: npm run build').v === 'allow', 'allow 규칙이 안 먹었다');
+  expect(/먼저 맞는 것이 이기며/.test(p1.sum) && /구체성/.test(p1.sum),
+    `deny 우선 설명이 요약에 없다 — "${p1.sum}"`);
+
+  // ② " *" 의 단어 경계. 공백 하나가 rmdir·lsof 를 가른다.
+  await preset(2);
+  const p2 = await read();
+  expect(verdict(p2, 'Bash: rm -rf build').v === 'deny', 'Bash(rm *) 가 rm 을 안 막았다');
+  expect(verdict(p2, 'Bash: rmdir tmp').v === 'prompt',
+    `Bash(rm *) 가 rmdir 까지 잡았다 — " *" 의 단어 경계가 깨졌다`);
+  expect(verdict(p2, 'Bash: lsof -i :3000').v === 'deny',
+    'Bash(ls*) 가 lsof 를 안 잡았다 — 공백 없는 * 는 경계가 없어야 한다');
+  // 읽기 전용 세트라도 deny 가 이긴다
+  expect(verdict(p2, 'Bash: ls -la').v === 'deny', '읽기 전용 명령이 deny 를 이겼다');
+
+  // ③ 복합 명령은 조각마다, 래퍼는 벗기고, 실행기는 안 벗긴다
+  await preset(3);
+  const p3 = await read();
+  expect(verdict(p3, 'Bash: timeout 30 npm test').v === 'allow', '래퍼 timeout 이 안 벗겨졌다');
+  expect(/래퍼를 벗긴/.test(verdict(p3, 'Bash: timeout 30 npm test').why), '래퍼를 벗긴 사실을 설명하지 않는다');
+  expect(verdict(p3, 'Bash: npm test && rm -rf build').v === 'prompt',
+    '복합 명령이 조각 하나만 맞고 승인됐다');
+  expect(/조각마다 따로/.test(verdict(p3, 'Bash: npm test && rm -rf build').why), '조각별 매칭 설명이 없다');
+  expect(verdict(p3, 'Bash: devbox run rm -rf .').v === 'allow',
+    '실행기를 래퍼처럼 벗겨 버렸다 — devbox run 은 목록에 없어서 그대로 허용돼야 한다');
+  expect(/실행기는 래퍼처럼 벗겨지지 않습니다/.test(p3.sum), '실행기 위험 경고가 요약에 없다');
+  expect(verdict(p3, 'Bash: npx rimraf build').v === 'prompt', 'npx 가 규칙 없이 승인됐다');
+
+  // ④ 경로 앞 "/" 는 설정 파일 기준 — 출처를 바꾸면 같은 규칙이 다른 곳을 가리킨다
+  await preset(4);
+  const p4 = await read();
+  expect(p4.src === 'user', `프리셋 4 의 설정 출처가 ${p4.src}`);
+  expect(verdict(p4, 'Read: secrets/key.pem').v === 'prompt',
+    '사용자 설정의 Read(/secrets/**) 가 프로젝트 secrets 를 막았다 — 앵커가 틀렸다');
+  expect(verdict(p4, 'Read: ~/.claude/secrets/key.pem').v === 'deny', '앵커 안의 경로가 안 막혔다');
+  expect(verdict(p4, 'Read: src/app/.env').v === 'deny',
+    '맨 이름 규칙이 하위 깊이를 안 잡았다 (.env == **/.env)');
+  expect(verdict(p4, 'Edit: .env').v === 'deny', 'Read deny 가 Edit 을 안 막았다');
+  expect(/Edit·Write 까지 막습니다/.test(verdict(p4, 'Edit: .env').why), 'Read deny 의 Edit 파급 설명이 없다');
+  expect(/설정 파일 기준/.test(p4.sum), `앵커 함정 설명이 요약에 없다 — "${p4.sum}"`);
+
+  await page.selectOption('.pg-perm #pmSrc', 'project');
+  await sleep(80);
+  const flip = await read();
+  expect(verdict(flip, 'Read: secrets/key.pem').v === 'deny'
+    && verdict(flip, 'Read: ~/.claude/secrets/key.pem').v === 'prompt',
+    '출처를 프로젝트로 바꿨는데 앵커 판정이 뒤집히지 않았다');
+
+  // 직접 입력도 반영돼야 한다. 이름만 적은 deny 는 도구를 컨텍스트에서 제거한다는 설명까지.
+  await page.fill('.pg-perm #pmRules', '{ "permissions": { "deny": ["Bash"] } }');
+  await page.fill('.pg-perm #pmReqs', 'Bash: ls -la');
+  await sleep(80);
+  const bare = await read();
+  expect(verdict(bare, 'Bash: ls -la').v === 'deny', '이름만 적은 deny 가 안 먹었다');
+  expect(/컨텍스트에서 아예 제거/.test(verdict(bare, 'Bash: ls -la').why), '이름만 적은 deny 의 의미 설명이 없다');
+
+  // 범위 없는 Read deny 는 Read 도구만 컨텍스트에서 뺀다 — Edit·Write 파급은 "같은 경로" 규칙에만 있다.
+  // 같은 입력으로 deny 의 한 세그먼트 디렉터리 패턴(깊이가 열린다)과 읽기용 git 까지 한 번에 본다.
+  await page.fill('.pg-perm #pmRules', '{ "permissions": { "deny": ["Read", "Read(secrets/**)"] } }');
+  await page.fill('.pg-perm #pmReqs', 'Edit: src/a.ts\nRead: vendor/pkg/secrets/key\nBash: git status');
+  await sleep(80);
+  const scope = await read();
+  expect(verdict(scope, 'Edit: src/a.ts').v === 'prompt',
+    '범위 없는 Read deny 가 Edit 까지 막았다 — 파급은 경로를 준 규칙에만 있다');
+  expect(verdict(scope, 'Read: vendor/pkg/secrets/key').v === 'deny',
+    'deny 의 secrets/** 가 하위 깊이를 안 잡았다 (deny·ask 는 한 세그먼트 디렉터리를 어느 깊이에서나 잡는다)');
+  expect(verdict(scope, 'Bash: git status').v === 'readonly', '읽기용 git 이 읽기 전용 명령 세트로 안 잡혔다');
+
+  // allow 에 적은 파라미터 규칙은 동작하지 않는다 — 조용히 안 맞는 대신 이유가 보여야 한다
+  await page.fill('.pg-perm #pmRules', '{ "permissions": { "allow": ["Agent(model:opus)"] } }');
+  await page.fill('.pg-perm #pmReqs', 'Agent: model:opus');
+  await sleep(80);
+  const ign = await read();
+  expect(verdict(ign, 'Agent: model:opus').v === 'prompt', 'allow 의 파라미터 규칙이 자동 승인으로 갔다');
+  expect(/적용되지 않는 규칙/.test(ign.sum), `무시된 규칙의 이유가 요약에 없다 — "${ign.sum}"`);
+
+  // 깨진 JSON 은 오류를 보여 주고 판정을 비워야 한다 — 옛 결과를 남기면 사용자가 오해한다
+  await page.fill('.pg-perm #pmRules', '{ "permissions": { "deny": [ }');
+  await sleep(80);
+  const broken = await read();
+  expect(/JSON/.test(broken.err), '깨진 JSON 인데 오류 안내가 없다');
+  expect(broken.rows.length === 0, `깨진 JSON 인데 판정 ${broken.rows.length}건이 남아 있다`);
+
+  note(`프리셋 4종 · 경계(rmdir 통과·lsof 차단) · 복합/래퍼/실행기 · 앵커 뒤집기 · 규칙 범위/무시 ✓`);
+});
+
 // ── 레이아웃(눈에만 보이는 결함) ────────────────────────────────────
-// 21. 가로 넘침 없음 — 뷰포트 3종 × 전 챕터
+// 22. 가로 넘침 없음 — 뷰포트 3종 × 전 챕터
 // content-visibility 를 켠 채로는 뷰포트 밖 챕터의 크기를 못 믿는다(추정값이다).
 // 스크롤로 훑으며 재면 챕터 수 × 뷰포트 수만큼 DOM 을 다시 걸어야 해서 느리다 —
 // 이 검사에 한해 전부 펼쳐 놓고 한 번에 잰다. 그래서 여기서 성능 수치를 읽으면 안 된다.
@@ -904,10 +1022,10 @@ await check('가로 넘침 없음 (뷰포트 3종)', async ({ page, note }) => {
   }
 });
 
-// 22. 위젯 최대 상태 넘침 — 값이 가장 길어지는 조건에서 재야 의미가 있다
+// 23. 위젯 최대 상태 넘침 — 값이 가장 길어지는 조건에서 재야 의미가 있다
 // 실제로 놓쳤던 결함이 이 모양이었다. 기본 상태(하루 ₩1,242)로는 안 나오고,
 // 사용량을 끝까지 올려 "요금제가 ₩11,564,400 저렴" 처럼 문구가 길어져야 드러난다.
-await check('위젯 최대 상태 넘침 (계산기·진단기)', async ({ page, note }) => {
+await check('위젯 최대 상태 넘침 (계산기·진단기·권한)', async ({ page, note }) => {
   await reachPlayground(page);
   const setRange = (id, v) => page.$eval(id, (el, val) => {
     el.value = val; el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -928,12 +1046,20 @@ await check('위젯 최대 상태 넘침 (계산기·진단기)', async ({ page,
   const won = await page.$eval('#ccKrw', el => el.textContent);
   expect(/저렴/.test(verdict), `판정 문구가 "${verdict}"`);
 
+  // 권한 시뮬레이터도 최대 상태로 둔다 — 프리셋 3 이 실행기 경고까지 띄워 요약이 가장 길어지고,
+  // 판정 줄에는 래퍼를 벗긴 명령 원문이 들어가 폭을 가장 많이 먹는다.
+  await page.locator('.pg-perm').scrollIntoViewIfNeeded();
+  await page.click('.pg-perm .presets button:nth-child(3)');
+  await sleep(120);
+  expect(/실행기는 래퍼처럼/.test(await page.$eval('.pg-perm #pmSum', el => el.textContent)),
+    '권한 시뮬레이터를 최대 상태로 못 만들었다(실행기 경고가 안 뜸)');
+
   // 계산기·진단기 순서로, 좁은 폭까지 내려가며 잰다.
   // 520px 은 .pg-cmp/.pg-plan 이 열 수를 바꾸는 경계다 — 양쪽을 다 봐야 한다.
   for (const [w, h] of [[1280, 900], [560, 900], [390, 844]]) {
     await page.setViewportSize({ width: w, height: h });
     await sleep(250);
-    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal', '.pg-lint', '.pg-ctx']) {
+    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal', '.pg-lint', '.pg-ctx', '.pg-perm']) {
       const r = await scanClip(page, sel);
       if (r.bad.length) {
         await page.locator(sel).scrollIntoViewIfNeeded();
