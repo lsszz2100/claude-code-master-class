@@ -5,7 +5,7 @@
  *   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
  *   node tools/regress.mjs --keep-pdf      # 인쇄 검사가 만든 PDF 를 지우지 않음
  *
- * 검사 26건 + CDP Performance.getMetrics 지표.
+ * 검사 27건 + CDP Performance.getMetrics 지표.
  *
  * 왜 있나
  *   .chapter 는 content-visibility:auto 라서 뷰포트 밖 챕터가 "추정 높이"만 차지한다.
@@ -357,7 +357,11 @@ await check('검색 본문 히트 이동 + 강조', async ({ page, note }) => {
     as => as.findIndex(a => a.querySelector('.r-num')?.textContent.trim() === '¶'));
   expect(idx >= 0, `"${q}" 로 본문 히트가 안 나옴`);
   await page.locator('#searchResults a').nth(idx).click();
-  await page.waitForSelector('.hit-flash', { timeout: 5000 });
+  // 강조(hit-flash)는 스크롤이 멈춘 뒤에 걸린다. 먼 거리의 smooth scroll 은 2초를 넘고,
+  // 머신이 바쁘면 더 걸려 5초 문턱을 넘긴 적이 있다(2026-08-18, 같은 빌드에서 4회 중 1회 실패).
+  // 먼저 스크롤이 멎기를 기다린 뒤 넉넉한 문턱으로 본다 — 단언 내용은 그대로다.
+  await settle(page, 12000);
+  await page.waitForSelector('.hit-flash', { timeout: 10000 });
   const box = await page.$eval('.hit-flash', el => {
     const r = el.getBoundingClientRect();
     return { center: r.top + r.height / 2, vh: window.innerHeight };
@@ -1087,6 +1091,31 @@ await check('위젯 최대 상태 넘침 (계산기·진단기·권한)', async 
   }
 
   note(`${priciest} 최대 사용량 ${won} · 판정 "${verdict}" · 폭 3종 넘침 0`);
+});
+
+// 24. 앵커 무결성 — 본문의 #링크가 실제 id 로 해소되는가
+// 단일 페이지라 챕터·소제목 이동이 전부 in-page 앵커다. 오타 하나면 클릭이 아무 일도
+// 안 하는데, 눈으로는 "안 움직였네" 정도로만 보이고 콘솔 에러도 안 난다. 4·5번 검사는
+// 목차가 만든 링크만 훑으므로 본문에 손으로 적은 [텍스트](#ch12) 류는 아무도 안 본다.
+// 마지막에 두는 이유: DOM 상태와 무관한 정적 검사라 앞선 검사의 스크롤·뷰포트에 영향받지 않는다.
+await check('앵커 무결성 (본문 # 링크)', async ({ page, note }) => {
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const r = await page.evaluate(() => {
+    const ids = new Set([...document.querySelectorAll('[id]')].map(e => e.id));
+    const bad = [];
+    let n = 0;
+    for (const a of document.querySelectorAll('a[href^="#"]')) {
+      const t = decodeURIComponent(a.getAttribute('href').slice(1));
+      if (!t || t === 'top') continue;          // #top 은 맨 위로 — id 가 없는 게 정상
+      n++;
+      if (!ids.has(t)) bad.push(`${t} ← "${(a.textContent || '').trim().slice(0, 24)}"`);
+    }
+    return { n, bad, ids: ids.size };
+  });
+  expect(r.n > 100, `앵커 링크가 ${r.n}건뿐 — 셀렉터가 잘못됐거나 페이지가 덜 그려졌다`);
+  expect(r.bad.length === 0,
+    `해소되지 않는 앵커 ${r.bad.length}건: ${r.bad.slice(0, 6).join(' · ')}`);
+  note(`링크 ${r.n}건 · id ${r.ids}개 · 미해소 0`);
 });
 
 // ── 성능 지표 (CDP) ─────────────────────────────────────────────────
