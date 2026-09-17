@@ -4834,13 +4834,13 @@ if(pgw){
 const pgc=document.querySelector('.pg-cost');
 if(pgc){
   const KRW=1380; // 대략 환율(달러당)
-  const M={ // [입력$, 출력$, 이름, 한줄 설명]
-    'claude-haiku-4-5':[1,5,'Haiku 4.5','가볍고 빠름 · 가장 저렴'],
-    'claude-sonnet-5':[2,10,'Sonnet 5','균형 잡힌 실무용'],
-    'claude-opus-5':[5,25,'Opus 5','가장 똑똑 · 코딩 최강'],
-    'claude-fable-5-1':[10,50,'Fable 5.1','최고 지능 · 캐시 $0.25'],
+  const M={ // [입력$, 출력$, 이름, 한줄 설명, 캐시요율(생략 시 0.1)]
+    'claude-haiku-4-5':[1,5,'Haiku 4.5','가볍고 빠름 · 가장 저렴',0.1],
+    'claude-sonnet-5':[2,10,'Sonnet 5','균형 잡힌 실무용',0.1],
+    'claude-opus-5':[5,25,'Opus 5','가장 똑똑 · 코딩 최강',0.1],
+    'claude-fable-5-1':[10,50,'Fable 5.1','최고 지능 · 캐시 $0.25',0.025],
   };
-  const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 입력가의 1/10, 배치 API 는 50% 할인 (Fable 5.1은 $0.25/M = 0.025)
+  const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 기본 1/10, 배치 API 는 50% 할인 (Fable 5.1은 $0.25/M = 0.025)
   const PLANS=[ // [월 정액$, 이름, 한 줄 설명] — 공식 요금제(claude.com/pricing) 기준
     [20,'Pro','개인 · 가벼운 코딩'],
     [100,'Max 5x','Pro의 5배 사용량'],
@@ -4874,9 +4874,9 @@ if(pgc){
         plan=pgc.querySelector('#ccPlan');
   const chars=t=>'약 '+Math.round(t*1.5).toLocaleString()+'자';   // 대략 한글 글자수
   const won=v=>'₩'+Math.round(v*KRW).toLocaleString();
-  // 요청 1건 값. 캐시 히트분은 기본 1/10, Fable 5.1은 75% 인하된 $0.25/M (0.025)
-  function perReq(m,i,o,h,b,id){
-    const cr = (id && id.includes('fable-5-1')) ? 0.025 : CACHE_READ;
+  // 요청 1건 값. 모델별 캐시 요율(m[4]) 적용, 없으면 기본 CACHE_READ(0.1)
+  function perReq(m,i,o,h,b){
+    const cr = (m[4] !== undefined) ? m[4] : CACHE_READ;
     const p=(i*(1-h)/1e6*m[0])+(i*h/1e6*m[0]*cr)+(o/1e6*m[1]);
     return b?p*BATCH:p;
   }
@@ -4886,7 +4886,7 @@ if(pgc){
     pgc.querySelector('#ccInV').textContent=chars(i);
     pgc.querySelector('#ccOutV').textContent=chars(o);
     pgc.querySelector('#ccHitV').textContent=h?Math.round(h*100)+'% 캐시 적중':'캐싱 없음';
-    const per=perReq(m,i,o,h,b,sel.value), day=per*n, base=perReq(m,i,o,0,false,sel.value)*n;
+    const per=perReq(m,i,o,h,b), day=per*n, base=perReq(m,i,o,0,false)*n;
     pgc.querySelector('#ccKrw').textContent='하루 약 '+won(day);
     pgc.querySelector('#ccUsd').textContent='≈ $'+day.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / 일';
     let brk='요청 1건당 <b>약 '+won(per)+'</b> · 한 달(30일) <b>약 '+won(day*30)+'</b>';
@@ -4896,7 +4896,7 @@ if(pgc){
       +'<br>배치 API는 최대 24시간 안에 처리되는 <b>비동기</b> 방식이라 대화형 작업에는 못 씁니다.'
       +'<br>(환율 약 ₩'+KRW.toLocaleString()+' 가정, 토큰→글자수는 대략치)';
     // 모델 비교 — 지금 설정 그대로 4개를 나란히 재 본다
-    const rows=Object.entries(M).map(([id,mm])=>[id,mm,perReq(mm,i,o,h,b,id)*n]);
+    const rows=Object.entries(M).map(([id,mm])=>[id,mm,perReq(mm,i,o,h,b)*n]);
     const max=Math.max(...rows.map(r=>r[2]))||1;
     cmp.innerHTML=rows.map(([id,mm,d])=>'<div class="row'+(id===sel.value?' on':'')+'">'
       +'<span class="nm">'+mm[2]+'</span>'
