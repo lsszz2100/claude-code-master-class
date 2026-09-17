@@ -789,9 +789,9 @@ pre.mermaid .copy-btn{display:none}
 
 /* 플레이그라운드 — 계산기 */
 .pg-cost{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
-.pg-cost .presets,.pg-lint .presets,.pg-ctx .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.pg-cost .presets button,.pg-lint .presets button,.pg-ctx .presets button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
-.pg-cost .presets button:hover,.pg-cost .presets button.on,.pg-lint .presets button:hover,.pg-lint .presets button.on,.pg-ctx .presets button:hover,.pg-ctx .presets button.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
+.pg-cost .presets,.pg-lint .presets,.pg-ctx .presets,.pg-prompt .presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pg-cost .presets button,.pg-lint .presets button,.pg-ctx .presets button,.pg-prompt .presets button{font:inherit;font-size:13px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:7px 14px;transition:.15s}
+.pg-cost .presets button:hover,.pg-cost .presets button.on,.pg-lint .presets button:hover,.pg-lint .presets button.on,.pg-ctx .presets button:hover,.pg-ctx .presets button.on,.pg-prompt .presets button:hover,.pg-prompt .presets button.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2))}
 .pg-cost .fld,.pg-ctx .fld{margin-bottom:17px}
 .pg-cost .fld .lab,.pg-ctx .fld .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--ink-dim);margin-bottom:8px}
 .pg-cost .fld .lab b,.pg-ctx .fld .lab b{color:var(--ink);font-weight:600}
@@ -871,6 +871,40 @@ pre.mermaid .copy-btn{display:none}
 .pg-lint .sum b{color:var(--ink)}
 .pg-lint .sum .good{color:#3aa76d;font-weight:700}
 .pg-lint .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
+ 
+/* 플레이그라운드 — 프롬프트 튜너 */
+.pg-prompt{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.pg-prompt textarea{width:100%;min-height:180px;resize:vertical;box-sizing:border-box;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;
+  padding:13px 15px;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;color:var(--ink);outline:none}
+.pg-prompt textarea:focus{border-color:var(--accent)}
+.pg-prompt .fld-row{display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.pg-prompt .fld-row select{max-width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;padding:8px 12px;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;color:var(--ink);outline:none}
+.pg-prompt .gauge{margin:14px 0 2px}
+.pg-prompt .gauge .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--ink-dim);margin-bottom:8px}
+.pg-prompt .gauge .lab b{color:var(--ink);font-weight:600}
+.pg-prompt .gauge .val{color:var(--accent2);font-weight:700;font-family:"SF Mono",monospace;font-size:13px;white-space:nowrap}
+.pg-prompt .finds{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.pg-prompt .f{padding:10px 13px;font-size:13px;line-height:1.6;background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:9px;overflow-wrap:anywhere}
+.pg-prompt .f.cut{border-left-color:#c2452c}
+.pg-prompt .f.add{border-left-color:var(--accent)}
+.pg-prompt .f.warn{border-left-color:#e08f2a}
+.pg-prompt .f.good{border-left-color:#3aa76d}
+.pg-prompt .f .hd{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:baseline;margin-bottom:4px}
+.pg-prompt .f .kind{font-size:11.5px;font-weight:700;letter-spacing:.5px}
+.pg-prompt .f.cut .kind{color:#c2452c}
+.pg-prompt .f.add .kind{color:var(--accent)}
+.pg-prompt .f.warn .kind{color:#e08f2a}
+.pg-prompt .f.good .kind{color:#3aa76d}
+.pg-prompt .f .why{color:var(--ink-dim);margin-top:3px}
+.pg-prompt .f .why b{color:var(--ink)}
+.pg-prompt .tuned-wrap{margin-top:16px}
+.pg-prompt .tuned-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pg-prompt .tuned-hd b{font-size:13.5px;color:var(--ink)}
+.pg-prompt .copy-btn{font:inherit;font-size:12px;padding:4px 10px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:.15s}
+.pg-prompt .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pg-prompt .tuned-box{padding:12px 14px;background:var(--code-bg);border:1px solid var(--line);border-radius:9px;font-family:"SF Mono",monospace;font-size:12.5px;line-height:1.65;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.pg-prompt .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
 
 /* 플레이그라운드 — 컨텍스트 예산
    누적 막대 5색. 밝기·채도·색각 분리는 스크립트로 검증했고 라이트/다크를 따로 골랐다
@@ -1033,7 +1067,7 @@ pre.mermaid .copy-btn{display:none}
 @media print{
   .sidebar,.topbar,.backdrop,.progress,.theme-toggle,#quizStat,.consent,
   .legal-backdrop,.search-backdrop,.copy-btn,.quiz-retry,.rp-reset,
-  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-ctx,.pg-perm,.site-footer .foot-links,
+  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-prompt,.pg-ctx,.pg-perm,.site-footer .foot-links,
   .pg-chips,.pg-tip{display:none !important}
   :root,:root[data-theme="dark"],:root[data-theme="light"]{
     --bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#111;--ink-dim:#444;
@@ -2218,6 +2252,127 @@ if(pgl){
   pre.appendChild(clr);
   ta.addEventListener('input',()=>{[...pre.children].forEach(c=>c.classList.remove('on'));lint();});
   lint();
+}
+
+// ===== 플레이그라운드 · 프롬프트 튜너 (Fable 5.1 & Opus 5) =====
+// 규칙은 14장의 Opus 5 공통 패턴 + Fable 5.1 16대 공식 지침을 검사기로 옮긴 것이다.
+const pgpt=document.querySelector('.pg-prompt');
+if(pgpt){
+  const CHARS_PER_TOK=1.5;
+  const P_RULES=[
+    {k:'cut',re:/(반드시\s*)?(모든\s*)?(결과|코드|작업)(를|을)?\s*(재?검증|재검토|다시\s*확인|더블\s*체크|스스로\s*검증)/i,
+      why:'<b>과잉 검증 지시</b> — 최신 모델(Opus 5·Fable 5.1)은 스스로 검증 루프를 돕니다. "다시 확인하라"는 지시는 과잉 검증과 토큰 낭비만 부릅니다([14장 1부](#ch14)).',
+      fix:s=>s.replace(/(반드시\s*)?(모든\s*)?(결과|코드|작업)(를|을)?\s*(재?검증|재검토|다시\s*확인|더블\s*체크|스스로\s*검증)[^.\n]*[.\n]?/gi,'')},
+    {k:'warn',re:/(사고|생각|thinking)(을|를)?\s*(끄|중단|생략|하지\s*마|off)/i,
+      why:'<b>thinking 비활성화 위험</b> — 사고를 끄면 XML 태그 누수 및 도구 호출 오류가 발생합니다. 끄지 말고 effort를 low로 낮추세요([14장 1부](#ch14)).',
+      fix:s=>s.replace(/(사고|생각|thinking)(을|를)?\s*(끄|중단|생략|하지\s*마|off)[^.\n]*[.\n]?/gi,'effort를 low로 낮춰 비용을 통제하고 thinking은 유지하세요.\n')},
+    {k:'add',re:/(순서대로|차례대로|하나씩\s*읽고|파일\s*\d+개)/i,
+      why:'<b>병렬 도구 호출 넛지 권장</b> — 독립적인 파일 읽기나 탐색은 병렬로 동시 실행하도록 안내하면 응답 대기 시간이 대폭 줄어듭니다([14장 2부 4번](#ch14)).',
+      fix:s=>s+'\nTip: 독립적인 파일 읽기나 검색 도구는 가능한 한 병렬로 동시에 호출하세요.'},
+    {k:'add',re:/(전체\s*리팩토링|알아서|에이전트\s*루프|끝까지\s*수행)/i,
+      why:'<b>간결한 진행 상태 공유 지침</b> — 긴 자율 루프에서 "주요 단계마다 1~2줄로 진행 상황을 공유하라"를 명시하면 중도 개입과 침묵을 막습니다([14장 2부 2번](#ch14)).',
+      fix:s=>s+'\n각 마일스톤 완료 시 1~2줄의 간결한 진행 상황을 사용자에게 보고하세요.'},
+    {k:'cut',re:/(파일\s*전체(를|를\s*다시)?\s*(작성|생성|출력|써줘)|전체\s*코드)/i,
+      why:'<b>전체 파일 재작성 지양</b> — 변경된 함수/블록만 타겟 편집(Search/Replace)하도록 명시해야 컨텍스트 낭비와 오류를 막습니다([14장 2부 8번](#ch14)).',
+      fix:s=>s.replace(/(파일\s*전체(를|를\s*다시)?\s*(작성|생성|출력|써줘)|전체\s*코드)/gi,'변경된 특정 함수 및 블록만 타겟 수정')},
+    {k:'opt',re:/(자세히|상세히|친절하게|초보자도\s*알기\s*쉽게|풍부하게)/i,
+      why:'<b>장황함 유발 표현</b> — 최신 모델은 기본 서술이 충분히 풍부합니다. 불필요한 비유를 빼고 밀도 높은 간결한 답변을 요구하세요([14장 2부 6번](#ch14)).',
+      fix:s=>s.replace(/(자세히|상세히|친절하게|초보자도\s*알기\s*쉽게|풍부하게)/gi,'간결하고 밀도 높은 핵심 위주로')}
+  ];
+  const P_KIND={cut:'과잉 지시 제거',add:'지침 보강 권장',warn:'품질 위험 주의',opt:'장황 완화',good:'최적'};
+  const P_SAMPLES={
+    '⚠️ 과잉 검증 & 장황형':'기존 코드를 모두 분석한 뒤 파일 전체를 다시 작성해줘. 답변은 초보자도 알기 쉽게 아주 상세히 설명하고, 모든 작업이 끝나면 스스로 코드를 재검증하고 확인해줘.',
+    '⚠️ 도구 병렬 누락':'src/auth.ts 읽고 난 뒤 순서대로 src/user.ts랑 src/session.ts도 하나씩 읽고 오류를 찾아줘.',
+    '⚠️ 에이전트 진행 침묵':'이 프로젝트의 전체 리팩토링 작업을 에이전트 루프로 알아서 끝까지 수행해줘. thinking은 끄고 돌려.',
+    '✨ 최적화 Fable 5.1 예시':'목표: src/api/client.ts 내 timeout 재시도 로직 추가.\n- 독립적인 파일 읽기·검색 도구는 병렬로 호출하세요.\n- 변경이 필요한 함수 블록만 타겟 편집(Search/Replace)하세요.\n- 각 마일스톤 완료 시 1줄로 간결한 진행 상황을 보고하세요.\n- 불필요한 수식어 없이 밀도 높은 핵심 설명만 제공하세요.'
+  };
+
+  pgpt.innerHTML='<div class="presets" id="cpPre"></div>'
+    +'<div class="fld-row">'
+    +'<label><b>대상 모델:</b> <select id="cpModel" aria-label="튜닝 대상 모델">'
+    +'<option value="fable-5-1">Claude Fable 5.1 (최고 지능 · 적응형 사고)</option>'
+    +'<option value="opus-5">Claude Opus 5 (복잡 코딩 표준)</option>'
+    +'</select></label>'
+    +'</div>'
+    +'<textarea id="cpIn" aria-label="튜닝할 프롬프트 내용" spellcheck="false" placeholder="프롬프트를 입력하거나 위 버튼으로 샘플을 불러오세요. 최신 모델(Fable 5.1·Opus 5) 16대 실전 지침 기반으로 즉시 분석합니다."></textarea>'
+    +'<div class="gauge"><div class="lab"><b>프롬프트 분석</b><span class="val" id="cpStatus"></span></div></div>'
+    +'<div class="finds" id="cpFinds"></div>'
+    +'<div class="tuned-wrap" id="cpTunedWrap" style="display:none">'
+    +'<div class="tuned-hd"><b>🪄 추천 튜닝 프롬프트:</b><button type="button" class="copy-btn" id="cpCopyBtn">📋 프롬프트 복사</button></div>'
+    +'<div class="tuned-box" id="cpTunedBox"></div>'
+    +'</div>'
+    +'<div class="cav">14장 공식 프롬프트 가이드(Opus 5 공통 패턴 + Fable 5.1 16대 실전 지침) 기반의 <b>어림 진단기</b>입니다. 실제 작업 특성에 맞게 조정해 사용하세요.</div>';
+
+  const ta=pgpt.querySelector('#cpIn'), pre=pgpt.querySelector('#cpPre'), sel=pgpt.querySelector('#cpModel');
+  const statusEl=pgpt.querySelector('#cpStatus'), findsEl=pgpt.querySelector('#cpFinds');
+  const tunedWrap=pgpt.querySelector('#cpTunedWrap'), tunedBox=pgpt.querySelector('#cpTunedBox'), copyBtn=pgpt.querySelector('#cpCopyBtn');
+
+  function tune(){
+    const text=ta.value.trim();
+    if(!text){
+      statusEl.textContent='프롬프트 대기 중';
+      findsEl.innerHTML='';
+      tunedWrap.style.display='none';
+      return;
+    }
+    const chars=text.length, toks=Math.round(chars/CHARS_PER_TOK);
+    const finds=[]; let tuned=text;
+    P_RULES.forEach(r=>{
+      if(r.re.test(text)){
+        finds.push({k:r.k,why:r.why});
+        tuned=r.fix(tuned);
+      }
+    });
+    tuned=tuned.replace(/\n{3,}/g,'\n\n').trim();
+
+    if(finds.length===0){
+      statusEl.textContent='🟢 최적화 완료 ('+toks+' 토큰)';
+      findsEl.innerHTML='<div class="f good"><div class="hd"><span class="kind">최적</span></div>'
+        +'<div class="why"><b>14장 프롬프트 원칙을 충족합니다!</b> 과잉 검증 지시가 없고, 불필요한 장황함 유발 표현이 배제된 깔끔한 프롬프트입니다.</div></div>';
+      tunedWrap.style.display='none';
+    } else {
+      statusEl.textContent='⚠️ '+finds.length+'건 개선 권장 ('+toks+' 토큰)';
+      findsEl.innerHTML=finds.map(f=>'<div class="f '+f.k+'">'
+        +'<div class="hd"><span class="kind">'+(P_KIND[f.k]||'안내')+'</span></div>'
+        +'<div class="why">'+f.why+'</div></div>').join('');
+      tunedBox.textContent=tuned;
+      tunedWrap.style.display='block';
+    }
+  }
+
+  copyBtn.addEventListener('click',()=>{
+    navigator.clipboard.writeText(tunedBox.textContent).then(()=>{
+      const orig=copyBtn.textContent;
+      copyBtn.textContent='✓ 복사 완료';
+      setTimeout(()=>{copyBtn.textContent=orig;},1500);
+    });
+  });
+
+  Object.entries(P_SAMPLES).forEach(([name,body])=>{
+    const b=document.createElement('button');b.type='button';b.textContent=name;
+    b.addEventListener('click',()=>{
+      ta.value=body;
+      [...pre.children].forEach(c=>c.classList.remove('on'));
+      b.classList.add('on');
+      tune();
+    });
+    pre.appendChild(b);
+  });
+
+  const clr=document.createElement('button');clr.type='button';clr.textContent='🧹 지우기';
+  clr.addEventListener('click',()=>{
+    ta.value='';
+    [...pre.children].forEach(c=>c.classList.remove('on'));
+    tune();
+  });
+  pre.appendChild(clr);
+
+  ta.addEventListener('input',()=>{
+    [...pre.children].forEach(c=>c.classList.remove('on'));
+    tune();
+  });
+  sel.addEventListener('change',tune);
+  tune();
 }
 
 // ===== 플레이그라운드 · 컨텍스트 예산 =====

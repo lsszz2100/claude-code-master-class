@@ -827,6 +827,45 @@ await check('놀이터 검사기 (CLAUDE.md 규칙)', async ({ page, note }) => 
   note(`나쁜 예 ${bad.finds.length}건(${[...kinds].join('/')}) · 좋은 예 0건`);
 });
 
+// 놀이터 튜너 — 14장 프롬프트 가이드 규칙(Opus 5 공통 패턴 + Fable 5.1 16대 실전 지침)
+await check('놀이터 튜너 (프롬프트 가이드 규칙)', async ({ page, note }) => {
+  await page.locator('.pg-prompt').scrollIntoViewIfNeeded();
+  await settle(page);
+  const read = () => page.evaluate(() => ({
+    status: document.querySelector('.pg-prompt #cpStatus').textContent,
+    finds: [...document.querySelectorAll('.pg-prompt .f')].map(f => ({
+      kind: f.querySelector('.kind').textContent,
+      cls: [...f.classList].find(c => c !== 'f'),
+      why: f.querySelector('.why').textContent,
+    })),
+    tunedShown: document.querySelector('.pg-prompt #cpTunedWrap').style.display !== 'none',
+    tunedText: document.querySelector('.pg-prompt #cpTunedBox').textContent,
+  }));
+  const preset = i => page.click(`.pg-prompt .presets button:nth-child(${i})`);
+
+  // 프리셋 1: 과잉 검증 & 장황형 (반드시 개선 권장 및 튜닝 추천이 나와야 함)
+  await preset(1);
+  const p1 = await read();
+  expect(/개선 권장/.test(p1.status), `과잉 검증 프리셋 진단이 "${p1.status}"`);
+  expect(p1.tunedShown, '튜닝 추천 박스가 노출되지 않음');
+  const whys1 = p1.finds.map(f => f.why).join(' ');
+  expect(/과잉 검증/.test(whys1), '과잉 검증 지침이 안 잡힘');
+  expect(!/스스로 코드를 재검증/.test(p1.tunedText), '튜닝본에서 과잉 검증 지시가 제거되지 않음');
+
+  // 프리셋 4: 최적화 Fable 5.1 예시 (최적 완료 상태여야 함)
+  await preset(4);
+  const p4 = await read();
+  expect(/최적화 완료/.test(p4.status), `최적화 예시 진단이 "${p4.status}"`);
+  expect(!p4.tunedShown, '최적화 예시인데 튜닝 박스가 불필요하게 뜸');
+
+  // 지우기 버튼
+  await preset(5);
+  const cleared = await read();
+  expect(/대기 중/.test(cleared.status), `지우기 후 상태가 "${cleared.status}"`);
+
+  note(`과잉검증 개선 ${p1.finds.length}건 튜닝 ✓ · 최적화 예시 통과 ✓`);
+});
+
 // 20. 컨텍스트 예산 — 절대 수치를 박지 않는다. 거는 것은 관계다:
 // 프리셋을 무겁게 하면 총합이 늘고, 레버는 각자 맡은 칸만 줄이고, 창을 넘으면 경고가 뜬다.
 await check('놀이터 예산 (레버·창 초과)', async ({ page, note }) => {
@@ -1064,7 +1103,7 @@ await check('위젯 최대 상태 넘침 (계산기·진단기·권한)', async 
   for (const [w, h] of [[1280, 900], [560, 900], [390, 844]]) {
     await page.setViewportSize({ width: w, height: h });
     await sleep(250);
-    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal', '.pg-lint', '.pg-ctx', '.pg-perm']) {
+    for (const sel of ['.pg-cost', '.pg-wizard', '.pg-terminal', '.pg-lint', '.pg-prompt', '.pg-ctx', '.pg-perm']) {
       const r = await scanClip(page, sel);
       if (r.bad.length) {
         await page.locator(sel).scrollIntoViewIfNeeded();
