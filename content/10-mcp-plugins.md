@@ -67,6 +67,7 @@ MCP만이 외부 연동은 아닙니다. `gh`(GitHub), `aws`, `gcloud` 같은 **
 - 타입 언어를 쓴다면 **코드 인텔리전스 플러그인**을 설치해 정확한 심볼 내비게이션과 편집 후 자동 에러 감지를 얻으세요.
 - 플러그인은 스킬·훅·에이전트·MCP를 한 번에 제공하므로, 팀 표준 워크플로를 배포하는 데 이상적입니다.
 - 플러그인 마켓플레이스 추가: `/plugin marketplace add <owner/repo>`.
+- **플러그인 품질 평가(`claude plugin eval`)**: 만든 플러그인의 신뢰성을 검증하려면 eval 스위트를 구동해 채점 결과와 재현 가능한 JSON/HTML 리포트를 산출할 수 있습니다(`claude plugin eval --help`). 또한 CLI 자동화를 위한 `--json` 출력(`claude plugin list --json` 등)도 지원됩니다.
 
 플러그인이 제공하는 스킬·에이전트는 **`plugin-name:skill-name`** 형태의 네임스페이스를 써서 다른 것과 충돌하지 않습니다.
 

@@ -485,6 +485,84 @@ await check('접근성 기본 (접근 이름·모달·현재 위치)', async ({ 
   note(`입력 ${'0'}건 미명명 · 모달 2 · aria-current ${cur[0]}`);
 });
 
+// 16. 모달 키보드 포커스 트랩 & Escape 복원 + 수료증 위젯 동작
+await check('모달 포커스 트랩 & 키보드 접근성', async ({ page, note }) => {
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => document.fonts.ready);
+
+  // 1) searchModal: 열기 -> 포커스 진입 -> Tab 순환 -> Escape 닫기 및 포커스 복원
+  await page.click('#searchBtn');
+  await sleep(100);
+  const sOpen = await page.$eval('#searchModal', el => el.classList.contains('open'));
+  expect(sOpen, 'searchModal이 열리지 않음');
+  const sActive = await page.evaluate(() => document.activeElement?.id);
+  expect(sActive === 'searchInput', `searchModal 열린 후 초기 포커스가 searchInput이 아님 (현재: #${sActive})`);
+
+  // Shift+Tab: 첫 요소에서 뒤로 가면 모달 내부 마지막 focusable 로 순환
+  await page.keyboard.down('Shift');
+  await page.keyboard.press('Tab');
+  await page.keyboard.up('Shift');
+  const sTrappedLast = await page.evaluate(() => {
+    const m = document.getElementById('searchModal');
+    return m.contains(document.activeElement);
+  });
+  expect(sTrappedLast, 'searchModal에서 Shift+Tab 시 포커스가 모달 밖으로 탈출함');
+
+  // Tab: 마지막 요소에서 앞으로 가면 다시 모달 내부로 순환
+  await page.keyboard.press('Tab');
+  const sTrappedFirst = await page.evaluate(() => {
+    const m = document.getElementById('searchModal');
+    return m.contains(document.activeElement);
+  });
+  expect(sTrappedFirst, 'searchModal에서 Tab 시 포커스가 모달 밖으로 탈출함');
+
+  // Escape: 닫히고 이전 포커스(#searchBtn)로 복원
+  await page.keyboard.press('Escape');
+  await sleep(100);
+  const sClosed = await page.$eval('#searchModal', el => !el.classList.contains('open'));
+  expect(sClosed, 'Escape 키 입력 후 searchModal이 닫히지 않음');
+  const sRestored = await page.evaluate(() => document.activeElement?.id);
+  expect(sRestored === 'searchBtn', `searchModal 닫힌 후 포커스가 #searchBtn으로 복원되지 않음 (현재: #${sRestored})`);
+
+  // 2) legalModal: 열기 -> 포커스 진입(#legalClose) -> 순환 -> Escape 닫기 및 포커스 복원
+  await page.click('[data-legal="terms"]');
+  await sleep(100);
+  const lOpen = await page.$eval('#legalModal', el => el.classList.contains('open'));
+  expect(lOpen, 'legalModal이 열리지 않음');
+  const lActive = await page.evaluate(() => document.activeElement?.id);
+  expect(lActive === 'legalClose', `legalModal 열린 후 초기 포커스가 legalClose가 아님 (현재: #${lActive})`);
+
+  // Tab 순환 테스트
+  await page.keyboard.press('Tab');
+  const lTrapped = await page.evaluate(() => document.getElementById('legalModal').contains(document.activeElement));
+  expect(lTrapped, 'legalModal에서 Tab 시 포커스가 모달 밖으로 탈출함');
+
+  await page.keyboard.press('Escape');
+  await sleep(100);
+  const lClosed = await page.$eval('#legalModal', el => !el.classList.contains('open'));
+  expect(lClosed, 'Escape 키 입력 후 legalModal이 닫히지 않음');
+
+  // 3) 수료증 위젯 검증 (Task 4 연계)
+  await page.locator('.cert-app').scrollIntoViewIfNeeded();
+  await page.fill('#certName', '홍길동');
+  await page.click('#certGen');
+  const certReady = await page.evaluate(() => {
+    const cv = document.getElementById('certCanvas');
+    const dl = document.getElementById('certDl');
+    const sh = document.getElementById('certShare');
+    return cv && cv.style.display === 'block' && dl && dl.style.display === 'inline-block' && sh && sh.style.display === 'inline-block';
+  });
+  expect(certReady, '수료증 생성 후 캔버스 및 PNG/공유 버튼이 표시되지 않음');
+
+  // 공유 복사 클릭 시 피드백 검증
+  await page.click('#certShare');
+  await sleep(50);
+  const shText = await page.$eval('#certShare', el => el.textContent);
+  expect(shText === '✓ 복사 완료!' || shText === '결과 및 링크 복사', `공유 버튼 피드백 비정상: ${shText}`);
+
+  note('모달 2종 Focus Trap & Escape 복원 ✓ · 수료증 캔버스 및 공유 버튼 ✓');
+});
+
 // ── 놀이터 위젯 ─────────────────────────────────────────────────────
 // 세 위젯은 전부 JS 로 그려진다. 빌드가 통과해도 위젯 안에서 조용히 죽으면 페이지는
 // 멀쩡해 보이고 챕터 15만 텅 빈다 — 눈으로 안 보므로 기계로 눌러 봐야 한다.

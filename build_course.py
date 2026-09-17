@@ -485,6 +485,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <meta property="og:image" content="https://claude-code-tutorial-ko.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:alt" content="Claude Code 마스터 클래스 — 한국어 종합 실전 강의">
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
@@ -1763,8 +1764,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sModal.classList.c
 // ===== 수료증 =====
 const certApp=document.querySelector('.cert-app');
 if(certApp){
-  certApp.innerHTML='<div class="cert-form"><input id="certName" type="text" aria-label="수료증에 넣을 이름" placeholder="이름을 입력하세요" maxlength="24" spellcheck="false"><button class="cert-btn" id="certGen" type="button">수료증 생성</button><button class="cert-btn ghost" id="certDl" type="button">PNG 저장</button></div><div class="cert-stat" id="certStat"></div><canvas id="certCanvas" width="1200" height="820"></canvas><div class="cert-note" id="certNote"><b>💾 저장 방법</b><br>• <b>PC:</b> <b>PNG 저장</b> 버튼을 누르면 브라우저 <b>다운로드 폴더</b>에 이미지로 저장됩니다. (수료증을 마우스 <b>우클릭 → 이미지를 다른 이름으로 저장</b>도 됩니다.)<br>• <b>모바일:</b> 수료증 이미지를 <b>길게 눌러 「이미지 저장」</b>을 선택하세요. (기기·브라우저에 따라 <b>PNG 저장</b> 버튼도 동작합니다.)</div>';
-  const cName=document.getElementById('certName'), cGen=document.getElementById('certGen'), cDl=document.getElementById('certDl'), cCanvas=document.getElementById('certCanvas'), cStat=document.getElementById('certStat'), cNote=document.getElementById('certNote');
+  certApp.innerHTML='<div class="cert-form"><input id="certName" type="text" aria-label="수료증에 넣을 이름" placeholder="이름을 입력하세요" maxlength="24" spellcheck="false"><button class="cert-btn" id="certGen" type="button">수료증 생성</button><button class="cert-btn ghost" id="certDl" type="button">PNG 저장</button><button class="cert-btn ghost" id="certShare" type="button">결과 및 링크 복사</button></div><div class="cert-stat" id="certStat"></div><canvas id="certCanvas" width="1200" height="820"></canvas><div class="cert-note" id="certNote"><b>💾 저장 방법</b><br>• <b>PC:</b> <b>PNG 저장</b> 버튼을 누르면 브라우저 <b>다운로드 폴더</b>에 이미지로 저장됩니다. (수료증을 마우스 <b>우클릭 → 이미지를 다른 이름으로 저장</b>도 됩니다.)<br>• <b>모바일:</b> 수료증 이미지를 <b>길게 눌러 「이미지 저장」</b>을 선택하세요. (기기·브라우저에 따라 <b>PNG 저장</b> 버튼도 동작합니다.)</div>';
+  const cName=document.getElementById('certName'), cGen=document.getElementById('certGen'), cDl=document.getElementById('certDl'), cShare=document.getElementById('certShare'), cCanvas=document.getElementById('certCanvas'), cStat=document.getElementById('certStat'), cNote=document.getElementById('certNote');
   function roundRect(x,y,w,h,r){const c=cCanvas.getContext('2d');c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
   function updStat(){ const s=quizStats(); const pct=s.answered?Math.round(s.correct/s.answered*100):0; cStat.innerHTML='읽은 챕터 <b>'+readSet.size+'/'+totalCh+'</b> · 퀴즈 정답 <b>'+s.correct+'/'+s.answered+'</b>'+(s.answered?' ('+pct+'%)':''); }
   function draw(){
@@ -1788,12 +1789,26 @@ if(certApp){
     c.fillStyle='#7f7c72'; c.font='400 22px monospace'; c.fillText(ds,W/2,660);
     c.fillStyle='#c9a86a'; c.font='700 24px monospace'; c.fillText('제작 · AI_Innovation_Studio',W/2,712);
     c.fillStyle='#7f7c72'; c.font='400 19px monospace'; c.fillText('claude-code-tutorial-ko.vercel.app',W/2,748);
-    cCanvas.style.display='block'; cDl.style.display='inline-block'; cNote.style.display='block';
+    cCanvas.style.display='block'; cDl.style.display='inline-block'; cShare.style.display='inline-block'; cNote.style.display='block';
   }
   updStat();
   cGen.addEventListener('click',()=>{updStat();draw();});
   cName.addEventListener('keydown',e=>{ if(e.key==='Enter'){updStat();draw();} });
   cDl.addEventListener('click',()=>{ cCanvas.toBlob(bl=>{ const u=URL.createObjectURL(bl); const a=document.createElement('a'); a.href=u; a.download='claude-code-마스터클래스-수료증.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1000); }); });
+  cShare.addEventListener('click',()=>{
+    const name=cName.value.trim()||'수료자'; const s=quizStats();
+    const pct=s.answered?Math.round(s.correct/s.answered*100):0;
+    const txt='🎓 [Claude Code 마스터 클래스] '+name+'님이 전 과정을 이수하고 수료증을 획득했습니다!\n'
+      +'• 학습 진도: '+totalCh+'개 챕터 완독\n'
+      +'• 퀴즈 정답: '+s.correct+'/'+s.answered+' ('+pct+'%)\n'
+      +'강의 바로가기: https://claude-code-tutorial-ko.vercel.app';
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(()=>{
+        const orig=cShare.textContent; cShare.textContent='✓ 복사 완료!';
+        setTimeout(()=>{ cShare.textContent=orig; },2000);
+      }).catch(()=>{ prompt('아래 수료 결과를 복사하세요:',txt); });
+    }else{ prompt('아래 수료 결과를 복사하세요:',txt); }
+  });
 }
 
 // ===== 플레이그라운드 · 터미널 놀이터 =====
@@ -2738,20 +2753,23 @@ function openLegal(tab){
 }
 function closeLegal(){
   legalModal.classList.remove('open');
-  if(legalPrevFocus&&legalPrevFocus.focus) legalPrevFocus.focus();
+  if(legalPrevFocus&&legalPrevFocus.focus) legalPrevFocus.focus({preventScroll:true});
+  legalPrevFocus=null;
 }
 // 모달이 열려 있는 동안 Tab 포커스가 뒤 페이지로 새지 않도록 가둔다
-const FOCUSABLE='a[href],button:not([disabled]):not([hidden]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+const FOCUSABLE='a[href],button:not([disabled]):not([hidden]),input:not([disabled]):not([hidden]),select:not([disabled]):not([hidden]),textarea:not([disabled]):not([hidden]),[tabindex]:not([tabindex="-1"])';
 function trapFocus(e){
   if(e.key!=='Tab') return;
-  const box=[legalModal,sModal].find(m=>m.classList.contains('open'));
+  const box=[legalModal,sModal].find(m=>m&&m.classList.contains('open'));
   if(!box) return;
   const items=[...box.querySelectorAll(FOCUSABLE)].filter(el=>el.offsetParent!==null);
   if(!items.length) return;
   const first=items[0], last=items[items.length-1];
-  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
-  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
-  else if(!box.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+  if(e.shiftKey && (document.activeElement===first || !box.contains(document.activeElement))){
+    e.preventDefault(); last.focus();
+  } else if(!e.shiftKey && (document.activeElement===last || !box.contains(document.activeElement))){
+    e.preventDefault(); first.focus();
+  }
 }
 document.addEventListener('keydown',trapFocus);
 

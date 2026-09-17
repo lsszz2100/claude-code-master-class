@@ -79,6 +79,7 @@ model: sonnet
 | `memory` | 지속 기억 스코프: `user`/`project`/`local` ([자동 기억](#ch6) 참고) |
 | `isolation` | `worktree` 설정 시 격리된 git 워크트리에서 실행 |
 | `background` | `true`면 항상 백그라운드 실행 |
+| `omitClaudeMd` | `true`면 사용자·프로젝트 `CLAUDE.md` 로드를 건너뛰고 관리 정책만 적용 (컨텍스트 절약 및 특화 에이전트 격리, v2.1.271+) |
 
 ### 도구 제한 (allowlist / denylist)
 
