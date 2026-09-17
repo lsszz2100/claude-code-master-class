@@ -719,7 +719,8 @@ await check('놀이터 계산기 (캐싱·배치·모델 비교)', async ({ page
   expect(on[0].won === base, `강조 행 금액 ${on[0].won} 이 총액 ${base} 과 다름`);
   // 싼 모델이 비싼 모델보다 싸야 한다 — 가격표를 잘못 이어 붙이면 여기서 잡힌다
   const byName = Object.fromEntries(cmp.rows.map(r => [r.name, r.won]));
-  expect(byName['Haiku 4.5'] < byName['Fable 5'], '모델 순서대로 비용이 오르지 않음');
+  const fablePrice = byName['Fable 5.1'] || byName['Fable 5'];
+  expect(byName['Haiku 4.5'] < fablePrice, '모델 순서대로 비용이 오르지 않음');
   const widest = cmp.rows.reduce((a, b) => (b.won > a.won ? b : a));
   expect(Math.abs(widest.width - 100) < 0.05, `가장 비싼 모델의 막대가 ${widest.width}% (기대 100%)`);
 

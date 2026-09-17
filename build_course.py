@@ -149,14 +149,14 @@ QUIZZES = {
     ],
     3: [
         ("복잡한 에이전틱 코딩에 Anthropic이 권장하는 기본 모델은?(2026)",
-         ["Fable 5", "Opus 5", "Sonnet 5", "Haiku 4.5"], 1,
-         "복잡한 에이전틱 코딩·엔터프라이즈엔 Opus 5, 최고 능력엔 Fable 5를 권합니다. Opus 4.8 등은 레거시입니다."),
+         ["Fable 5.1", "Opus 5", "Sonnet 5", "Haiku 4.5"], 1,
+         "복잡한 에이전틱 코딩·엔터프라이즈엔 Opus 5, 최고 능력엔 Fable 5.1을 권합니다. Opus 4.8 등은 레거시입니다."),
         ("Claude 5 세대(Opus 5·Sonnet 5)의 기본 effort 레벨은?",
          ["low", "medium", "high", "xhigh"], 2,
          "기본은 high입니다(Claude API·Claude Code). 어려운 코딩·에이전틱엔 xhigh로 올리고, 비용·속도엔 low/medium을 적극 씁니다."),
         ("가장 강력한(최고 지능) 널리 출시된 모델은?",
-         ["Opus 5", "Fable 5", "Sonnet 5", "Haiku 4.5"], 1,
-         "최고 지능 티어는 Fable 5입니다. 복잡 코딩·에이전틱의 권장 기본은 Opus 5."),
+         ["Opus 5", "Fable 5.1", "Sonnet 5", "Haiku 4.5"], 1,
+         "최고 지능 티어는 Fable 5.1입니다. 복잡 코딩·에이전틱의 권장 기본은 Opus 5."),
     ],
     10: [
         ("원격 HTTP MCP 서버를 추가하는 명령은?",
@@ -795,8 +795,7 @@ pre.mermaid .copy-btn{display:none}
 .pg-cost .fld,.pg-ctx .fld{margin-bottom:17px}
 .pg-cost .fld .lab,.pg-ctx .fld .lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--ink-dim);margin-bottom:8px}
 .pg-cost .fld .lab b,.pg-ctx .fld .lab b{color:var(--ink);font-weight:600}
-.pg-cost .fld .val,.pg-ctx .fld .val{color:var(--accent2);font-weight:700;font-family:"SF Mono",monospace;font-size:13px;white-space:nowrap}
-.pg-cost select,.pg-ctx select{width:100%;font:inherit;font-size:14px;padding:10px 12px;background:var(--code-bg);border:1px solid var(--line);border-radius:9px;color:var(--ink);outline:none}
+.pg-cost select,.pg-ctx select{width:100%;max-width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:10px 12px;background:var(--code-bg);border:1px solid var(--line);border-radius:9px;color:var(--ink);outline:none}
 .pg-cost input[type=range],.pg-ctx input[type=range]{width:100%;height:6px;accent-color:var(--accent);cursor:pointer}
 .pg-cost select:focus,.pg-ctx select:focus{border-color:var(--accent)}
 .pg-cost .out{margin-top:4px;padding:20px;background:var(--code-bg);border:1px solid var(--line);border-radius:12px;text-align:center}
@@ -2053,9 +2052,9 @@ if(pgc){
     'claude-haiku-4-5':[1,5,'Haiku 4.5','가볍고 빠름 · 가장 저렴'],
     'claude-sonnet-5':[2,10,'Sonnet 5','균형 잡힌 실무용'],
     'claude-opus-5':[5,25,'Opus 5','가장 똑똑 · 코딩 최강'],
-    'claude-fable-5':[10,50,'Fable 5','최고 성능 · 가장 비쌈'],
+    'claude-fable-5-1':[10,50,'Fable 5.1','최고 지능 · 캐시 $0.25'],
   };
-  const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 입력가의 1/10, 배치 API 는 50% 할인
+  const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 입력가의 1/10, 배치 API 는 50% 할인 (Fable 5.1은 $0.25/M = 0.025)
   const PLANS=[ // [월 정액$, 이름, 한 줄 설명] — 공식 요금제(claude.com/pricing) 기준
     [20,'Pro','개인 · 가벼운 코딩'],
     [100,'Max 5x','Pro의 5배 사용량'],
@@ -2077,7 +2076,7 @@ if(pgc){
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note" id="ccNote"></div></div>'+
     '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div>'+
     '<div class="cav">같은 <b>토큰 수</b>로 비교한 값입니다. 실제로는 Opus 4.7부터 도입된 새 토크나이저를 쓰는 '
-    +'<b>Fable 5·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
+    +'<b>Fable 5.1·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
     +'옛 토크나이저인 <b>Haiku 4.5</b>와 나란히 놓으면 위쪽 세 모델이 그만큼 싸 보인다는 뜻입니다.</div></div>'+
     '<div class="pg-plan"><div class="h">요금제(정액)로 쓰면? — 한 달 30일 환산 비교</div><div id="ccPlan"></div>'+
     '<div class="sum" id="ccPlanSum"></div><div class="cav" id="ccPlanCav"></div></div>';
@@ -2089,9 +2088,10 @@ if(pgc){
         plan=pgc.querySelector('#ccPlan');
   const chars=t=>'약 '+Math.round(t*1.5).toLocaleString()+'자';   // 대략 한글 글자수
   const won=v=>'₩'+Math.round(v*KRW).toLocaleString();
-  // 요청 1건 값. 캐시 히트분은 입력가의 1/10 로만 센다.
-  function perReq(m,i,o,h,b){
-    const p=(i*(1-h)/1e6*m[0])+(i*h/1e6*m[0]*CACHE_READ)+(o/1e6*m[1]);
+  // 요청 1건 값. 캐시 히트분은 기본 1/10, Fable 5.1은 75% 인하된 $0.25/M (0.025)
+  function perReq(m,i,o,h,b,id){
+    const cr = (id && id.includes('fable-5-1')) ? 0.025 : CACHE_READ;
+    const p=(i*(1-h)/1e6*m[0])+(i*h/1e6*m[0]*cr)+(o/1e6*m[1]);
     return b?p*BATCH:p;
   }
   function calc(){
@@ -2100,7 +2100,7 @@ if(pgc){
     pgc.querySelector('#ccInV').textContent=chars(i);
     pgc.querySelector('#ccOutV').textContent=chars(o);
     pgc.querySelector('#ccHitV').textContent=h?Math.round(h*100)+'% 캐시 적중':'캐싱 없음';
-    const per=perReq(m,i,o,h,b), day=per*n, base=perReq(m,i,o,0,false)*n;
+    const per=perReq(m,i,o,h,b,sel.value), day=per*n, base=perReq(m,i,o,0,false,sel.value)*n;
     pgc.querySelector('#ccKrw').textContent='하루 약 '+won(day);
     pgc.querySelector('#ccUsd').textContent='≈ $'+day.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / 일';
     let brk='요청 1건당 <b>약 '+won(per)+'</b> · 한 달(30일) <b>약 '+won(day*30)+'</b>';
@@ -2110,7 +2110,7 @@ if(pgc){
       +'<br>배치 API는 최대 24시간 안에 처리되는 <b>비동기</b> 방식이라 대화형 작업에는 못 씁니다.'
       +'<br>(환율 약 ₩'+KRW.toLocaleString()+' 가정, 토큰→글자수는 대략치)';
     // 모델 비교 — 지금 설정 그대로 4개를 나란히 재 본다
-    const rows=Object.entries(M).map(([id,mm])=>[id,mm,perReq(mm,i,o,h,b)*n]);
+    const rows=Object.entries(M).map(([id,mm])=>[id,mm,perReq(mm,i,o,h,b,id)*n]);
     const max=Math.max(...rows.map(r=>r[2]))||1;
     cmp.innerHTML=rows.map(([id,mm,d])=>'<div class="row'+(id===sel.value?' on':'')+'">'
       +'<span class="nm">'+mm[2]+'</span>'
@@ -2224,7 +2224,7 @@ if(pgl){
 const pgx=document.querySelector('.pg-ctx');
 if(pgx){
   // 컨텍스트 창은 3장 모델 표와 같아야 한다. 표를 고치면 여기도 같이 고칠 것.
-  const WIN=[['claude-opus-5',1000000,'Opus 5'],['claude-fable-5',1000000,'Fable 5'],
+  const WIN=[['claude-opus-5',1000000,'Opus 5'],['claude-fable-5-1',1000000,'Fable 5.1'],
              ['claude-sonnet-5',1000000,'Sonnet 5'],['claude-haiku-4-5',200000,'Haiku 4.5']];
   // [id, 이름, 최대, 색, 줄이는 방법(없으면 조절 대상이 아님)]
   const SEG=[

@@ -12,7 +12,7 @@
 | --- | --- |
 | **Claude Code 공식 문서** — [code.claude.com/docs](https://code.claude.com/docs) | 명령어·CLAUDE.md·서브에이전트·스킬·훅·MCP·권한·설치 등 모든 기능의 1차 레퍼런스 |
 | **Anthropic Academy — Claude Code in Action** ⭐ *무료* — [anthropic.skilljar.com](https://anthropic.skilljar.com/claude-code-in-action) | Anthropic 공식 **무료 강좌**. 플랜 모드·되감기로 긴 세션 조종, CLAUDE.md·스킬·권한 설정, 예약 루틴·GitHub Actions 자동화, 무인 실행 검증·플러그인 배포까지. "몇 시간짜리 작업을 맡기고 자리를 비운 뒤 결과를 확신 있게 확인"하는 것이 목표 |
-| **최신 모델 프롬프트 가이드** — [platform.claude.com/docs](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering) | Opus 5·Fable 5 등 모델별 프롬프트 튜닝 공식 가이드([14장](#ch14)의 출처) |
+| **최신 모델 프롬프트 가이드** — [platform.claude.com/docs](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering) | Opus 5 및 최신 Fable 5.1(Prompting Claude Fable 5.1) 공식 가이드([14장](#ch14)의 출처) |
 | **anthropics/claude-code** — [github.com/anthropics/claude-code](https://github.com/anthropics/claude-code) | Claude Code 이슈 트래커·릴리스·예제(`examples/hooks` 등) |
 | **Anthropic Engineering 블로그** — [anthropic.com/engineering](https://www.anthropic.com/engineering) | "Effective context engineering", "Claude Code best practices" 등 원리 아티클 |
 | **공식 플러그인 마켓플레이스** — [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | `skill-creator`·`mcp-server-dev` 등 Anthropic 공식 플러그인 |
