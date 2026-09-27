@@ -1629,7 +1629,7 @@ renderQuizChip();
 quizChip.addEventListener('click',()=>{ document.querySelector('.cert-app')?.scrollIntoView({behavior:'smooth',block:'center'}); });
 
 // ===== 통합 검색 (Ctrl/Cmd+K) =====
-const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>s.replace(/\s+/g,' ').trim();
 
 // 인덱스: 챕터(kind ch) → 소제목(kind h) → 본문 블록(kind b)
@@ -1869,7 +1869,7 @@ if(pgt){
   };
   const ALL=Object.keys(CMDS).sort();
   const ARGV={'/model':MODELS,'/effort':EFFORTS};   // 인자 자리까지 자동완성되는 명령
-  function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function print(lines,cls){ lines.forEach(l=>{const d=document.createElement('div'); if(cls)d.className=cls; d.innerHTML=l; out.appendChild(d);}); out.scrollTop=out.scrollHeight; }
 
   // --- 미션: 명령을 "설명으로 읽는" 대신 상황에서 떠올리게 만든다 ---
@@ -2042,7 +2042,7 @@ if(pgw){
   };
   // 최대 질문 수는 분기 그래프에서 재서 쓴다 — 가지를 늘릴 때 "최대 N" 표시가 따로 틀어지지 않게
   const MAXQ=(function depth(k){return 1+Math.max(0,...QS[k].opts.filter(o=>o[1].slice(0,2)==='q:').map(o=>depth(o[1].slice(2))));})('start');
-  function esc2(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  function esc2(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   let path=['start'];     // 뒤로 가기용 — 답을 바꾸려고 처음부터 다시 하게 만들지 않는다
   function renderQ(key){
     const Q=QS[key];
@@ -2225,7 +2225,7 @@ if(pgl){
     +'<div class="cav">규칙은 5장의 ✅/❌ 표를 기계로 옮긴 <b>어림 검사</b>입니다 — 걸리지 않았다고 좋은 지침은 아닙니다. '
     +'최종 판단은 언제나 <b>"이 줄을 지우면 Claude가 실수하게 되는가?"</b>입니다.</div>';
   const ta=pgl.querySelector('#clIn'), pre=pgl.querySelector('#clPre');
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function lint(){
     const text=ta.value, lines=text?text.split('\n'):[];   // 빈 문자열도 split 하면 1줄이 된다
     const chars=text.replace(/\s/g,'').length;
@@ -2510,7 +2510,7 @@ if(pgp){
       rules:{deny:['Read(/secrets/**)','Read(.env)']},
       reqs:['Read: secrets/key.pem','Read: ~/.claude/secrets/key.pem','Read: src/app/.env','Edit: .env']},
   };
-  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const cd=s=>'<code>'+esc(s)+'</code>';
   const rxEsc=s=>s.replace(/[.+?^${}()|[\]\\]/g,'\\$&');
 
