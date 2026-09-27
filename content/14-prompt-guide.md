@@ -1,14 +1,15 @@
-[3장](#ch3)에서 본 최신 모델 — **Fable 5.1·Opus 5·Sonnet 5** — 은 이전 세대보다 훨씬 똑똑하고 자율적입니다. 기존 프롬프트로도 기본 동작하지만, **더 자율적으로 행동하기 때문에** 몇몇 습관은 반대로 튜닝해야 합니다. 이 챕터는 Anthropic 공식 **Opus 5 프롬프트 가이드**와 최신 **Fable 5.1 프롬프트 가이드("Prompting Claude Fable 5.1")**를 바탕으로, 실무 에이전틱 워크플로에서 필수적인 패턴을 모았습니다.
+[3장](#ch3)에서 본 최신 모델 — **Opus 5.5·Fable 5.1·Sonnet 5** — 은 이전 세대보다 훨씬 똑똑하고 자율적입니다. 기존 프롬프트로도 기본 동작하지만, **더 자율적으로 오래 일하기 때문에** 지시하는 방식도 진화해야 합니다.
 
-> **큰 원칙:** 모델이 좋아질수록 **덜 지시**해야 합니다. 예전 모델을 밀어붙이려고 넣었던 스캐폴딩(검증 강제·재확인 지시·단계별 번호 강요 등)이 최신 모델에선 **과잉 행동을 유발**해 토큰만 낭비합니다. 이런 지시는 **빼는 것**이 개선입니다.
+이 챕터는 Anthropic 공식 **Opus 5.5 실전 활용 플레이북(*"Getting the most out of Opus 5.5 in Claude and Claude Code"*, Addy Osmani)**과 **Fable 5.1 프롬프트 가이드(*"Prompting Claude Fable 5.1"*, Thariq Shihipar)**를 바탕으로, 실무 에이전틱 코딩의 핵심 패턴과 보안 지침을 집대성했습니다.
+
+> **대원칙:** 모델이 발전할수록 **스캐폴딩(scaffolding)을 덜어내야** 합니다. 예전 모델을 밀어붙이려고 넣었던 지시(과도한 검증 강제·재확인·단계별 번호 강요)는 최신 모델에서 **과잉 행동과 토큰 낭비**를 낳습니다. 반면 **"완료의 정의(Finish line)"**와 **"위험 작업 전 멈춤 지점"**은 명확히 못 박아야 안전하게 오랜 시간 자율 주행할 수 있습니다.
 
 ---
 
-## 1부: 최신 모델 공통 튜닝 패턴 (Opus 5 & Fable)
+## 1부: 최신 모델 공통 튜닝 패턴
 
 ### 1) 응답이 길어졌다 → 간결하게 지시
-
-최신 세대의 기본 사용자 응답은 이전 세대보다 **깁니다**. **effort는 "얼마나 생각하는지"를 조절할 뿐, "얼마나 말하는지"는 아닙니다** — effort를 낮춰도 보이는 응답이 확실히 짧아지지 않습니다. 길이는 **명시적으로 프롬프트**하세요.
+최신 세대의 기본 사용자 응답은 이전 세대보다 **깁니다**. **effort는 "얼마나 생각하는지"를 조절할 뿐, "얼마나 말하는지"는 아닙니다** — effort를 낮춰도 응답 텍스트가 확실히 짧아지지 않습니다. 출력 길이는 **명시적으로 프롬프트**하세요.
 
 ```text
 Keep responses focused, brief, and concise. Keep disclaimers and caveats short,
@@ -16,19 +17,8 @@ and spend most of the response on the main answer. When asked to explain somethi
 give a high-level summary unless an in-depth explanation is specifically requested.
 ```
 
-긴 시스템 프롬프트에서는 끝부분에 짧은 리마인더를 함께 두면 효과적입니다.
-
-```text
-<tone_preference>
-Keep outputs reasonably concise.
-</tone_preference>
-```
-
----
-
-### 2) 진행 상황을 많이 내레이션한다 → 케이던스 지정
-
-에이전틱 작업 중 최신 모델은 "이제 무엇을 할지"를 자주 예고하고, 턴당 출력이 이전보다 깁니다. **소통 방식을 명시**하면 조절됩니다.
+### 2) 진행 상황을 많이 내레이션한다 → 소통 케이던스 지정
+에이전틱 작업 중 최신 모델은 "이제 무엇을 할지"를 자주 예고하고, 턴당 출력이 길어질 수 있습니다. **소통 방식을 명시**하면 조절됩니다.
 
 ```text
 Before your first tool call, say in one sentence what you're about to do.
@@ -37,222 +27,264 @@ change direction. When you finish, lead with the outcome: your first sentence
 should answer "what happened" or "what did you find," with supporting detail after.
 ```
 
-> 내레이션을 **늘리거나** 스타일을 바꾸고 싶을 때도 같은 레버 — 원하는 형태를 예시로 보여 주세요. "**하지 말라**"는 부정 지시보다 "**이렇게 하라**"는 긍정 예시가 더 잘 먹힙니다.
-
----
-
-### 3) 파일 산출물도 길어졌다 → 길이 보정
-
-대화 장황함과 별개로, 최신 모델이 **디스크에 쓰는 파일**(리포트·마크다운·요약)도 이전보다 깁니다. Claude가 문서를 작성하는 제품이라면 길이 기준을 명시하세요.
-
-```text
-Match the length of written documents to what the task needs: cover the substance,
-but do not pad with filler sections, redundant summaries, or boilerplate.
-```
-
----
-
-### 4) 스스로 검증한다 → 검증 지시를 빼라 + 범위 제약
-
-최신 모델은 **시키지 않아도 자기 작업을 검증**합니다. 프롬프트에 "비자명한 작업엔 최종 검증 단계를 넣어라", "서브에이전트로 검증해라" 같은 지시가 있으면 **제거**하세요 — 최신 모델에선 **과잉 검증**을 유발해 토큰만 낭비합니다([하네스의 레거시 스캐폴딩](#ch13)도 마찬가지).
-
-또한 요청하지 않은 단계를 더하거나 범위를 넓히는 경향이 있습니다. 좁은 작업은 범위를 명시적으로 제약하세요.
+### 3) 스스로 검증한다 → 과잉 검증 지시를 빼라
+최신 모델은 **시키지 않아도 자기 작업을 검증**합니다. 프롬프트에 "비자명한 작업엔 최종 검증 단계를 넣어라", "서브에이전트로 2중 검증해라" 같은 지시가 있으면 **제거**하세요 — 최신 모델에선 과잉 검증 루프를 유발해 토큰만 낭비합니다.
 
 ```text
 Deliver what was asked, at the scope intended. Make routine judgment calls yourself,
 and check in only when different readings of the request would lead to materially
-different work. If the request seems mistaken or a better approach exists, say so in
-a sentence and continue with the task as asked rather than quietly narrowing,
-widening, or transforming it. Finish the whole task, and stop short of actions that
-are clearly beyond what was asked.
+different work. Finish the whole task, and stop short of actions that are clearly
+beyond what was asked.
 ```
+
+### 4) thinking을 끄면 생기는 아티팩트
+Opus 5.5와 Fable 5.1은 **적응형 사고(adaptive thinking)가 상시 활성화**되어 있으며 끄는 옵션이 제공되지 않습니다. 구세대 모델에서 사고를 강제로 끄면 도구 호출이 텍스트로 새거나 `<thinking>` 태그가 노출되는 문제가 발생합니다. **사고를 끄려고 하지 말고, 비용 절감이 필요하면 `low` 또는 `medium` effort를 사용하는 것**이 정석입니다.
 
 ---
 
-### 5) 서브에이전트를 더 적극 위임한다 → 캡을 걸어라
+## 2부: Claude Opus 5.5 실전 활용 플레이북
 
-이전보다 [서브에이전트](#ch7)에 **더 잘 위임**합니다. 위임은 **진짜 독립적이고 큰** 작업에선 이득이지만, 작은 작업에 적용하면 비용·시간이 배가됩니다. 어떤 경우에 위임할지 명시하거나 결정론적 상한을 두세요.
+Anthropic이 2026년 9월 22일 발표한 **Claude Opus 5.5**(`claude-opus-5-5`)는 이전 세대보다 **혼자서 훨씬 더 오래 일하고, 자신이 수행한 작업을 담백하게 보고하며, 매 응답 전 스스로 생각**합니다.
+
+```mermaid
+flowchart LR
+    A["전체 과업 일괄 전달<br/>+ 완료 기준(Done) 정의"] --> B["오랜 시간 자율 실행<br/>(중간 개입 최소화)"]
+    B --> C["종료 보고서 확인<br/>(나에게 필요한 결정 우선)"]
+    C --> D["독립 검증 패스<br/>(PR 코드 리뷰 / 엣지케이스)"]
+```
+
+### 첫 세션에서 시도할 3가지 핵심
+1. **작업 전체를 한 번에 넘겨라**: "완료된 모습(Done)"이 무엇인지, 언제 멈춰서 질문해야 하는지 한 번에 말하고 그대로 작업을 맡기세요.
+2. **"깊이 생각해라" 문구를 삭제하라**: Opus 5.5는 이미 매 응답 전 최적의 깊이로 생각합니다. "think carefully"를 지우면 답변이 더 빨리 시작됩니다.
+3. **작업이 끝나면 나에게 필요한 요구사항을 먼저 읽어라**: Opus 5.5는 자신이 내린 결정과 사람의 승인이 필요한 항목을 명확히 구분해 보고합니다.
+
+---
+
+### 1. 프롬프트 작성법 (How to Ask)
+
+#### ① 완료의 기준(Finish Line)을 못 박고 맡겨라
+Opus 5.5는 이전 Opus 5보다 다단계 작업(대규모 리포지토리 마이그레이션 등)을 훨씬 더 끈기 있게 이어갑니다. "끝이 어디인지"를 명확히 주면 몇 시간 동안 자율적으로 작업합니다.
 
 ```text
-Delegate to a subagent only for large tasks that are genuinely independent and
-parallelizable, such as a wide multi-file investigation. Do not delegate work you can
-finish yourself in a handful of tool calls, and do not use subagents to verify or
-double-check your own work. If one subagent can complete the task, use one rather
-than several, and keep spawn counts low.
+# 실전 프롬프트: 결제 엔드포인트 마이그레이션
+Migrate the payment endpoints from the old client to the new one.
+Done means: every endpoint uses the new client, the old client is
+deleted, and the test suite passes.
+Stop and ask me only if a test fails for a reason you can't explain.
 ```
 
----
+- **전체 과업**: 구 클라이언트에서 신규 클라이언트로 결제 엔드포인트 마이그레이션.
+- **완료의 정의 (Done)**: 모든 엔드포인트가 신규 클라이언트를 사용하고, 구 클라이언트 파일이 삭제되며, 전체 테스트가 통과할 것.
+- **멈춤 조건**: 설명할 수 없는 이유로 테스트가 실패할 때만 멈추고 질문할 것.
 
-### 6) 스스로 고친다 → 재확인 지시를 빼라
+#### ② "think hard" 지시문 제거
+"think carefully", "think step by step" 등의 프롬프트는 모두 삭제하세요. Opus 5.5는 자체적으로 생각의 양을 결정합니다. 빠른 답변이 필요하다면 `"Answer directly"`라고 짧게 지시하거나 effort를 `low`로 낮추세요.
 
-자기 실수를 **알아서 잡아 고칩니다**. "답을 다시 확인해라", "응답 전 재검증해라" 같은 지시는 모델의 기존 행동과 **겹쳐** 비용만 늘립니다 — 넣지 마세요.
+#### ③ 실행 중인 작업에 실시간 지시 추가 (Add to a running task)
+Opus 5.5는 긴 시간 동안 도구를 연속 실행합니다. 도중에 빠뜨린 요구사항이 생각났다면 작업을 취소하고 처음부터 다시 시작할 필요 없이, **작업이 돌아가는 도중에 터미널에 메시지를 입력하고 Enter를 누르세요**.
+- 예: 작업 도중 `Also keep the old endpoint names as aliases.` 입력.
 
-다만 이전 발언을 **정정하는 내레이션**이 늘어, 사용자 대면 제품에선 거슬릴 수 있습니다. 의미 있는 정정만 남기려면:
+#### ④ 디자인 요청 시 "원하지 않는 스타일"을 명시 (Negative Styling Constraints)
+스타일 지침이 없으면 Opus 5.5는 무난한 기본 템플릿(크림색 배경, 이탤릭 헤딩, 알약 모양 버튼 등)으로 회귀합니다. "일반적인 느낌을 피해라" 같은 막연한 지시 대신, **원하지 않는 스타일 요소를 구체적으로 나열**하세요.
 
 ```text
-Only correct an earlier statement when the error would change the user's code,
-conclusions, or decisions. State corrections plainly and briefly, then continue.
-For slips that change nothing for the user, make the fix and move on without noting it.
+Build a personal website with placeholder content.
+Don't use a cream or off-white background, italic accent words in
+headings, numbered "01 / 02 / 03" section labels, monospace labels, or
+pill-shaped buttons.
 ```
 
 ---
 
-### 7) thinking을 끄면 생기는 아티팩트
+### 2. Claude Code에서 장기 실행 세션 조종 (Steering a Long Run)
 
-Opus 5는 **사고(thinking)가 기본 켜짐**(Fable 5.1/5는 상시 켜짐)이고, 끄는 것은 **effort `high` 이하에서만** 가능합니다. 사고를 끄면 두 가지 아티팩트가 가끔 나타납니다.
+#### ① CLAUDE.md에 멈출 지점(Stops)을 명시하라
+Opus 5.5는 보고를 매우 잘합니다. 하지만 지침이 없으면 사소한 판단마다 멈춰서 "계속할까요?"라고 묻거나 불필요한 선택지를 나열할 수 있습니다. `CLAUDE.md`에 연속 진행과 정지 조건을 명시하세요.
 
-- **도구 호출이 텍스트로 샘**: 구조화된 `tool_use` 블록 대신 도구 호출을 **사용자 텍스트에 써 버려** 실제 실행되지 않음(검색 등 도구 위주 작업에서 흔함).
-- **내부 XML 태그 누수**: `<thinking>` 같은 내부 태그가 응답에 노출.
+```markdown
+<!-- CLAUDE.md 권장 규칙 -->
+When a step doesn't need my input, keep going. Put status notes in the
+same message as your next action.
+Stop and ask only when you can't continue without me, or before anything
+destructive: deleting data, force-pushing, or changing anything outside
+this repository.
+```
 
-> **최선의 완화책은 사고를 끄지 말고, 대신 effort를 낮춰 비용을 통제하는 것**입니다 — 대부분의 작업에서 "**사고 켜짐 + `low` effort**"가 "사고 꺼짐"보다 낫습니다. 꼭 꺼야 한다면 단일 지시로 두 아티팩트를 함께 완화하세요(태그를 **이름으로 지목하지 마세요** — 오히려 누수가 늘어납니다).
+> ⚠️ **보안 원칙:** 멈춤 없이 계속 진행하게 할수록, 파괴적 작업(`rm -rf`, `git push --force`, 외부 디렉터리 접근)에 대한 사전 확인 및 Claude Code의 도구 권한 프롬프트는 반드시 켜 두어야 합니다.
+
+#### ② 대규모 작업은 서브에이전트에 분산 후 "증거"를 검증하라
+전체 서비스 감사(audit)나 대규모 마이그레이션 시, Opus 5.5에게 작업을 여러 서브에이전트로 나누고 각 결과를 병합 전 교차 검증하도록 지시하세요.
 
 ```text
-When you use a tool, you may say a brief sentence first. If no tool can express what
-the user asked for, say so instead of guessing. Do not include internal or system
-XML tags in your response.
+Audit every service in services/ for the retry bug in the linked issue.
+Give each service to its own subagent. When a subagent reports back,
+check its evidence before you accept it.
+Finish with one table: service, affected yes or no, and the evidence.
 ```
 
----
+#### ③ 작업 목록을 파일(`TASKS.md`)로 유지하라
+긴 세션에서는 대화 컨텍스트가 가득 차면 Claude Code가 이전 턴을 자동 요약(compaction)합니다. 작업 진행 상태를 터미널 대화에만 의존하면 히스토리가 요약될 때 세부 사항이 흐려질 수 있습니다.
+- 지시: `"Keep a checklist in TASKS.md. Tick each item when it's done, and add anything new you find."`
+- 파일에 기록된 체크리스트는 컨텍스트 압축 후에도 디스크에 온전히 유지되어 현재 위치를 한눈에 파악할 수 있습니다.
 
 ---
 
-## 2부: Claude Fable 5.1 공식 실전 가이드
+### 3. 결과 확인 및 품질 점검 (Checking the Result)
 
-2026년 9월 출시된 **Claude Fable 5.1**(`claude-fable-5-1`)은 최상위 지능과 복잡한 장기 에이전트 자율 작업에 특화된 모델입니다. Anthropic 공식 가이드(*Prompting Claude Fable 5.1*)가 권고하는 핵심 패턴입니다.
+#### ① "나에게 필요한 요구사항"을 가장 먼저 읽어라
+장기 작업이 끝나면 최종 요약에서 Claude가 사람의 결정이나 승인을 기다리는 항목(**Blocked on me**)을 가장 먼저 확인하세요.
+- `CLAUDE.md` 서식 팁: `"End every run with three headings: Blocked on me, Changed, Found."`
 
-### 1) 모든 effort 레벨을 시험하라 (Consider all effort levels)
-
-Fable 5.1의 기본 effort는 **`high`**입니다. 하지만 이전 세대와 이름이 같다고 사고량이 같지 않습니다.
-- **`medium`**: Fable 5 수준의 높은 품질을 유지하면서 **비용과 지연 시간을 크게 절감**합니다.
-- **`low`**: Opus 5나 Sonnet 5 수준의 비용으로 동작하면서도 더 뛰어난 벤치마크 점수를 냅니다.
-- **`xhigh` / `max`**: 고난도 추론 및 방대한 분석 작업 전용입니다.
-
-> **권고:** 무조건 `high`에 고정하지 말고, 루틴한 작업에는 `medium`이나 `low`로 내려 비용을 최적화하세요.
-
----
-
-### 2) 사용자 대면 진행 상황 업데이트 유도 (Ask for progress updates)
-
-Fable 5.1은 긴 도구 호출 체인에서 **중간 사용자 안내를 생략하고 침묵**하는 경향이 이전보다 큽니다.
-1. **클라이언트 수신 설정:** 모델의 중간 노트는 `progress-update` 형태의 thinking 블록으로 옵니다. 기본값 `omitted` 대신 API 헤더 `display: "updates"` 또는 `"summarized"`를 사용하세요.
-2. **레거시 억제 지침 제거:** 프롬프트에 "최종 응답 전까지 중간 발견을 말하지 말라" 같은 레거시 문구가 있다면 제거하세요.
-3. **진행 업데이트 지침 주입:**
+#### ② 머지 전 Opus 5.5에게 사전 코드 리뷰 요청
+Opus 5.5는 낮은 effort에서도 이전 Opus 5의 높은 effort보다 더 많은 버그를 적은 오탐(false positive)으로 잡아냅니다. 사람이 PR을 검토하기 전 먼저 돌려보세요.
 
 ```text
-Before you start, say in a line what you're about to do; brief updates while you work
-help the user follow along. Close with a short recap that stands on its own — what you
-found, what you did, and what's next — so a reader who only sees the last message has
-the full picture.
+Review the diff on this branch against main.
+List only problems you'd block the merge for. For each one, give the
+file and line, why it's wrong, and how to show it fails.
+```
+
+#### ③ 확인하지 못한 부분을 명시하도록 지시
+조사 및 분석 작업 시 확인되지 않은 가설을 단정 짓지 않도록 명시적 단서를 붙이세요:
+- `"Mark anything you couldn't confirm, and say where you looked."`
+
+---
+
+### 4. Claude 애플리케이션 및 협업 팁
+
+- **스크린샷/차트 원본 직접 첨부**: 수치를 텍스트로 옮겨 적지 말고 다이어그램이나 스크린샷 이미지를 그대로 전달하세요. 화살표 연결 관계, 두 다이어그램 간 변경점, 캘린더 일정 위치 등 공간 정보를 탁월하게 해석합니다.
+- **문서 자기모순 검출**: 긴 기획서나 슬라이드 덱 검토 시 *"문서 내에서 날짜·숫자·이름이 서로 모순되는 부분을 찾아 인용하고 위치를 밝혀라"*고 지시하세요.
+- **완성형 파일 직접 요구**: 개요(outline) 대신 바로 공유할 수 있는 완성된 스프레드시트나 정식 문서를 요구하세요.
+- **긴 프로젝트 대화에서 이전 답변 확정 선언**: 장기 프로젝트에서 사소한 후속 질문 시 이전 답변을 불필요하게 재검토하며 느려지는 것을 방지하려면 지침을 추가하세요:
+  ```text
+  Once you have answered something, treat that answer as done. Focus on
+  what I'm asking now, and don't go back over an earlier answer unless I
+  ask about it or point out a problem with it.
+  ```
+
+---
+
+### 5. 보안 가드레일 및 메시지 플래그 대응
+
+Opus 5.5는 Fable 수준의 첨단 생물학·사이버보안 가드레일을 기본 탑재했습니다.
+
+1. **메시지 플래그 시 자동 모델 폴백**: 민감한 보안 키워드나 오탐으로 인해 메시지가 플래그되면, 작업이 튕겨 나가는 대신 이전 세대 안전 모델로 세션이 자동 전환되어 연속성을 보장합니다.
+2. **복구 절차**:
+   - 원래 모델 복귀: `/model opus-5-5`
+   - 직전 메시지 수정: `Esc` 키를 두 번 눌러 프롬프트 편집 후 재전송
+   - 자동 전환 여부 제어: `/config`에서 `Switch models when a message is flagged` 옵션 조정
+3. ⚠️ **내부 추론 과정(Internal Reasoning) 출력 요구 금지**:
+   - "내부 추론 과정을 그대로 보여달라"는 식의 시스템 내부 사고 추출 요청은 보안상 거부되며 플래그의 주요 원인이 됩니다.
+   - 대안: *"이 방식을 선택한 이유를 3문장으로 간결하게 설명해 달라"*와 같이 명시적 산출물 설명을 요구하세요.
+
+---
+
+### Opus 5.5 실전 체크리스트
+
+```markdown
+[ ] 1. 지시하기 (Asking)
+    - 작업의 최종 완료 모습(Done)을 명시했는가?
+    - "think hard", "think carefully" 같은 불필요한 수식어를 제거했는가?
+    - 디자인 요청 시 원하지 않는 스타일(배경색, 폰트 등)을 나열했는가?
+    - 차트와 다이어그램은 텍스트 재입력 대신 이미지 원본을 첨부했는가?
+
+[ ] 2. 긴 세션 조종 (Steering)
+    - CLAUDE.md에 불필요한 정지를 막고 파괴적 명령(삭제, force-push) 전에만 멈추도록 설정했는가?
+    - 파괴적 도구 권한 프롬프트는 켜 두었는가?
+    - 대규모 감사·마이그레이션 과제는 서브에이전트로 분산하고 증거를 요구했는가?
+    - 진행 상황 추적을 위한 TASKS.md 체크리스트 파일 생성을 지시했는가?
+
+[ ] 3. 결과 점검 (Checking)
+    - 최종 보고서에서 'Blocked on me(내 승인이 필요한 사항)'를 가장 먼저 확인했는가?
+    - 머지 전 Opus 5.5에게 머지 블로커 기준 diff 리뷰를 수행하게 했는가?
+    - 조사 리포트에서 '확인하지 못한 내용과 검색 위치'를 표기하도록 했는가?
+
+[ ] 4. 보안 및 플래그 (Flags)
+    - 플래그 발생 시 /model 또는 Esc 2회 수정을 통해 복구하는 법을 숙지했는가?
+    - 내부 reasoning을 출력하라는 무리한 지시를 배제했는가?
 ```
 
 ---
 
-### 3) 에이전트 루프에서 독립 도구 호출 배치 병렬화 (Batch independent tool calls)
+## 3부: Claude Fable 5.1 & Mythos 5.1 공식 실전 가이드
 
-코딩 및 에디터 환경에서 Fable 5.1은 독립적인 파일 읽기/조회 도구를 **한 턴에 하나씩 순차 호출**하는 경향이 있습니다. 이는 품질엔 영향이 없지만 라운드트립 시간과 토큰을 낭비합니다. 아래 한 줄 넛지로 **단일 턴 병렬 호출**을 유도하세요:
+2026년 9월 출시된 **Claude Fable 5.1**(`claude-fable-5-1`)은 엔터프라이즈 프런티어급 지능과 초저가 캐시 읽기($0.25/M)를 갖춘 장기 자율 에이전트 전용 모델입니다. 자매 모델인 **Claude Mythos 5.1**은 동일 아키텍처 기반에 보안 허가 조직(Project Glasswing)을 위한 완화된 가드레일을 제공합니다.
+
+### 1) Multi-Effort 지출 전략과 Terminal-Bench 3.0 연구
+Anthropic 엔지니어링 분석(Thariq Shihipar)에 따르면, Fable 5.1은 태스크 난이도와 엣지케이스의 유무에 따라 effort를 전략적으로 배분해야 비용 효율이 극대화됩니다.
+
+- **`html-js-filter` 사례 연구**:
+  - `low` effort (약 2분 소요): 1회의 단일 패스로 필터를 작성하고 단일 테스트 페이지만 확인 → 5회 중 1회만 성공.
+  - `xhigh` effort (약 33분 소요): 작성한 초안을 스스로 적대적(adversarial) 검토 → 설치된 HTML 파서 라이브러리의 소스코드를 직접 읽어 버그 확인 → 수많은 입력-출력 무결성 테스트 실행 → 표준 XSS 테스트 스위트 통과 → **무작위 문서 퍼저(fuzzer)를 직접 작성해 엣지케이스 전수 검증** → **5회 모두 완벽 통과**.
+- **실무 4단계 기능 개발 루프**:
+  1. 명세를 주고 누락된 부분을 질문하도록 인터뷰 유도
+  2. `low` effort로 핵심 코드베이스 구현
+  3. `low` effort로 피드백을 주며 프로토타입 반복
+  4. `high` 또는 `xhigh` effort로 엣지케이스 테스트 및 보안 감사
+
+### 2) 독립 도구 호출의 단일 턴 병렬 배치 넛지
+Fable 5.1은 독립적인 파일 읽기나 검색 도구를 순차적으로 1개씩 호출하는 경향이 있습니다. 아래 넛지를 주입해 한 턴에 병렬 호출하도록 유도하세요:
 
 ```text
 First privately list what you need next; then request every item that doesn't depend
 on another's result in this one response.
 ```
 
-> **API 팁:** 매 턴 도구 결과 뒤에 턴 스코프 시스템 메시지(`clear_at: "next_user_message"`, beta)로 이 넛지를 주입하면 가장 깔끔합니다.
+### 3) 대화 기록은 반드시 엄격한 추가 전용(Append-only) 유지
+⚠️ **가장 중요한 캐시 & 모델 제약사항**:
+Fable 5.1의 thinking 블록은 **해당 블록이 생성된 정확한 대화 컨텍스트에서만 유효**합니다.
+- 이전 턴의 사용자 메시지나 도구 호출 결과를 임의로 편집·삭제하면 **프롬프트 캐시가 무효화될 뿐만 아니라, 그 뒤에 오는 모든 thinking 블록이 거부**됩니다.
+- 새로운 지시나 넛지는 과거 턴을 수정하지 말고 반드시 대화 끝에 **새 메시지로 추가(Append)**해야 합니다.
 
----
-
-### 4) 대화 기록은 반드시 추가 전용(Append-only) 유지
-
-Fable 5.1의 thinking 블록은 **그 블록을 생성한 정확한 대화 컨텍스트에서만 유효**합니다(2026년 8월 31일 이후 계정).
-- 이전 턴의 텍스트나 도구 결과를 수정·삭제하면 **프롬프트 캐시가 깨질 뿐만 아니라, 그 뒤에 오는 모든 thinking 블록이 무효화**됩니다.
-- 도구 넛지나 메시지는 과거 턴을 고치지 말고 반드시 **배열 끝에 추가(Append)**하세요.
-
----
-
-### 5) 글쓰기 밀도 & 채팅 포맷팅 (Writing density & formatting)
-
-- **밀도 조절:** Fable 5.1은 불필요한 상투어를 쓰지 않지만, 문장이 길어지고 단락 구분이 적어 텍스트가 빽빽해질 수 있습니다. "3~4문장마다 단락을 나누고 핵심은 앞에 두라"는 지침이 유용합니다.
-- **자연스러운 산문 선호:** Fable 5.1은 기본적으로 불릿 기호나 볼드 강조를 덜 씁니다. 과거 모델의 과도한 불릿을 막으려고 넣었던 **"불릿/볼드를 쓰지 말라"는 레거시 억제 지침은 제거**하세요 — 오히려 가독성을 해칩니다.
-
----
-
-### 6) 전체 파일 재작성 대신 타겟 편집 선호 (Prefer targeted edits)
-
-작은 코드를 고칠 때도 파일 전체를 다시 쓰는 경향이 있습니다. 토큰 낭비와 충돌을 방지하려면 타겟 편집을 명시하세요:
+### 4) 전체 파일 재작성 대신 타겟 편집 강제
+방대한 파일에서 몇 줄만 고칠 때도 파일 전체를 덮어쓰는 경향을 방지하세요:
 
 ```text
 Make targeted edits to existing files rather than rewriting the entire file.
 Keep unchanged code and comments intact.
 ```
 
----
-
-### 7) 끝까지 작업을 완수하라 (Finish the whole task)
-
-비동기 에이전트 루프에서 Fable 5.1은 실제로 도구를 실행하는 대신 "다음에 무엇을 할지" 설명만 하고 턴을 마치는 경우가 있습니다. 명확한 완수 넛지를 제공하세요:
+### 5) 사용자 진행 업데이트 수신
+Fable 5.1은 긴 도구 호출 체인 동안 침묵할 수 있습니다. API 레벨에서 `display: "updates"` 헤더를 사용하고, 아래 프롬프트를 함께 제공하세요:
 
 ```text
-Do not stop after planning or describing next steps. Execute all necessary tool calls
-and complete the implementation until the goal is fully achieved.
+Before you start, say in a line what you're about to do; brief updates while you work
+help the user follow along. Close with a short recap that stands on its own.
 ```
 
 ---
 
-### 8) 컨텍스트 압축 요약 시 보존 항목 명시 (Compaction summaries)
+## 4부: 세대별 마이그레이션 노트
 
-대화가 길어져 [컨텍스트 압축](#ch12)을 진행할 때, Fable 5.1에게 무엇을 반드시 남겨야 하는지 명시하세요:
-
-```text
-Summarize the transcript inside <summary></summary> tags.
-Retain all architectural decisions made, paths of modified or created files,
-active constraints, and unresolved issues. Do not retain full code diffs or
-intermediate research tool outputs.
-```
-
----
-
-### 9) 작업 범위와 테스트 파일 한정 (Keep changes and tests in scope)
-
-Fable 5.1은 자율성이 뛰어나 요청하지 않은 주변 코드까지 손대거나, 사소한 변경에도 테스트 파일을 과도하게 생성할 수 있습니다. 
-
-```text
-Keep code changes strictly scoped to the requested task. Do not refactor unrelated code,
-modify files outside the feature scope, or commit extraneous test files beyond what is
-needed to verify the change.
-```
-
----
-
-### 10) xhigh/max effort 긴 출력 시 토큰 여유 확보 & 서브에이전트 병렬화
-
-- **출력 토큰 예산:** `xhigh`나 `max` effort에서는 모델이 사고(thinking) 단계에서 전체 초안을 길게 작성한 뒤 본문으로 출력하므로, `max_tokens`를 최소 16,000 이상으로 넉넉히 잡아야 토큰 잘림을 방지할 수 있습니다.
-- **서브에이전트 논블로킹:** 서브에이전트를 호출했을 때 리드 에이전트가 멈추고 기다리지 않게 하세요. 리드가 계속 독자적인 작업을 이어갈 때 전체 완료 시간이 단축됩니다.
-
----
-
-## 마이그레이션 노트
+### Opus 5 → Opus 5.5 마이그레이션
+- **모델 ID**: `claude-opus-5` → `claude-opus-5-5`
+- **단가 인하**: 입력 $4/M, 출력 $20/M, 캐시 읽기 $0.20/M (실제 세션 비용 약 40% 절감).
+- **소통 개선**: "think carefully"를 제거하고, `CLAUDE.md`에 비차단 작업의 연속 진행 규칙을 등록하세요.
+- **안전 가드레일**: Fable급 보안 탑재. 메시지 플래그 시 자동 모델 폴백 대응 숙지.
 
 ### Fable 5 → Fable 5.1 마이그레이션
-- **모델 ID 변경**: `claude-fable-5` → `claude-fable-5-1`.
-- **캐시 읽기 비용 75% 절감**: $1.00/M → **$0.25/M** 토큰. 캐시를 적극 활용하는 긴 세션과 에이전틱 루프에서 비용 절감 효과가 극대화됩니다.
-- **지식 컷오프**: 2026년 1월 → **2026년 6월**.
-- **강제 도구 선택(forced tool_choice) 주의**: 엄격한 특정 도구 강제 모드가 제한되므로 API 옵션을 점검하세요.
-- **이전 턴 수정 금지**: thinking 블록의 유효성을 위해 Append-only 대화 구조를 철저히 준수하세요.
-
-### Opus 4.8 → Opus 5 마이그레이션
-- 기존 프롬프트로도 기본 동작하지만, **사고가 기본 켜짐**으로 변경되었으며 끄기는 effort `high` 이하에서만 가능합니다.
-- 예전의 장황한 검증 스캐폴딩을 제거하고, 작업 명세를 초반에 구체적으로 한 번에 전달하는 것이 유리합니다.
+- **모델 ID**: `claude-fable-5` → `claude-fable-5-1`
+- **캐시 읽기 단가 75% 인하**: $1.00/M → **$0.25/M** (에이전틱 반복 세션 비용 급감).
+- **컨텍스트 무결성**: 과거 턴 수정을 금지하고 Append-only 메시지 파이프라인 준수.
+- **지식 컷오프**: 2026년 6월.
 
 ---
 
 ## 핵심 요약
 
-- 최신 모델은 **더 자율적** — 예전의 "밀어붙이는" 지시(검증 강제·재확인·번호 스캐폴딩)는 **빼는 것**이 개선이다.
-- **Fable 5.1**은 최고 지능 티어로, **캐시 읽기 단가가 75% 인하($0.25/M)**되어 에이전틱 작업에 최적화되었다.
-- **Fable 5.1 튜닝 3대 핵심:**
-  1. `medium`/`low` effort도 적극 검토(품질 대비 비용 최적화).
-  2. 에이전트 루프에서 **독립 도구 호출 병렬 배치 넛지** 제공.
-  3. **대화 기록은 반드시 Append-only**로 유지(이전 턴 수정 시 캐시 및 thinking 블록 무효화).
-- **길이·내레이션·문서 길이**는 effort가 아니라 **명시적 프롬프트**로 조절한다.
-- **사고는 끄지 말고 `low` effort로** 비용을 통제한다 — 끄면 도구호출 누수·XML 태그 누수가 생긴다.
+- **Opus 5.5 핵심 플레이북**:
+  1. **완료 기준(Done)을 명시**하고 전체 과업을 한 번에 위임.
+  2. "think hard" 지시를 프롬프트에서 삭제 (적응형 사고 상시 가동).
+  3. `CLAUDE.md`로 비파괴 작업은 멈춤 없이 계속 진행하도록 조종.
+  4. 대규모 작업은 서브에이전트 병렬화 후 **증거(evidence)를 검증**.
+  5. 컨텍스트 압축에 대비해 작업 상태는 **`TASKS.md` 파일로 관리**.
+  6. 사람 검토 전 **PR 머지 블로커 코드 리뷰**를 선행.
+- **Fable 5.1 핵심 가이드**:
+  1. Terminal-Bench 3.0 실증 연구에 기반한 **4단계 Multi-Effort 개발 루프** 도입.
+  2. 독립 도구 호출 **병렬 배치 넛지** 제공.
+  3. thinking 블록 유효성을 위한 **대화 히스토리 Append-only 준수**.
+- **보안 및 가드레일**:
+  - 생물학/사이버 가드레일 플래그 시 안전 모델로 자동 폴백.
+  - 시스템 내부 추론 과정(internal reasoning) 직접 출력 요구 금지.
 
-> 💡 **직접 프롬프트를 진단해 보세요**: [16장 플레이그라운드의 프롬프트 튜너](#ch16)에 내 프롬프트를 붙여 넣으면, 14장의 16대 지침(과잉 검증 지시 배제, 병렬 도구 넛지, 진행 상태 공유 등)에 맞춰 즉시 분석하고 최적화된 프롬프트를 제안합니다.
+> 💡 **직접 프롬프트를 진단해 보세요**: [16장 플레이그라운드의 프롬프트 튜너](#ch16)에 내 프롬프트를 입력하면, Opus 5.5 완료 기준 정의, Fable 5.1 병렬 호출 넛지, 과잉 스캐폴딩 배제 등 실전 지침에 맞춰 최적화된 프롬프트를 추천합니다.

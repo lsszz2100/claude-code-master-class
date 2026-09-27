@@ -11,8 +11,11 @@
 | 자료 | 설명 |
 | --- | --- |
 | **Claude Code 공식 문서** — [code.claude.com/docs](https://code.claude.com/docs) | 명령어·CLAUDE.md·서브에이전트·스킬·훅·MCP·권한·설치 등 모든 기능의 1차 레퍼런스 |
+| **Getting the most out of Opus 5.5 in Claude and Claude Code** — [claude.dev/blog](https://claude.dev/blog/getting-the-most-out-of-opus-5-5/) | Addy Osmani 저. Opus 5.5 프롬프트 작성법, 완료 기준(Done) 정의, 긴 실행 세션 조종(CLAUDE.md 스톱 규칙, TASKS.md), 서브에이전트 팬아웃 및 결과 검증, 보안 플래그 대응 플레이북 ([14장](#ch14)의 핵심 출처) |
+| **Using Claude Code: Spending your effort** — [claude.dev/blog](https://claude.dev/blog/spending-your-effort/) | Thariq Shihipar 저. Terminal-Bench 3.0 벤치마크 기반 Opus 5.5 & Fable 5.1의 Effort 곡선 실측, `html-js-filter` XSS 방어 사례, 4단계 기능 개발 루프 ([3장](#ch3)·[14장](#ch14) 출처) |
+| **What a task costs on Opus 5.5** — [claude.dev/blog](https://claude.dev/blog/what-a-task-costs-on-opus-5-5/) | Addy Osmani 저. Opus 5.5의 토큰 인하 및 캐시 읽기 60% 인하($0.20/M)에 따른 실무 작업 비용 40% 절감 분석 |
 | **Anthropic Academy — Claude Code in Action** ⭐ *무료* — [anthropic.skilljar.com](https://anthropic.skilljar.com/claude-code-in-action) | Anthropic 공식 **무료 강좌**. 플랜 모드·되감기로 긴 세션 조종, CLAUDE.md·스킬·권한 설정, 예약 루틴·GitHub Actions 자동화, 무인 실행 검증·플러그인 배포까지. "몇 시간짜리 작업을 맡기고 자리를 비운 뒤 결과를 확신 있게 확인"하는 것이 목표 |
-| **최신 모델 프롬프트 가이드** — [platform.claude.com/docs](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering) | Opus 5 및 최신 Fable 5.1(Prompting Claude Fable 5.1) 공식 가이드([14장](#ch14)의 출처) |
+| **최신 모델 프롬프트 가이드** — [platform.claude.com/docs](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering) | Opus 5.5 및 최신 Fable 5.1(Prompting Claude Fable 5.1) 공식 가이드([14장](#ch14)의 출처) |
 | **anthropics/claude-code** — [github.com/anthropics/claude-code](https://github.com/anthropics/claude-code) | Claude Code 이슈 트래커·릴리스·예제(`examples/hooks` 등) |
 | **Anthropic Engineering 블로그** — [anthropic.com/engineering](https://www.anthropic.com/engineering) | "Effective context engineering", "Claude Code best practices" 등 원리 아티클 |
 | **공식 플러그인 마켓플레이스** — [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | `skill-creator`·`mcp-server-dev` 등 Anthropic 공식 플러그인 |
@@ -33,12 +36,13 @@
 
 ---
 
-## 커뮤니티 큐레이션 (인기 리소스 모음)
+## 커뮤니티 큐레이션 & 벤치마크 (인기 리소스 모음)
 
-실무자들이 가장 많이 참고하는 "awesome" 목록·툴킷입니다.
+실무자들이 가장 많이 참고하는 "awesome" 목록·툴킷 및 에이전트 평가 벤치마크입니다.
 
 | 저장소 | 설명 |
 | --- | --- |
+| **harbor-framework/terminal-bench** — [github.com](https://github.com/harbor-framework/terminal-bench) | **Terminal-Bench 3.0** 공식 저장소. 소프트웨어·보안·하드웨어·과학 분야의 커뮤니티 기여형 실제 터미널 에이전트 벤치마크 과제 스위트 |
 | **hesreallyhim/awesome-claude-code** — [github.com](https://github.com/hesreallyhim/awesome-claude-code) | 스킬·에이전트·상태줄·툴링·플러그인의 사실상 표준 큐레이션 |
 | **rohitg00/awesome-claude-code-toolkit** — [github.com](https://github.com/rohitg00/awesome-claude-code-toolkit) | 에이전트·스킬·명령·플러그인·훅·MCP를 대량 묶은 종합 툴킷 |
 | **jqueryscript/awesome-claude-code** — [github.com](https://github.com/jqueryscript/awesome-claude-code) | 도구·IDE 통합·프레임워크 중심 큐레이션 |

@@ -148,15 +148,15 @@ QUIZZES = {
          "Esc로 중단하면 컨텍스트가 보존되어 바로 방향을 재지정할 수 있습니다. Esc 두 번은 되감기 메뉴."),
     ],
     3: [
-        ("복잡한 에이전틱 코딩에 Anthropic이 권장하는 기본 모델은?(2026)",
-         ["Fable 5.1", "Opus 5", "Sonnet 5", "Haiku 4.5"], 1,
-         "복잡한 에이전틱 코딩·엔터프라이즈엔 Opus 5, 최고 능력엔 Fable 5.1을 권합니다. Opus 4.8 등은 레거시입니다."),
-        ("Claude 5 세대(Opus 5·Sonnet 5)의 기본 effort 레벨은?",
+        ("복잡한 에이전틱 코딩에 Anthropic이 권장하는 최신 기본 모델은?(2026)",
+         ["Fable 5.1", "Opus 5.5", "Sonnet 5", "Haiku 4.5"], 1,
+         "복잡한 에이전틱 코딩·엔터프라이즈엔 Opus 5.5(Opus 5 대비 40% 저렴, 장기 자율 실행 최적화), 최고 능력엔 Fable 5.1을 권합니다."),
+        ("Claude 5 세대(Opus 5.5·Sonnet 5)의 기본 effort 레벨은?",
          ["low", "medium", "high", "xhigh"], 2,
          "기본은 high입니다(Claude API·Claude Code). 어려운 코딩·에이전틱엔 xhigh로 올리고, 비용·속도엔 low/medium을 적극 씁니다."),
-        ("가장 강력한(최고 지능) 널리 출시된 모델은?",
-         ["Opus 5", "Fable 5.1", "Sonnet 5", "Haiku 4.5"], 1,
-         "최고 지능 티어는 Fable 5.1입니다. 복잡 코딩·에이전틱의 권장 기본은 Opus 5."),
+        ("가장 강력한(최고 지능) 널리 출시된 프런티어 모델은?",
+         ["Opus 5.5", "Fable 5.1", "Sonnet 5", "Haiku 4.5"], 1,
+         "최고 지능 프런티어 티어는 Fable 5.1입니다. 복잡 코딩·에이전틱의 권장 기본은 Opus 5.5."),
     ],
     10: [
         ("원격 HTTP MCP 서버를 추가하는 명령은?",
@@ -192,15 +192,15 @@ QUIZZES = {
          "'무인 루프는 무인으로 실수하는 루프'이기도 합니다. 검증(센서)이 결정적이며, /goal·Stop 훅·검증 에이전트로 게이트를 겁니다."),
     ],
     14: [
-        ("최신 모델(Opus 5 등)에서, 예전 프롬프트의 '최종 검증 단계를 넣어라' 같은 지시는?",
+        ("최신 모델(Opus 5.5 등)에서, 예전 프롬프트의 '최종 검증 단계를 넣어라' 같은 지시는?",
          ["더 강하게 강조한다", "제거하는 것이 개선이다 — 모델이 스스로 검증하므로", "그대로 둔다", "서브에이전트로 옮긴다"], 1,
          "최신 모델은 시키지 않아도 자기 작업을 검증합니다. 검증 강제 지시는 과잉 검증을 유발해 토큰만 낭비하므로 빼는 게 낫습니다."),
-        ("Opus 5의 길어진 응답(장황함)을 줄이는 올바른 방법은?",
+        ("Opus 5.5의 길어진 응답(장황함)을 줄이는 올바른 방법은?",
          ["effort를 낮춘다", "간결하게 하라고 명시적으로 프롬프트한다", "max_tokens를 줄인다", "모델을 바꾼다"], 1,
          "effort는 '얼마나 생각하는지'를 조절할 뿐 응답 길이가 아닙니다. 길이는 명시적 지시로 조절하세요."),
-        ("Opus 5에서 thinking을 끄면 생기는 아티팩트(도구호출 텍스트 누수 등)의 최선 완화책은?",
-         ["태그 이름을 지목해 금지", "사고를 끄지 말고 effort를 low로 낮춰 비용 통제", "max_tokens를 늘림", "도구를 모두 제거"], 1,
-         "대부분 '사고 켜짐 + low effort'가 '사고 꺼짐'보다 낫습니다. 끄면 도구호출·XML 태그 누수가 생깁니다."),
+        ("Opus 5.5에서 'think carefully'나 'think step by step' 같은 지시문은?",
+         ["반드시 유지한다", "삭제하는 것이 답변 속도와 품질에 더 유리하다", "영어 대신 한국어로 쓴다", "대문자로 쓴다"], 1,
+         "Opus 5.5는 적응형 사고가 매 응답 전 스스로 작동하므로 'think carefully'를 지우면 품질 저하 없이 답변이 더 빨리 시작됩니다."),
     ],
     17: [
         ("가장 최근 세션을 이어서 여는 방법은?",
@@ -1859,7 +1859,7 @@ if(pgt){
     '/vim':()=>['<span class="ok">✓ vim 모드 ON</span> — 입력창에서 h·j·k·l·Esc 가 동작합니다.'],
     '/output-style':()=>['<span class="k">출력 스타일</span> default · explanatory · learning 중 선택.'],
     '/statusline':()=>['<span class="k">상태줄</span> 모델·브랜치·비용 등을 아래 한 줄에 띄웁니다. 스크립트로 직접 만들 수 있습니다.'],
-    '/status':()=>['<span class="k">세션</span> 모델 claude-opus-5 · effort high · 권한 default · 정상'],
+    '/status':()=>['<span class="k">세션</span> 모델 claude-opus-5-5 · effort high · 권한 default · 정상'],
     '/doctor':()=>['<span class="ok">✓ 설치 정상</span> ripgrep OK · 설정 유효 · 업데이트 없음.'],
     '/login':()=>['<span class="k">로그인</span> 브라우저에서 인증을 마치면 돌아옵니다.'],
     '/logout':()=>['<span class="ok">✓ 로그아웃했습니다.</span>'],
@@ -2100,10 +2100,11 @@ if(pgc){
   const M={ // [입력$, 출력$, 이름, 한줄 설명, 캐시요율(생략 시 0.1)]
     'claude-haiku-4-5':[1,5,'Haiku 4.5','가볍고 빠름 · 가장 저렴',0.1],
     'claude-sonnet-5':[2,10,'Sonnet 5','균형 잡힌 실무용',0.1],
-    'claude-opus-5':[5,25,'Opus 5','가장 똑똑 · 코딩 최강',0.1],
+    'claude-opus-5-5':[4,20,'Opus 5.5','최신 플래그십 · 코딩 최강',0.05],
+    'claude-opus-5':[5,25,'Opus 5','이전 세대 플래그십',0.1],
     'claude-fable-5-1':[10,50,'Fable 5.1','최고 지능 · 캐시 $0.25',0.025],
   };
-  const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 기본 1/10, 배치 API 는 50% 할인 (Fable 5.1은 $0.25/M = 0.025)
+  const CACHE_READ=0.1, BATCH=0.5;   // 캐시 읽기는 기본 1/10, 배치 API 는 50% 할인 (Opus 5.5는 $0.20/M = 0.05, Fable 5.1은 $0.25/M = 0.025)
   const PLANS=[ // [월 정액$, 이름, 한 줄 설명] — 공식 요금제(claude.com/pricing) 기준
     [20,'Pro','개인 · 가벼운 코딩'],
     [100,'Max 5x','Pro의 5배 사용량'],
@@ -2125,13 +2126,13 @@ if(pgc){
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note" id="ccNote"></div></div>'+
     '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div>'+
     '<div class="cav">같은 <b>토큰 수</b>로 비교한 값입니다. 실제로는 Opus 4.7부터 도입된 새 토크나이저를 쓰는 '
-    +'<b>Fable 5.1·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
-    +'옛 토크나이저인 <b>Haiku 4.5</b>와 나란히 놓으면 위쪽 세 모델이 그만큼 싸 보인다는 뜻입니다.</div></div>'+
+    +'<b>Fable 5.1·Opus 5.5·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
+    +'옛 토크나이저인 <b>Haiku 4.5</b>와 나란히 놓으면 위쪽 모델들이 그만큼 싸 보인다는 뜻입니다.</div></div>'+
     '<div class="pg-plan"><div class="h">요금제(정액)로 쓰면? — 한 달 30일 환산 비교</div><div id="ccPlan"></div>'+
     '<div class="sum" id="ccPlanSum"></div><div class="cav" id="ccPlanCav"></div></div>';
   const sel=pgc.querySelector('#ccModel');
   Object.entries(M).forEach(([id,v])=>{const o=document.createElement('option');o.value=id;o.textContent=v[2]+' — '+v[3];sel.appendChild(o);});
-  sel.value='claude-opus-5';
+  sel.value='claude-opus-5-5';
   const req=pgc.querySelector('#ccReq'), ti=pgc.querySelector('#ccIn'), to=pgc.querySelector('#ccOut'),
         hit=pgc.querySelector('#ccHit'), batch=pgc.querySelector('#ccBatch'), pre=pgc.querySelector('#ccPre'), cmp=pgc.querySelector('#ccCmp'),
         plan=pgc.querySelector('#ccPlan');
@@ -2305,18 +2306,19 @@ if(pgpt){
   pgpt.innerHTML='<div class="presets" id="cpPre"></div>'
     +'<div class="fld-row">'
     +'<label><b>대상 모델:</b> <select id="cpModel" aria-label="튜닝 대상 모델">'
-    +'<option value="fable-5-1">Claude Fable 5.1 (최고 지능 · 적응형 사고)</option>'
-    +'<option value="opus-5">Claude Opus 5 (복잡 코딩 표준)</option>'
+    +'<option value="opus-5-5">Claude Opus 5.5 (최신 플래그십 코딩 표준)</option>'
+    +'<option value="fable-5-1">Claude Fable 5.1 (최고 지능 프런티어)</option>'
+    +'<option value="opus-5">Claude Opus 5 (이전 세대 플래그십)</option>'
     +'</select></label>'
     +'</div>'
-    +'<textarea id="cpIn" aria-label="튜닝할 프롬프트 내용" spellcheck="false" placeholder="프롬프트를 입력하거나 위 버튼으로 샘플을 불러오세요. 최신 모델(Fable 5.1·Opus 5) 16대 실전 지침 기반으로 즉시 분석합니다."></textarea>'
+    +'<textarea id="cpIn" aria-label="튜닝할 프롬프트 내용" spellcheck="false" placeholder="프롬프트를 입력하거나 위 버튼으로 샘플을 불러오세요. 최신 모델(Opus 5.5·Fable 5.1) 실전 지침 기반으로 즉시 분석합니다."></textarea>'
     +'<div class="gauge"><div class="lab"><b>프롬프트 분석</b><span class="val" id="cpStatus"></span></div></div>'
     +'<div class="finds" id="cpFinds"></div>'
     +'<div class="tuned-wrap" id="cpTunedWrap" style="display:none">'
     +'<div class="tuned-hd"><b>🪄 추천 튜닝 프롬프트:</b><button type="button" class="copy-btn" id="cpCopyBtn">📋 프롬프트 복사</button></div>'
     +'<div class="tuned-box" id="cpTunedBox"></div>'
     +'</div>'
-    +'<div class="cav">14장 공식 프롬프트 가이드(Opus 5 공통 패턴 + Fable 5.1 16대 실전 지침) 기반의 <b>어림 진단기</b>입니다. 실제 작업 특성에 맞게 조정해 사용하세요.</div>';
+    +'<div class="cav">14장 공식 프롬프트 가이드(Opus 5.5 실전 플레이북 + Fable 5.1 공식 지침) 기반의 <b>어림 진단기</b>입니다. 실제 작업 특성에 맞게 조정해 사용하세요.</div>';
 
   const ta=pgpt.querySelector('#cpIn'), pre=pgpt.querySelector('#cpPre'), sel=pgpt.querySelector('#cpModel');
   const statusEl=pgpt.querySelector('#cpStatus'), findsEl=pgpt.querySelector('#cpFinds');
@@ -2394,7 +2396,7 @@ if(pgpt){
 const pgx=document.querySelector('.pg-ctx');
 if(pgx){
   // 컨텍스트 창은 3장 모델 표와 같아야 한다. 표를 고치면 여기도 같이 고칠 것.
-  const WIN=[['claude-opus-5',1000000,'Opus 5'],['claude-fable-5-1',1000000,'Fable 5.1'],
+  const WIN=[['claude-opus-5-5',1000000,'Opus 5.5'],['claude-fable-5-1',1000000,'Fable 5.1'],
              ['claude-sonnet-5',1000000,'Sonnet 5'],['claude-haiku-4-5',200000,'Haiku 4.5']];
   // [id, 이름, 최대, 색, 줄이는 방법(없으면 조절 대상이 아님)]
   const SEG=[
@@ -2422,13 +2424,13 @@ if(pgx){
   const sel=pgx.querySelector('#cxModel');
   WIN.forEach(([id,w,nm])=>{const o=document.createElement('option');o.value=id;
     o.textContent=nm+' — '+(w/1000).toLocaleString()+'K';sel.appendChild(o);});
-  sel.value='claude-opus-5';
+  sel.value='claude-opus-5-5';
   const inp=Object.fromEntries(SEG.map(([id])=>[id,pgx.querySelector('#cx'+id)]));
   const pre=pgx.querySelector('#cxPre'), stack=pgx.querySelector('#cxStack'), lg=pgx.querySelector('#cxLg');
   const k=v=>(v>=1000?Math.round(v/1000).toLocaleString()+'K':v.toLocaleString());
   function setAll(vals){SEG.forEach(([id],i)=>{inp[id].value=vals[i];});}
   function draw(){
-    const win=WIN.find(w=>w[0]===sel.value)[1];
+    const win=(WIN.find(w=>w[0]===sel.value) || WIN[0])[1];
     const vals=SEG.map(([id])=>+inp[id].value);
     const total=vals.reduce((a,b)=>a+b,0);
     SEG.forEach(([id],i)=>{pgx.querySelector('#cx'+id+'V').textContent=k(vals[i])+' 토큰';});

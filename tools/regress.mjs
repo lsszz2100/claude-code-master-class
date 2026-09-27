@@ -790,7 +790,7 @@ await check('놀이터 계산기 (캐싱·배치·모델 비교)', async ({ page
     })),
     selected: document.querySelector('#ccModel').selectedOptions[0].textContent,
   }));
-  expect(cmp.rows.length === 4, `비교 행이 ${cmp.rows.length}개 (기대 4)`);
+  expect(cmp.rows.length === 5, `비교 행이 ${cmp.rows.length}개 (기대 5)`);
   const on = cmp.rows.filter(r => r.on);
   expect(on.length === 1, `강조된 행이 ${on.length}개 (기대 1)`);
   expect(cmp.selected.startsWith(on[0].name), `강조 행 "${on[0].name}" 이 선택 모델 "${cmp.selected}" 과 다름`);
@@ -802,7 +802,7 @@ await check('놀이터 계산기 (캐싱·배치·모델 비교)', async ({ page
   const widest = cmp.rows.reduce((a, b) => (b.won > a.won ? b : a));
   expect(Math.abs(widest.width - 100) < 0.05, `가장 비싼 모델의 막대가 ${widest.width}% (기대 100%)`);
 
-  note(`하루 ₩${base.toLocaleString()} · 캐시80% ₩${cached.toLocaleString()} · 비교 4모델`);
+  note(`하루 ₩${base.toLocaleString()} · 캐시80% ₩${cached.toLocaleString()} · 비교 5모델`);
 });
 
 // 18'. 요금제 vs 종량 비교 — 정액 금액도, 모델 가격도 박지 않는다.
