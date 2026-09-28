@@ -42,7 +42,8 @@ const LAYOUT_OBJECTS_MAX = 5000; // content-visibility 적용 후 실측 1,243 (
 
 // ── 내장 정적 서버 ──────────────────────────────────────────────────
 const MIME = { '.html': 'text/html; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
-  '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8', '.ico': 'image/x-icon' };
+  '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8', '.ico': 'image/x-icon',
+  '.webmanifest': 'application/manifest+json; charset=utf-8', '.js': 'text/javascript; charset=utf-8' };
 let server = null, BASE = urlArg;
 if (!BASE) {
   server = http.createServer((req, res) => {
@@ -561,6 +562,58 @@ await check('모달 포커스 트랩 & 키보드 접근성', async ({ page, note
   expect(shText === '✓ 복사 완료!' || shText === '결과 및 링크 복사', `공유 버튼 피드백 비정상: ${shText}`);
 
   note('모달 2종 Focus Trap & Escape 복원 ✓ · 수료증 캔버스 및 공유 버튼 ✓');
+});
+
+// 17. 퀴즈 오답 복습 모드 — 개별 재도전, 상단 칩 안내, 오답 복습 버튼 및 정답 정정
+await check('퀴즈 오답 복습 모드 (개별 재도전·상단 칩·복습 네비게이션)', async ({ page, note }) => {
+  await page.goto(BASE, { waitUntil: 'load' });
+  const q = page.locator('.quiz-q').first();
+  await q.scrollIntoViewIfNeeded();
+
+  // 1) 고의로 틀린 답 클릭 (정답이 아닌 첫 번째 다른 보기 선택)
+  const wrongIdx = await q.evaluate(el => {
+    const ans = parseInt(el.dataset.answer, 10);
+    return ans === 0 ? 1 : 0;
+  });
+  await q.locator('.quiz-opt').nth(wrongIdx).click();
+  await sleep(100);
+
+  // 2) 오답 표시 및 단독 재도전 버튼 확인
+  const hasWrong = await q.locator('.quiz-opt.wrong').count();
+  const hasSingleRetry = await q.locator('.quiz-retry-single').count();
+  expect(hasWrong === 1, '오답 선택 시 .quiz-opt.wrong 미표시');
+  expect(hasSingleRetry === 1, '오답 발생 시 단독 재도전 버튼(.quiz-retry-single) 미생성');
+
+  // 3) 상단 퀴즈 칩 및 수료증 영역 오답 복습 안내 확인
+  const chipText = await page.$eval('#quizStat', el => el.textContent);
+  expect(chipText.includes('오답 1'), `상단 퀴즈 칩에 오답 수치 미반영: ${chipText}`);
+
+  await page.locator('.cert-app').scrollIntoViewIfNeeded();
+  const revBtn = page.locator('#certReview');
+  expect(await revBtn.isVisible(), '수료증 영역에 #certReview 버튼 미표시');
+
+  // 4) 오답 복습 클릭 시 해당 문제로 이동 및 타깃 하이라이트
+  await revBtn.click();
+  await sleep(150);
+  const isTargeted = await q.evaluate(el => el.classList.contains('review-target'));
+  expect(isTargeted, '오답 복습 클릭 시 .review-target 하이라이트 미부여');
+
+  // 5) 단독 재도전 클릭 후 올바른 정답 선택하여 만점 복원
+  await q.locator('.quiz-retry-single').click();
+  await sleep(100);
+  expect(await q.locator('.quiz-opt.wrong').count() === 0, '단독 재도전 후 오답 상태 미초기화');
+
+  const correctIdx = await q.evaluate(el => parseInt(el.dataset.answer, 10));
+  await q.locator('.quiz-opt').nth(correctIdx).click();
+  await sleep(100);
+
+  const finalWrong = await page.evaluate(() => {
+    const s = quizStats();
+    return s.answered - s.correct;
+  });
+  expect(finalWrong === 0, '정답 수정 후 오답 수가 0으로 갱신되지 않음');
+
+  note('오답 단독 재도전 ✓ · 복습 네비게이션 & 타깃 펄스 ✓ · 정답 정정 100% 갱신 ✓');
 });
 
 // ── 놀이터 위젯 ─────────────────────────────────────────────────────
@@ -1121,6 +1174,58 @@ await check('놀이터 권한 (평가 순서·경계·앵커)', async ({ page, n
   note(`프리셋 4종 · 경계(rmdir 통과·lsof 차단) · 복합/래퍼/실행기 · 앵커 뒤집기 · 규칙 범위/무시 ✓`);
 });
 
+// 22. 에이전트 하네스 & 오케스트레이션 시뮬레이터 (11/13장 연계)
+await check('놀이터 하네스 (토폴로지·장애 주입·자체 교정 루프)', async ({ page, note }) => {
+  await page.locator('.pg-harness').scrollIntoViewIfNeeded();
+  await settle(page);
+
+  // 1) 단일 루프 기본 상태 확인
+  const initNodes = await page.locator('.pg-harness .ph-node').count();
+  expect(initNodes === 4, `단일 루프 노드 수가 4개가 아님: ${initNodes}`);
+
+  // 2) 장애 주입 (테스트 실패 Exit 1) 활성화 후 1스텝씩 실행
+  await page.click('#phFaultTest');
+  await page.click('#phStepBtn'); // Step 0 (Plan) -> Step 1
+  await sleep(60);
+  await page.click('#phStepBtn'); // Step 1 (Exec) -> Step 2
+  await sleep(60);
+  await page.click('#phStepBtn'); // Step 2 (Gate -> 실패 감지 및 자체 교정)
+  await sleep(60);
+
+  // 게이트 실패 후 하네스 자체 교정(self-correction) 개입 확인
+  const failStatus = await page.$eval('#phStatusBadge', el => el.textContent);
+  expect(failStatus.includes('실패') || failStatus.includes('실행 중'), `게이트 실패 상태 미감지: ${failStatus}`);
+
+  const logTxt = await page.$eval('#phLog', el => el.textContent);
+  expect(logTxt.includes('AssertionError') && logTxt.includes('하네스 자동 개입'),
+    '하네스 자체 교정 루프 및 에러 트레이스백 주입 로그 누락');
+
+  // 3) 토폴로지 변경: 병렬 팬아웃
+  await page.click('.pg-harness .ph-topos button[data-topo="parallel"]');
+  await sleep(80);
+  const parNodes = await page.locator('.pg-harness .ph-node').count();
+  expect(parNodes === 5, `병렬 팬아웃 노드 수가 5개가 아님: ${parNodes}`);
+
+  // 컨텍스트 미격리 누출 주입 후 완주
+  await page.click('#phLeakCtx');
+  await page.click('#phAutoBtn');
+  await page.waitForFunction(() => document.getElementById('phStatusBadge')?.textContent === '완료', { timeout: 5000 });
+
+  const finalStatus = await page.$eval('#phStatusBadge', el => el.textContent);
+  expect(finalStatus === '완료', `병렬 팬아웃 자동 완주 실패: ${finalStatus}`);
+
+  const statTxt = await page.$eval('#phStats', el => el.textContent);
+  expect(statTxt.includes('누출 (OFF)'), '컨텍스트 누출 상태 미표시');
+
+  // 4) 2단계 하네스 세션 초기화 검증
+  await page.click('.pg-harness .ph-topos button[data-topo="twostage"]');
+  await sleep(80);
+  const twoStageNodes = await page.locator('.pg-harness .ph-node').count();
+  expect(twoStageNodes === 5, `2단계 하네스 노드 수가 5개가 아님: ${twoStageNodes}`);
+
+  note('단일 루프 자체 교정 ✓ · 병렬 팬아웃 컨텍스트 격리 검증 ✓ · 2단계 하네스 완주 ✓');
+});
+
 // ── 레이아웃(눈에만 보이는 결함) ────────────────────────────────────
 // 22. 가로 넘침 없음 — 뷰포트 3종 × 전 챕터
 // content-visibility 를 켠 채로는 뷰포트 밖 챕터의 크기를 못 믿는다(추정값이다).
@@ -1234,6 +1339,43 @@ await check('앵커 무결성 (본문 # 링크)', async ({ page, note }) => {
   expect(r.bad.length === 0,
     `해소되지 않는 앵커 ${r.bad.length}건: ${r.bad.slice(0, 6).join(' · ')}`);
   note(`링크 ${r.n}건 · id ${r.ids}개 · 미해소 0`);
+});
+
+// 25. PWA 오프라인 준비도 — 매니페스트, 서비스워커, 앱 메타태그 무결성
+await check('PWA 오프라인 준비도 (매니페스트·SW·메타태그)', async ({ page, note }) => {
+  await page.goto(BASE, { waitUntil: 'load' });
+  const meta = await page.evaluate(async () => {
+    const link = document.querySelector('link[rel="manifest"]');
+    const theme = document.querySelector('meta[name="theme-color"]')?.content;
+    const appleCapable = document.querySelector('meta[name="apple-mobile-web-app-capable"]')?.content;
+    const manifestHref = link ? link.getAttribute('href') : null;
+    let manifestData = null, swOk = false;
+    if (manifestHref) {
+      try {
+        const res = await fetch(manifestHref);
+        if (res.ok) manifestData = await res.json();
+      } catch (_) {}
+    }
+    try {
+      const swRes = await fetch('/sw.js');
+      if (swRes.ok) {
+        const txt = await swRes.text();
+        swOk = txt.includes('CACHE_NAME') && txt.includes('claude-code-pwa');
+      }
+    } catch (_) {}
+    return { manifestHref, manifestData, theme, appleCapable, swOk };
+  });
+
+  expect(meta.manifestHref === '/manifest.webmanifest',
+    `manifest 링크 누락 또는 경로 불일치: ${meta.manifestHref}`);
+  expect(meta.manifestData && meta.manifestData.name === 'Claude Code 마스터 클래스',
+    'manifest.webmanifest 내용 파싱 실패 또는 name 불일치');
+  expect(Array.isArray(meta.manifestData?.icons) && meta.manifestData.icons.length >= 2,
+    'manifest 아이콘 2종 이상 정의 누락');
+  expect(meta.appleCapable === 'yes', 'iOS Safari PWA 메타태그 누락');
+  expect(meta.swOk, 'sw.js 서빙 실패 또는 캐시 로직 누락');
+
+  note(`manifest ✓ · icons ${meta.manifestData.icons.length}개 · SW 준비 완료 ✓`);
 });
 
 // ── 성능 지표 (CDP) ─────────────────────────────────────────────────

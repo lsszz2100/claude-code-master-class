@@ -470,7 +470,12 @@ TEMPLATE = r"""<!DOCTYPE html>
 <title>Claude Code 마스터 클래스 · 한국어 종합 실전 강의</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0e0f13">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Claude Code">
 <link rel="canonical" href="https://claude-code-tutorial-ko.vercel.app/">
 <script type="application/ld+json">
 {{JSONLD}}
@@ -646,6 +651,15 @@ figure.mmd{margin-left:0;margin-right:0}
   background:var(--code-bg);border:1px solid var(--line);color:var(--ink-dim)}
 .quiz-explain b{color:var(--accent2)}
 .quiz-q.answered .quiz-explain{display:block}
+.quiz-retry-single{margin-top:10px;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  background:var(--panel2);border:1px solid #d05a4e;color:#d05a4e;border-radius:7px;padding:5px 12px;transition:.15s}
+.quiz-retry-single:hover{background:color-mix(in srgb,#d05a4e 15%,var(--panel2));border-color:var(--accent);color:var(--accent)}
+.quiz-q.review-target{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px;animation:pulseReview 1.5s ease-in-out infinite alternate}
+@keyframes pulseReview{from{outline-color:var(--accent)}to{outline-color:transparent}}
+.cert-btn.review{border-color:#e07a4b;color:#e07a4b}
+.cert-btn.review:hover{background:color-mix(in srgb,#e07a4b 15%,var(--panel2))}
+.cert-badge-perfect{display:inline-block;padding:2px 7px;border-radius:6px;background:color-mix(in srgb,#3aa76d 22%,transparent);color:#3aa76d;font-weight:700;font-size:12.5px;margin-left:6px}
+
 
 /* footer */
 .site-footer{margin-top:56px;padding:28px 24px 8px;border-top:1px solid var(--line);
@@ -986,6 +1000,45 @@ pre.mermaid .copy-btn{display:none}
 .pg-perm .sum .warn{color:#c2452c;font-weight:700}
 .pg-perm .cav{font-size:12px;color:var(--ink-dim);margin-top:10px;line-height:1.6}
 
+/* pg-harness */
+.pg-harness{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin:20px 0}
+.ph-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.ph-title{font-weight:700;font-size:15px;color:var(--accent2)}
+.ph-topos{display:flex;flex-wrap:wrap;gap:6px}
+.ph-topos button{font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;background:var(--panel2);
+  border:1px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:6px 12px;transition:.15s}
+.ph-topos button:hover,.ph-topos button.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel2))}
+.ph-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:16px}
+.ph-node{background:var(--code-bg);border:1px solid var(--line);border-radius:9px;padding:10px 8px;text-align:center;
+  font-size:12.5px;font-weight:600;color:var(--ink-dim);transition:.2s;display:flex;flex-direction:column;gap:4px}
+.ph-node .n-title{font-size:12px;color:var(--ink)}
+.ph-node .n-sub{font-size:11px;color:var(--ink-dim);font-family:"SF Mono",monospace}
+.ph-node.active{border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 12%,var(--code-bg));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+.ph-node.done{border-color:#3aa76d;color:#3aa76d;background:color-mix(in srgb,#3aa76d 10%,var(--code-bg))}
+.ph-node.failed{border-color:#d05a4e;color:#d05a4e;background:color-mix(in srgb,#d05a4e 12%,var(--code-bg))}
+.ph-controls{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.ph-actions{display:flex;flex-wrap:wrap;gap:8px}
+.ph-btn{font:inherit;font-size:13px;font-weight:600;cursor:pointer;background:var(--panel2);
+  border:1px solid var(--line);color:var(--ink);padding:7px 14px;border-radius:8px;transition:.15s}
+.ph-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ph-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.ph-btn.primary:hover{opacity:.9}
+.ph-btn.ghost{color:var(--ink-dim)}
+.ph-faults{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:12.5px;color:var(--ink-dim)}
+.ph-check{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.ph-stats{display:flex;flex-wrap:wrap;gap:12px 20px;padding:10px 14px;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;font-size:13px;margin-bottom:14px}
+.ph-stats b{color:var(--ink)}
+.ph-console{background:#08090b;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.ph-c-header{background:#111318;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-dim);font-family:"SF Mono",monospace}
+.ph-c-body{padding:12px 14px;font-family:"SF Mono",monospace;font-size:12px;line-height:1.6;max-height:180px;overflow-y:auto;color:#d4d0c8;box-sizing:border-box}
+.ph-status{font-weight:700;padding:2px 8px;border-radius:5px;font-size:11px}
+.ph-status.idle{background:#2a2d38;color:#a7a396}
+.ph-status.running{background:color-mix(in srgb,var(--accent) 30%,transparent);color:var(--accent)}
+.ph-status.done{background:color-mix(in srgb,#3aa76d 30%,transparent);color:#3aa76d}
+.ph-status.fail{background:color-mix(in srgb,#d05a4e 30%,transparent);color:#d05a4e}
+.ph-insight{font-size:13px;line-height:1.65;color:var(--ink-dim);padding:10px 14px;background:var(--panel2);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0}
+.ph-insight b{color:var(--ink)}
+
 /* 약관·개인정보·저장소 설정 모달 */
 .legal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:none;
   align-items:center;justify-content:center;padding:20px}
@@ -1068,7 +1121,7 @@ pre.mermaid .copy-btn{display:none}
 @media print{
   .sidebar,.topbar,.backdrop,.progress,.theme-toggle,#quizStat,.consent,
   .legal-backdrop,.search-backdrop,.copy-btn,.quiz-retry,.rp-reset,
-  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-prompt,.pg-ctx,.pg-perm,.site-footer .foot-links,
+  .skip-link,.cert-app,.pg-terminal,.pg-wizard,.pg-cost,.pg-lint,.pg-prompt,.pg-ctx,.pg-perm,.pg-harness,.site-footer .foot-links,
   .pg-chips,.pg-tip{display:none !important}
   :root,:root[data-theme="dark"],:root[data-theme="light"]{
     --bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#111;--ink-dim:#444;
@@ -1586,21 +1639,54 @@ function quizStats(){
   all.forEach(q=>{ const id=q.dataset.qid; if(id in quizState){ answered++; if(quizState[id]===parseInt(q.dataset.answer,10)) correct++; } });
   return {total:all.length,answered,correct};
 }
+let updCertStat=()=>{};
+function focusFirstWrongQ(){
+  const wrongEl=document.querySelector('.quiz-q.answered .quiz-opt.wrong');
+  const wrongQ=wrongEl?.closest('.quiz-q');
+  if(wrongQ){
+    wrongQ.scrollIntoView({behavior:'smooth',block:'center'});
+    wrongQ.classList.add('review-target');
+    setTimeout(()=>wrongQ.classList.remove('review-target'),2500);
+    return true;
+  }
+  return false;
+}
 function renderQuizChip(){
   const s=quizStats();
   if(!s.answered){ quizChip.style.display='none'; return; }
   quizChip.style.display='inline-flex';
-  quizChip.innerHTML='🧩 퀴즈 '+s.answered+'/'+s.total+' · 정답 <b style="color:#3aa76d;margin-left:4px">'+s.correct+'</b>';
+  const wrong=s.answered-s.correct;
+  quizChip.innerHTML='🧩 퀴즈 '+s.answered+'/'+s.total+' · 정답 <b style="color:#3aa76d;margin-left:4px">'+s.correct+'</b>'
+    +(wrong>0?' · <span style="color:#d05a4e;margin-left:4px">오답 '+wrong+' (복습)</span>':'')
+    +(s.answered===s.total&&!wrong?' <span class="cert-badge-perfect">100%</span>':'');
 }
 function applyAnswer(q,chosen){
   const ans=parseInt(q.dataset.answer,10); const opts=[...q.querySelectorAll('.quiz-opt')];
   q.classList.add('answered');
   if(opts[ans]) opts[ans].classList.add('correct');
-  if(chosen!==ans && opts[chosen]) opts[chosen].classList.add('wrong');
+  if(chosen!==ans && opts[chosen]) {
+    opts[chosen].classList.add('wrong');
+    let retryBtn=q.querySelector('.quiz-retry-single');
+    if(!retryBtn){
+      retryBtn=document.createElement('button');
+      retryBtn.className='quiz-retry-single';
+      retryBtn.type='button';
+      retryBtn.innerHTML='🔄 이 문제 다시 풀기';
+      retryBtn.setAttribute('aria-label','이 문제 오답 다시 풀기');
+      retryBtn.addEventListener('click',()=>{
+        clearQuizQ(q);
+        delete quizState[q.dataset.qid];
+        LSset('cc_quiz',quizState);
+        renderQuizChip(); renderProgress(); syncRetry(q.closest('.quiz')); updCertStat();
+      });
+      q.querySelector('.quiz-explain')?.insertAdjacentElement('afterend',retryBtn);
+    }
+  }
 }
 function clearQuizQ(q){
-  q.classList.remove('answered');
+  q.classList.remove('answered','review-target');
   q.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong'));
+  q.querySelector('.quiz-retry-single')?.remove();
 }
 // 한 챕터의 퀴즈 안에 답한 문항이 하나라도 있으면 '다시 풀기' 노출
 function syncRetry(quizEl){
@@ -1613,7 +1699,7 @@ document.querySelectorAll('.quiz-q').forEach(q=>{
   opts.forEach((o,i)=>o.addEventListener('click',()=>{
     if(q.classList.contains('answered')) return;
     quizState[id]=i; LSset('cc_quiz',quizState);
-    applyAnswer(q,i); renderQuizChip(); renderProgress(); syncRetry(q.closest('.quiz')); setTimeout(onScroll,50);
+    applyAnswer(q,i); renderQuizChip(); renderProgress(); syncRetry(q.closest('.quiz')); updCertStat(); setTimeout(onScroll,50);
   }));
 });
 document.querySelectorAll('.quiz').forEach(quizEl=>{
@@ -1621,12 +1707,16 @@ document.querySelectorAll('.quiz').forEach(quizEl=>{
   quizEl.querySelector('.quiz-retry')?.addEventListener('click',()=>{
     quizEl.querySelectorAll('.quiz-q').forEach(q=>{ delete quizState[q.dataset.qid]; clearQuizQ(q); });
     LSset('cc_quiz',quizState);
-    renderQuizChip(); renderProgress(); syncRetry(quizEl);
+    renderQuizChip(); renderProgress(); syncRetry(quizEl); updCertStat();
     quizEl.scrollIntoView({behavior:'smooth',block:'nearest'});
   });
 });
 renderQuizChip();
-quizChip.addEventListener('click',()=>{ document.querySelector('.cert-app')?.scrollIntoView({behavior:'smooth',block:'center'}); });
+quizChip.addEventListener('click',()=>{
+  if(!focusFirstWrongQ()){
+    document.querySelector('.cert-app')?.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+});
 
 // ===== 통합 검색 (Ctrl/Cmd+K) =====
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1767,7 +1857,28 @@ if(certApp){
   certApp.innerHTML='<div class="cert-form"><input id="certName" type="text" aria-label="수료증에 넣을 이름" placeholder="이름을 입력하세요" maxlength="24" spellcheck="false"><button class="cert-btn" id="certGen" type="button">수료증 생성</button><button class="cert-btn ghost" id="certDl" type="button">PNG 저장</button><button class="cert-btn ghost" id="certShare" type="button">결과 및 링크 복사</button></div><div class="cert-stat" id="certStat"></div><canvas id="certCanvas" width="1200" height="820"></canvas><div class="cert-note" id="certNote"><b>💾 저장 방법</b><br>• <b>PC:</b> <b>PNG 저장</b> 버튼을 누르면 브라우저 <b>다운로드 폴더</b>에 이미지로 저장됩니다. (수료증을 마우스 <b>우클릭 → 이미지를 다른 이름으로 저장</b>도 됩니다.)<br>• <b>모바일:</b> 수료증 이미지를 <b>길게 눌러 「이미지 저장」</b>을 선택하세요. (기기·브라우저에 따라 <b>PNG 저장</b> 버튼도 동작합니다.)</div>';
   const cName=document.getElementById('certName'), cGen=document.getElementById('certGen'), cDl=document.getElementById('certDl'), cShare=document.getElementById('certShare'), cCanvas=document.getElementById('certCanvas'), cStat=document.getElementById('certStat'), cNote=document.getElementById('certNote');
   function roundRect(x,y,w,h,r){const c=cCanvas.getContext('2d');c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
-  function updStat(){ const s=quizStats(); const pct=s.answered?Math.round(s.correct/s.answered*100):0; cStat.innerHTML='읽은 챕터 <b>'+readSet.size+'/'+totalCh+'</b> · 퀴즈 정답 <b>'+s.correct+'/'+s.answered+'</b>'+(s.answered?' ('+pct+'%)':''); }
+  function updStat(){
+    const s=quizStats(); const pct=s.answered?Math.round(s.correct/s.answered*100):0;
+    const wrong=s.answered-s.correct;
+    cStat.innerHTML='읽은 챕터 <b>'+readSet.size+'/'+totalCh+'</b> · 퀴즈 정답 <b>'+s.correct+'/'+s.answered+'</b>'+(s.answered?' ('+pct+'%)':'')
+      +(s.answered===s.total&&!wrong?' <span class="cert-badge-perfect">🌟 100% 만점 이수</span>':'');
+    let revBtn=document.getElementById('certReview');
+    if(wrong>0){
+      if(!revBtn){
+        revBtn=document.createElement('button');
+        revBtn.className='cert-btn ghost review';
+        revBtn.id='certReview';
+        revBtn.type='button';
+        revBtn.addEventListener('click',focusFirstWrongQ);
+        document.querySelector('.cert-form')?.appendChild(revBtn);
+      }
+      revBtn.textContent='📝 오답 복습 ('+wrong+'문제)';
+      revBtn.style.display='inline-block';
+    }else if(revBtn){
+      revBtn.style.display='none';
+    }
+  }
+  updCertStat=updStat;
   function draw(){
     const name=cName.value.trim()||'수료자'; const s=quizStats(); const W=1200,H=820; const c=cCanvas.getContext('2d');
     const g=c.createLinearGradient(0,0,W,H); g.addColorStop(0,'#17130f'); g.addColorStop(.55,'#0e0f13'); g.addColorStop(1,'#0b0c10'); c.fillStyle=g; c.fillRect(0,0,W,H);
@@ -2734,6 +2845,285 @@ if(pgp){
   load(Object.keys(P)[0]); pre.children[0].classList.add('on');
 }
 
+// ===== 플레이그라운드 · 에이전트 하네스 & 오케스트레이션 시뮬레이터 =====
+const pgh = document.querySelector('.pg-harness');
+if (pgh) {
+  pgh.innerHTML = '<div class="ph-top">'
+    + '<div class="ph-title">🔄 에이전트 하네스 & 오케스트레이션 루프</div>'
+    + '<div class="ph-topos" role="group" aria-label="루프 토폴로지 선택">'
+    + '<button type="button" class="on" data-topo="single" aria-label="단일 루프 토폴로지">단일 루프</button>'
+    + '<button type="button" data-topo="parallel" aria-label="병렬 팬아웃 토폴로지">병렬 팬아웃</button>'
+    + '<button type="button" data-topo="twostage" aria-label="2단계 하네스 토폴로지">2단계 하네스</button>'
+    + '</div></div>'
+    + '<div class="ph-flow" id="phFlow" aria-label="하네스 실행 파이프라인 단계"></div>'
+    + '<div class="ph-controls">'
+    + '<div class="ph-actions">'
+    + '<button type="button" class="ph-btn primary" id="phStepBtn" aria-label="하네스 다음 1스텝 실행">▶ 1스텝 실행</button>'
+    + '<button type="button" class="ph-btn" id="phAutoBtn" aria-label="하네스 자동 완주">⚡ 자동 완주</button>'
+    + '<button type="button" class="ph-btn ghost" id="phResetBtn" aria-label="하네스 상태 초기화">🔄 초기화</button>'
+    + '</div>'
+    + '<div class="ph-faults">'
+    + '<label class="ph-check"><input type="checkbox" id="phFaultTest" aria-label="테스트 실패 장애 주입"><span>💣 테스트 실패 주입 (Exit 1)</span></label>'
+    + '<label class="ph-check"><input type="checkbox" id="phLeakCtx" aria-label="컨텍스트 미격리 누출 주입"><span>⚠️ 컨텍스트 미격리 누출</span></label>'
+    + '</div></div>'
+    + '<div class="ph-stats" id="phStats"></div>'
+    + '<div class="ph-console">'
+    + '<div class="ph-c-header"><span>터미널 실행 로그</span><span class="ph-status idle" id="phStatusBadge">대기 중</span></div>'
+    + '<div class="ph-c-body" id="phLog" tabindex="0" role="region" aria-label="하네스 실행 로그"></div></div>'
+    + '<div class="ph-insight" id="phInsight"></div>';
+
+  const flowEl = pgh.querySelector('#phFlow'),
+        stepBtn = pgh.querySelector('#phStepBtn'),
+        autoBtn = pgh.querySelector('#phAutoBtn'),
+        resetBtn = pgh.querySelector('#phResetBtn'),
+        faultTest = pgh.querySelector('#phFaultTest'),
+        leakCtx = pgh.querySelector('#phLeakCtx'),
+        statsEl = pgh.querySelector('#phStats'),
+        statusBadge = pgh.querySelector('#phStatusBadge'),
+        logEl = pgh.querySelector('#phLog'),
+        insightEl = pgh.querySelector('#phInsight');
+
+  const TOPOS = {
+    single: {
+      name: '단일 선형 루프',
+      nodes: [
+        { id: 'plan', title: '계획 수립', sub: 'CLAUDE.md / Spec' },
+        { id: 'exec', title: '도구 실행', sub: 'Edit / Bash' },
+        { id: 'gate', title: '검증 게이트', sub: 'pytest exit code' },
+        { id: 'done', title: '루프 완료', sub: 'Success Exit 0' }
+      ],
+      insight: '<b>단일 에이전트 루프:</b> 리드 에이전트가 직접 코드를 고치고 테스트를 돌립니다. 실패 시 에러 출력을 먹고 자체 수정을 시도합니다. 단순 작업에 최적이지만 컨텍스트가 한 대화에 쌓입니다.'
+    },
+    parallel: {
+      name: '병렬 팬아웃 (Lead + Subagents)',
+      nodes: [
+        { id: 'lead_plan', title: 'Lead 분할', sub: 'Task Dispatch' },
+        { id: 'fan_out', title: '서브에이전트', sub: '2기 동시 병렬' },
+        { id: 'synthesis', title: '결과 통합', sub: '요약 패치 수집' },
+        { id: 'gate', title: '검증 게이트', sub: '전체 회귀 테스트' },
+        { id: 'done', title: '루프 완료', sub: 'Success Exit 0' }
+      ],
+      insight: '<b>병렬 팬아웃:</b> Lead가 작업을 쪼개고 서브에이전트가 독립 컨텍스트에서 병렬 실행합니다. <b>컨텍스트 격리</b>가 핵심이며, 서브에이전트의 원본 터미널 출력이 아닌 요약된 패치(1.5K)만 Lead로 회수되어야 컨텍스트 폭증을 막습니다.'
+    },
+    twostage: {
+      name: '2단계 하네스 (Plan → Fresh Exec)',
+      nodes: [
+        { id: 'stage1', title: '1단계: Plan', sub: 'Read-only 세션' },
+        { id: 's1_gate', title: '1단계 승인', sub: '설계 검증 통과' },
+        { id: 'fresh', title: '세션 초기화', sub: 'Spec만 전달 (0K)' },
+        { id: 'stage2', title: '2단계: Exec', sub: '구현 & 테스트' },
+        { id: 'done', title: '최종 완료', sub: '전체 검증 완료' }
+      ],
+      insight: '<b>2단계 하네스:</b> 탐색·계획 단계(1단계)에서 수만 토큰을 썼더라도, 구현 단계(2단계)는 <b>완전히 깨끗한 새 세션</b>에 스펙 문서만 들고 시작합니다. 오염된 컨텍스트 없는 최고 속도/품질 코딩이 가능합니다.'
+    }
+  };
+
+  let curTopo = 'single';
+  let curStep = 0;
+  let curIter = 1;
+  const MAX_ITER = 3;
+  let tokens = 18500;
+  let logs = [];
+  let isRunning = false;
+
+  function renderNodes() {
+    const topo = TOPOS[curTopo];
+    flowEl.innerHTML = topo.nodes.map((n, i) => {
+      let cls = 'ph-node';
+      if (i < curStep) cls += ' done';
+      else if (i === curStep) cls += (statusBadge.classList.contains('fail') ? ' failed' : ' active');
+      return '<div class="' + cls + '" data-idx="' + i + '">'
+        + '<span class="n-title">' + (i < curStep ? '✓ ' : '') + esc(n.title) + '</span>'
+        + '<span class="n-sub">' + esc(n.sub) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function appendLog(msg, type = 'info') {
+    const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+    let prefix = '<span style="color:#7f7c72">[' + time + ']</span> ';
+    if (type === 'lead') prefix += '<b style="color:var(--accent)">[Lead]</b> ';
+    else if (type === 'sub') prefix += '<b style="color:var(--accent2)">[Subagent]</b> ';
+    else if (type === 'gate') prefix += '<b style="color:#a87fd0">[Gate]</b> ';
+    else if (type === 'fail') prefix += '<b style="color:#d05a4e">[FAIL]</b> ';
+    else if (type === 'pass') prefix += '<b style="color:#3aa76d">[PASS]</b> ';
+    else prefix += '<b style="color:#a7a396">[Harness]</b> ';
+    logs.push(prefix + msg);
+    logEl.innerHTML = logs.join('<br>');
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function renderStats() {
+    const isLeak = leakCtx.checked;
+    const maxT = 1000000;
+    const pct = ((tokens / maxT) * 100).toFixed(1);
+    statsEl.innerHTML = '<span>컨텍스트 소모: <b>' + tokens.toLocaleString() + ' / ' + (maxT / 1000) + 'K</b> 토큰 (' + pct + '%)</span>'
+      + '<span>루프 반복: <b>' + curIter + ' / ' + MAX_ITER + '회</b></span>'
+      + '<span>샌드박스 격리: <b>' + (isLeak ? '<span style="color:#d05a4e">누출 (OFF)</span>' : '<span style="color:#3aa76d">격리 (ON)</span>') + '</b></span>';
+    insightEl.innerHTML = TOPOS[curTopo].insight;
+  }
+
+  function resetHarness() {
+    curStep = 0;
+    curIter = 1;
+    tokens = curTopo === 'single' ? 18500 : (curTopo === 'parallel' ? 22000 : 12000);
+    logs = [];
+    statusBadge.className = 'ph-status idle';
+    statusBadge.textContent = '대기 중';
+    logEl.innerHTML = '<span style="color:#7f7c72">// 조작 버튼을 누르면 하네스 시뮬레이션이 시작됩니다.</span>';
+    renderNodes();
+    renderStats();
+  }
+
+  function stepHarness() {
+    const topo = TOPOS[curTopo];
+    const total = topo.nodes.length;
+    if (curStep >= total - 1 && statusBadge.textContent === '완료') {
+      return false;
+    }
+
+    statusBadge.className = 'ph-status running';
+    statusBadge.textContent = '실행 중';
+
+    if (curTopo === 'single') {
+      if (curStep === 0) {
+        appendLog('작업 명세 분석: auth_service.py 세션 만료 버그 수정 계획 수립', 'lead');
+        tokens += 4200;
+        curStep = 1;
+      } else if (curStep === 1) {
+        appendLog('Edit 도구 호출: TokenValidator 만료 검증 timestamp 로직 패치', 'lead');
+        tokens += 6800;
+        curStep = 2;
+      } else if (curStep === 2) {
+        appendLog('Bash 도구 호출: pytest tests/test_auth.py 실행', 'gate');
+        if (faultTest.checked) {
+          appendLog('Exit code 1: AssertionError - test_token_expiry() 실패!', 'fail');
+          statusBadge.className = 'ph-status fail';
+          statusBadge.textContent = '게이트 실패 (Exit 1)';
+          if (curIter < MAX_ITER) {
+            appendLog('하네스 자동 개입: 에러 트레이스백을 프롬프트에 주입하고 수정 루프 재시도 (Iter ' + (curIter + 1) + '/' + MAX_ITER + ')', 'lead');
+            curIter++;
+            tokens += 5100;
+            curStep = 1; // 재시도 루프
+            faultTest.checked = false; // 1회 교정 후 다음 시도에서 해결
+          } else {
+            appendLog('최대 반복 횟수(' + MAX_ITER + '회) 초과: 하네스가 무한 루프를 차단하고 사람에게 개입 요청', 'fail');
+            statusBadge.className = 'ph-status fail';
+            statusBadge.textContent = '루프 차단';
+            renderNodes();
+            renderStats();
+            return false;
+          }
+        } else {
+          appendLog('14 passed in 0.38s (Exit code 0)', 'pass');
+          tokens += 1200;
+          curStep = 3;
+        }
+      } else if (curStep === 3) {
+        appendLog('검증 게이트 완벽 통과. 태스크 완료 및 하네스 정상 종료.', 'pass');
+        statusBadge.className = 'ph-status done';
+        statusBadge.textContent = '완료';
+        renderNodes();
+        renderStats();
+        return false;
+      }
+    } else if (curTopo === 'parallel') {
+      if (curStep === 0) {
+        appendLog('Lead: 대규모 작업을 2개 독립 태스크(API 스키마, DB 마이그레이션)로 분할', 'lead');
+        tokens += 3500;
+        curStep = 1;
+      } else if (curStep === 1) {
+        appendLog('Harness: 서브에이전트 2기 생성 (Agent-1: schema, Agent-2: db)', 'info');
+        tokens += 1800;
+        curStep = 2;
+      } else if (curStep === 2) {
+        if (leakCtx.checked) {
+          appendLog('⚠️ 격리 해제: 서브에이전트 raw 로그 45,000 토큰이 Lead 메인 컨텍스트로 무차별 쏟아짐!', 'fail');
+          tokens += 48000;
+        } else {
+          appendLog('Agent-1 & 2: 독립 서브쉘에서 작업 완료 후 요약 diff(1,400 토큰)만 회수', 'sub');
+          tokens += 2800;
+        }
+        curStep = 3;
+      } else if (curStep === 3) {
+        appendLog('Lead: 수집된 패치 통합 및 의존성 충돌 검사 완료', 'lead');
+        tokens += 3200;
+        curStep = 4;
+      } else if (curStep === 4) {
+        appendLog('Gate: 통합 회귀 테스트 실행 — All 42 tests passed ✓', 'pass');
+        tokens += 1500;
+        curStep = 5;
+        statusBadge.className = 'ph-status done';
+        statusBadge.textContent = '완료';
+        renderNodes();
+        renderStats();
+        return false;
+      }
+    } else if (curTopo === 'twostage') {
+      if (curStep === 0) {
+        appendLog('1단계 하네스(Plan): Read-only 세션에서 전체 아키텍처 및 spec.md 문서 작성', 'lead');
+        tokens += 16500;
+        curStep = 1;
+      } else if (curStep === 1) {
+        appendLog('1단계 게이트: 설계 무결성 및 보안 검토 통과 (Exit 0)', 'pass');
+        tokens += 2000;
+        curStep = 2;
+      } else if (curStep === 2) {
+        appendLog('세션 전환: 1단계 탐색 기록(18K)을 버리고, 깨끗한 Fresh 세션에 spec.md만 전달', 'info');
+        tokens = 2500; // Fresh session reset!
+        curStep = 3;
+      } else if (curStep === 3) {
+        appendLog('2단계 하네스(Exec): 신선한 컨텍스트에서 TDD 구현 및 단위 코드 작성', 'lead');
+        tokens += 8400;
+        curStep = 4;
+      } else if (curStep === 4) {
+        appendLog('2단계 게이트: linter + 회귀 테스트 통과. 전체 2단계 하네스 완주.', 'pass');
+        tokens += 1800;
+        curStep = 5;
+        statusBadge.className = 'ph-status done';
+        statusBadge.textContent = '완료';
+        renderNodes();
+        renderStats();
+        return false;
+      }
+    }
+
+    renderNodes();
+    renderStats();
+    return true;
+  }
+
+  pgh.querySelectorAll('.ph-topos button').forEach(b => {
+    b.addEventListener('click', () => {
+      pgh.querySelectorAll('.ph-topos button').forEach(btn => btn.classList.remove('on'));
+      b.classList.add('on');
+      curTopo = b.dataset.topo;
+      resetHarness();
+    });
+  });
+
+  stepBtn.addEventListener('click', () => { stepHarness(); });
+  resetBtn.addEventListener('click', () => { resetHarness(); });
+  autoBtn.addEventListener('click', () => {
+    if (isRunning) return;
+    isRunning = true;
+    autoBtn.disabled = true;
+    stepBtn.disabled = true;
+    function runNext() {
+      const more = stepHarness();
+      if (more && isRunning) setTimeout(runNext, 450);
+      else {
+        isRunning = false;
+        autoBtn.disabled = false;
+        stepBtn.disabled = false;
+      }
+    }
+    runNext();
+  });
+
+  resetHarness();
+}
+
 // ===== 이용약관 · 개인정보처리방침 · 저장소 설정 =====
 const legalModal=document.getElementById('legalModal');
 const legalTitle=document.getElementById('legalTitle');
@@ -2849,6 +3239,11 @@ function ackConsent(){ prefs.ack=true; savePrefs(); consentEl.classList.remove('
 if(!prefs.ack) consentEl.classList.add('show');
 document.getElementById('consentOk').addEventListener('click',ackConsent);
 document.getElementById('consentPrefs').addEventListener('click',()=>{ ackConsent(); openLegal('storage'); });
+
+// --- PWA Service Worker 등록 ---
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('/sw.js').catch(()=>{}); });
+}
 </script>
 </body>
 </html>"""

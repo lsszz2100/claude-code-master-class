@@ -49,6 +49,7 @@
 | **VoltAgent/awesome-claude-code-subagents** — [github.com](https://github.com/VoltAgent/awesome-claude-code-subagents) | 10개 카테고리 **100+개 전문 서브에이전트** 컬렉션 |
 | **ComposioHQ/awesome-claude-skills** — [github.com](https://github.com/ComposioHQ/awesome-claude-skills) | Claude 스킬·리소스·도구 큐레이션 |
 | **ai-boost/awesome-harness-engineering** — [github.com](https://github.com/ai-boost/awesome-harness-engineering) | 하네스 엔지니어링(도구·평가·기억·MCP·권한·관찰성) 목록 |
+| **The-Pocket/PocketFlow-Tutorial-Codebase-Knowledge** — [github.com](https://github.com/The-Pocket/PocketFlow-Tutorial-Codebase-Knowledge) | 복잡한 코드베이스를 자동 크롤링하고 핵심 추상화와 상호작용 다이어그램을 초보자용 튜토리얼로 생성하는 AI 지식 빌더 도구 (`claude-code-best-practice` 한국어 분석 수록) |
 
 ---
 

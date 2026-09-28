@@ -30,6 +30,10 @@ claude --permission-mode auto -p "fix all lint errors"   # 오토 모드 무인 
 
 **권한을 세밀하게 통제**하려면 `/permissions`로 특정 도구·명령을 허용/거부 규칙에 추가하거나(`npm run lint` 같은 안전한 것만 허용), `/sandbox`로 OS 레벨 격리를 켤 수 있습니다. 시작 모드를 고정하고 싶으면 `~/.claude/settings.json`의 `permissions.defaultMode`에 적으세요 — **`"auto"`만은 프로젝트 설정(`.claude/settings.json`·`settings.local.json`)에서 무시됩니다.** 프로젝트 설정에 `auto`를 적어 놓고 "왜 계속 Manual로 시작하지?" 하며 헤매기 쉽습니다.
 
+> 💡 **오토 모드 분류기 진단 및 긴급 복구 모드:**
+> - 오토 모드 분류기 동작 상태나 캐시를 점검·초기화하려면 CLI에서 `claude auto-mode`를 실행하세요.
+> - 잘못된 스킬이나 훅, 권한 설정으로 인해 세션 진입이 막혔을 때는 `claude --safe-mode` 플래그로 모든 커스터마이징을 비활성화한 순정 환경(`CLAUDE_CODE_SAFE_MODE=1`)에서 문제를 점검할 수 있습니다.
+
 ---
 
 ## 권한 규칙 — 모드보다 정확한 통제
