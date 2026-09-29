@@ -1,6 +1,6 @@
 [3장](#ch3)에서 본 최신 모델 — **Opus 5.5·Fable 5.1·Sonnet 5.5** — 은 이전 세대보다 훨씬 똑똑하고 자율적입니다. 기존 프롬프트로도 기본 동작하지만, **더 자율적으로 오래 일하기 때문에** 지시하는 방식도 진화해야 합니다.
 
-이 챕터는 Anthropic 공식 **Opus 5.5 실전 활용 플레이북(*"Getting the most out of Opus 5.5 in Claude and Claude Code"*, Addy Osmani)**, **Sonnet 5.5 에이전트 빌딩 가이드(*"Building with Claude Sonnet 5.5"*, Addy Osmani)**, 그리고 **Fable 5.1 프롬프트 가이드(*"Prompting Claude Fable 5.1"*, Thariq Shihipar)**를 바탕으로, 실무 에이전틱 코딩의 핵심 패턴과 보안 지침을 집대성했습니다.
+이 챕터는 Anthropic 공식 **Opus 5.5 실전 활용 플레이북(*"Getting the most out of Opus 5.5 in Claude and Claude Code"*, Addy Osmani)**, **Sonnet 5.5 에이전트 빌딩 가이드(*"Building with Claude Sonnet 5.5"*, Addy Osmani)**, **Sonnet 5.5 공식 프롬프트 가이드(*"Prompting Claude Sonnet 5.5"*, Anthropic Official Docs)**, 그리고 **Fable 5.1 프롬프트 가이드(*"Prompting Claude Fable 5.1"*, Thariq Shihipar)**를 바탕으로, 실무 에이전틱 코딩의 핵심 패턴과 보안 지침을 집대성했습니다.
 
 > **대원칙:** 모델이 발전할수록 **스캐폴딩(scaffolding)을 덜어내야** 합니다. 예전 모델을 밀어붙이려고 넣었던 지시(과도한 검증 강제·재확인·단계별 번호 강요)는 최신 모델에서 **과잉 행동과 토큰 낭비**를 낳습니다. 반면 **"완료의 정의(Finish line)"**와 **"위험 작업 전 멈춤 지점"**은 명확히 못 박아야 안전하게 오랜 시간 자율 주행할 수 있습니다.
 
@@ -206,7 +206,112 @@ Opus 5.5는 Fable 수준의 첨단 생물학·사이버보안 가드레일을 �
 
 ---
 
-## 3부: Claude Fable 5.1 & Mythos 5.1 공식 실전 가이드
+## 3부: Claude Sonnet 5.5 공식 프롬프트 가이드 (Anthropic Official)
+
+Anthropic 공식 엔지니어링 문서인 [**"Prompting Claude Sonnet 5.5"**](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5)는 Sonnet 5.5 모델 전용의 10대 실전 프롬프팅 패턴과 API 제약 회피 기법을 규정하고 있습니다. 기존 Sonnet 5 프롬프트도 기본 작동하지만, Sonnet 5.5의 재보정된 추론 강도(effort)와 자율성 특성을 이해하고 지시해야 성능과 비용 효율을 극대화할 수 있습니다.
+
+```mermaid
+flowchart TD
+    A["Sonnet 5.5 요청 접수"] --> B{"작업 성격 판단"}
+    B -->|"에이전틱 코딩 / 다단계 도구"| C["Effort: medium 권장<br/>(난도 높으면 high)"]
+    B -->|"지연시간 민감 챗봇"| D["Effort: low / medium<br/>(첫 토큰 대기 단축)"]
+    B -->|"최고 난도 벤치마크"| E["Effort: xhigh / max<br/>(자체 리뷰 방지 프롬프트 필수)"]
+    C --> F["max_tokens: 128,000<br/>(사고 토큰 누락 방지)"]
+    D --> G["between_tools 검토<br/>(사고 태그 유출 지침 제거)"]
+    E --> H["between_tools 금지 (400 에러)<br/>적응형 사고만 허용"]
+```
+
+### 1) Effort 재조정과 출력 토큰 한도 (Calibrate Effort)
+- **Effort 레벨 재보정**: Sonnet 5.5의 effort 레벨은 Sonnet 5와 동일한 사고량을 의미하지 않습니다. 기존 설정을 그대로 이관하지 말고 재평가해야 합니다.
+  - **API 기본값**: `high`
+  - **에이전틱 코딩 & 다단계 도구**: 명세가 명확한 일상 작업은 **`medium`에서 시작**하고, 어렵거나 긴 작업은 `high`로 상향 권장.
+  - **대화형 챗봇/지연 민감 작업**: `medium` 또는 `low`에서 시작 (high 이상은 첫 토큰 생성 전 thinking으로 인해 대기 시간이 길어짐).
+- **`max_tokens` 128,000 최대치 설정**:
+  - `max_tokens` 예산은 클라이언트에 반환되지 않는 내부 thinking 토큰까지 합산하여 차감됩니다. thinking 없는 모델 기준의 작은 한도를 두면 응답 중간에 잘립니다.
+  - 코딩 세션에서는 반드시 모델 최대치인 **`max_tokens: 128000`**으로 설정하고 스트리밍(streaming)하세요.
+- **`output_config.effort`(beta)로 프롬프트 캐시 보존**:
+  - 요청의 최상위 `effort` 값을 변경하면 시스템 프롬프트 캐시가 무효화됩니다.
+  - 턴별로 추론 강도를 바꾸려면 **메시지 단위 effort 변경(per-message effort change, beta)**을 사용하세요. (예: 일반 대화는 `low`로 유지하다가 어려운 코딩 문제가 들어올 때 해당 턴만 `high`로 상향). 단, 이 기능은 적응형 사고(adaptive thinking)에서만 지원되며 `between_tools` 설정 시 400 에러를 반환합니다.
+
+### 2) 자율성과 작업 범위 제어 (Steer Initiative & Scope)
+Sonnet 5.5의 행동 반경은 effort 수준과 프롬프트 지시에 민감하게 반응합니다:
+- **조기 중단 방지 (`low`/`medium`)**: 낮은 effort에서는 다단계 작업 도중 불필요하게 멈춰서 계획을 확인하려 하거나 계속할지 묻는 경향이 있습니다. 다음 시스템 프롬프트로 끝까지 완수하도록 조종하세요:
+  ```text
+  Keep working until everything the user asked for is done, and only stop to ask when you can't go on without the user or before a risky step. When the work the user asked for is done and checked, stop and report. Don't add features, tests, files, docs or refactors that weren't asked for. If you think one would help, mention it at the end instead of doing it.
+  ```
+- **요청하지 않은 추가 작업 방지**: Sonnet 5.5는 코드 변경 시 저장소 관례에 맞게 테스트, 문서, 지원 파일을 알아서 추가하는 성향이 강합니다. 요청된 부분만 수정하길 원한다면 위 프롬프트의 뒷부분(`When the work the user asked for is done...`)만 시스템 프롬프트에 주입하세요.
+- **`xhigh`/`max`에서 무한 자체 리뷰 루프 방지**: 최상위 effort에서는 과업 완료 후 스스로 코드 리뷰와 하드닝을 시작하거나 서브에이전트를 띄워 검토를 반복하며 토큰을 소모합니다. 다음 지침을 주입하면 서브에이전트 남발을 막고 **비용을 약 30% 절감**할 수 있습니다:
+  ```text
+  When the work the user asked for is done and its checks pass, stop and report. Don't start extra rounds of review or hardening on your own, and don't launch reviewer sub-agents unless the user asked for a review. If you think a deeper review is worth doing, say so at the end.
+  ```
+- **아이디어/기획 요청 시 산출물 빌드 방지**: "이걸로 뭘 할 수 있는지 보여줘" 같은 열린 요청에서 모델이 즉시 앱이나 리포트를 제작하는 것을 방지합니다:
+  ```text
+  When the user asks for ideas, options or a plan, give them that and stop. Don't start building or changing anything until they say to go ahead.
+  ```
+
+### 3) 선행 사고 없는 실행 (`between_tools`와 제약사항)
+- Sonnet 5.5에서 첫 턴의 선행 사고 없이 즉시 응답하려면 **`thinking: {"type": "between_tools"}`**를 전송합니다.
+- ⚠️ **핵심 제약**:
+  - `between_tools`는 **`high` 이하 effort에서만 허용**됩니다. `xhigh`나 `max`에서 전송하면 **HTTP 400 Bad Request** 에러가 발생합니다.
+  - "생각하지 말라(do not think)"는 프롬프트 지시는 제거해야 합니다. 모델이 보이는 출력에 내부 `<thinking>` XML 태그를 누출할 위험이 커집니다.
+  - 도구 호출 사이에 모델이 작성한 중간 메모는 thinking 블록으로 수신되므로, 다음 턴에 원본 그대로 다시 전달(Append-only)해야 합니다.
+
+### 4) 정형 JSON 출력과 추론 태스크 (Reasoning with JSON)
+문서 수치 집계, 규칙 적용, 순위 매기기 등 계산/추론이 필요한 태스크에서 JSON 출력을 요구할 때:
+- **구조화된 출력(Structured Outputs)** 사용 시:
+  - 본문에는 스키마에 맞는 JSON만 들어가므로 모델은 **오직 thinking 블록 내에서만 문제를 풀 수 있습니다**.
+  - `low`/`medium`에서는 추론을 건너뛰고 오답을 낼 수 있으므로 시스템 프롬프트 끝에 반드시 한 줄을 추가하세요:
+    ```text
+    Think the problem through before you answer.
+    ```
+  - `stop_reason: "max_tokens"`가 떨어지면 JSON이 유효해 보여도 실패로 간주하고 재시도하세요.
+- **자유 형식(Free-form) 프롬프트로 JSON을 요청할 때**:
+  - 모델이 본문에서 풀이 과정을 서술한 뒤 마지막에 JSON을 작성하므로, 전체 응답을 파싱하려 하면 실패합니다.
+  - **파싱 원칙**: `{` 또는 `[`로 시작하는 JSON 블록을 탐색하고, **가장 마지막에 완성된 JSON 블록만 추출**하여 파싱하세요.
+
+### 5) 사용자 진행 상황 실시간 업데이트 (Progress Updates)
+- 도구 호출 사이의 메모를 실시간으로 보여주려면 `display: "updates"` 헤더(`thinking-display-updates-2026-08-18`)를 지정하세요.
+- 긴 도구 체인에서 5턴 이상 침묵이 이어질 경우, 하네스가 일회성 턴 스코프 메시지를 주입합니다:
+  ```text
+  The user hasn't heard from you in a while — say in a few words what you're doing, then continue.
+  ```
+
+### 6) 지식 및 웹 검색 도구 활용 (Tool Use & Search)
+- "도구 사용을 최소화하라"는 구형 지침을 삭제하세요.
+- 최신 규정, 요금, 지원 여부 등 지식 컷오프 이후 변경될 수 있는 내용은 내부 학습 지식 대신 검색 도구를 강제하세요:
+  ```text
+  Use the search tool to check specifics that may have changed since your training, such as what is allowed, required or charged, even when you feel confident. For researched work such as a report or a comparison, gather current sources rather than writing from your training knowledge.
+  ```
+
+### 7) 미드턴 사용자 메시지와 간접 인젝션 방어 (Mid-turn Messages)
+Sonnet 5.5는 도구 결과나 파일 내용으로 침투하는 간접 프롬프트 인젝션(indirect prompt injection)을 강력히 방어하도록 훈련되었습니다. 잘못된 하네스 구조는 진짜 사용자의 메시지를 인젝션 공격으로 오탐하게 만듭니다.
+- 🚨 **절대 `tool_result` 블록 내부에 사용자 텍스트를 넣지 마세요.**
+- 사용자의 피드백은 반드시 도구 결과 블록이 모두 끝난 뒤 **별도의 `text` 블록**으로 메시지 끝에 추가(Append)해야 합니다.
+- 매 도구 호출마다 토큰 카운트다운이나 하네스 공지 텍스트를 삽입하지 마세요.
+
+### 8) 코딩 실검증 강제 지침 (Verification on Coding Tasks)
+Sonnet 5.5는 기본적으로 자체 검증을 수행하지만, `low` effort에서는 "의존성이 설치되지 않았다"는 등의 이유로 빌드나 테스트 실행을 건너뛸 수 있습니다. 다음 검증 강제 지침을 시스템 프롬프트에 추가하세요:
+```text
+When you change code that can be run, built, or type-checked, run a real check that exercises the change before reporting it done: the project's tests, type-checker, or build, or the changed command itself. A syntax-only check, or a check command that failed to start, does not count; if all that is missing is the project's declared dependencies, install them with its own package manager and lockfile (e.g. npm install, pip install -r requirements.txt), never via sudo or the system package manager, unless told not to. Only if no real check can run here, say which one you did not run and why instead of reporting the change as done.
+```
+
+### 9) 관용적 도구 호출 처리 (Tolerant Tool-Call Handling)
+- Sonnet 5.5가 `Bash` 대신 `bash`로 대소문자를 다르게 호출하거나 매개변수 이름을 유사하게 넘길 때, 에러로 중단하지 마세요.
+- 하네스에서 명백한 매칭은 관용적으로 수용하거나, `tool_result`에 `is_error: true`와 함께 정확한 규격명을 안내하여 자체 교정(self-correction)을 유도하세요.
+
+### 10) 복합 시각 입력 & 5대 안전 거부(Safeguard Refusals) 대응
+- **차트 및 기술 도면**: effort를 올리는 것보다 이미지의 특정 영역을 자르고 확대하는 **Crop/Zoom 도구**를 제공하는 것이 비용을 절감하면서 판독 정확도를 비약적으로 높입니다.
+- **5대 안전 거부 카테고리(`stop_details.category`)**:
+  1. `cyber`: 악성코드 및 익스플로잇 개발 등 사이버 위협.
+  2. `bio`: 위험 생물학적 기법. (생명과학 검증 프로그램 신청 가능).
+  3. `frontier_llm`: 경쟁 AI 모델 개발 지원.
+  4. `reasoning_extraction`: 내부 추론 과정(internal reasoning) 복제 요구.
+  5. `general_harms`: 기타 사용 정책 위반.
+- 💡 **주의**: 시스템 프롬프트에서 모델의 내부 사고 과정을 응답에 포함하라는 지시는 `reasoning_extraction` 거부를 유발하므로 절대 작성하지 마세요.
+
+---
+
+## 4부: Claude Fable 5.1 & Mythos 5.1 공식 실전 가이드
 
 2026년 9월 출시된 **Claude Fable 5.1**(`claude-fable-5-1`)은 엔터프라이즈 프런티어급 지능과 초저가 캐시 읽기($0.25/M)를 갖춘 장기 자율 에이전트 전용 모델입니다. 자매 모델인 **Claude Mythos 5.1**은 동일 아키텍처 기반에 보안 허가 조직(Project Glasswing)을 위한 완화된 가드레일을 제공합니다.
 
@@ -254,7 +359,7 @@ help the user follow along. Close with a short recap that stands on its own.
 
 ---
 
-## 4부: 세대별 마이그레이션 노트
+## 5부: 세대별 마이그레이션 노트
 
 ### Sonnet 5 → Sonnet 5.5 마이그레이션
 - **모델 ID**: `claude-sonnet-5` → `claude-sonnet-5-5`
@@ -280,10 +385,13 @@ help the user follow along. Close with a short recap that stands on its own.
 
 ## 핵심 요약
 
-- **Sonnet 5.5 에이전트 빌딩 가이드**:
-  1. 빠른 상호작용과 에이전틱 코딩 루프(Terminal-Bench 4.0 70.6%)의 **새로운 실무 표준**.
-  2. 도구 호출 간 사고 제어는 `thinking: {"type": "between_tools"}` 준수.
-  3. 불필요한 장황 프롬프트 배제 및 간결한 스코프 지정으로 **작업당 비용 최대 30% 절감**.
+- **Sonnet 5.5 공식 프롬프트 가이드 (Anthropic Official)**:
+  1. **추론 강도 재조정**: 에이전틱 코딩은 `medium`에서 시작 권장, `max_tokens`는 thinking을 포함하므로 `128,000` 설정.
+  2. **자율성 제어**: `low`/`medium`에서는 조기 중단 방지 프롬프트, `xhigh`/`max`에서는 불필요한 자체 리뷰 및 서브에이전트 남발 방지 프롬프트 주입.
+  3. **즉각 실행 제약**: 선행 사고 끄기는 `thinking: {"type": "between_tools"}`(high 이하만 유효, 400 방지).
+  4. **JSON 태스크**: 구조화 출력 시 "Think the problem through before you answer" 추가, 자유 형식 시 마지막 JSON 블록 파싱.
+  5. **간접 인젝션 방어**: `tool_result` 내부에 사용자 텍스트 삽입 절대 금지, 별도 `text` 블록으로 Append.
+  6. **코딩 실검증 강제**: 의존성 미비 핑계 방지 및 실제 빌드/테스트 수행 명령 프롬프트 주입.
 - **Opus 5.5 핵심 플레이북**:
   1. **완료 기준(Done)을 명시**하고 전체 과업을 한 번에 위임.
   2. "think hard" 지시를 프롬프트에서 삭제 (적응형 사고 상시 가동).
@@ -297,6 +405,6 @@ help the user follow along. Close with a short recap that stands on its own.
   3. thinking 블록 유효성을 위한 **대화 히스토리 Append-only 준수**.
 - **보안 및 가드레일**:
   - 생물학/사이버 가드레일 플래그 시 안전 모델로 자동 폴백.
-  - 시스템 내부 추론 과정(internal reasoning) 직접 출력 요구 금지.
+  - 시스템 내부 추론 과정(internal reasoning) 직접 출력 요구 금지 (`reasoning_extraction` 거부 차단).
 
 > 💡 **직접 프롬프트를 진단해 보세요**: [16장 플레이그라운드의 프롬프트 튜너](#ch16)에 내 프롬프트를 입력하면, Opus 5.5 완료 기준 정의, Sonnet 5.5 고속 반복 설정, Fable 5.1 병렬 호출 넛지 등 실전 지침에 맞춰 최적화된 프롬프트를 추천합니다.

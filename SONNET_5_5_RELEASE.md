@@ -56,7 +56,24 @@ Sonnet 5에서 Sonnet 5.5(`claude-sonnet-5-5`)로 마이그레이션할 때 주�
 
 ---
 
-## 4. Claude Code 실무 가이드라인
+## 4. Claude Sonnet 5.5 공식 프롬프트 엔지니어링 10대 패턴 (공식 가이드 검증)
+
+Anthropic 공식 문서 [**Prompting Claude Sonnet 5.5**](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5)에서 제시된 10대 실전 패턴입니다:
+
+1. **Effort 재조정 및 max_tokens**: API 기본값은 `high`. 에이전틱 코딩은 `medium`에서 시작해 난도에 따라 `high`로 상향. 코딩 시 `max_tokens`는 thinking을 포함하므로 최대치인 `128000` 설정 권장. `output_config.effort`(beta)로 턴별 제어 시 프롬프트 캐시 보존.
+2. **자율성과 작업 범위 제어**: `low`/`medium`의 조기 중단 방지 프롬프트 주입. `xhigh`/`max`에서 자체 리뷰/서브에이전트 남발 방지 프롬프트 주입(세션 비용 30% 절감). 아이디어 요청 시 앱 제작 방지 지시.
+3. **between_tools 제약**: `high` 이하 effort에서만 유효 (`xhigh`/`max`는 400 에러). "생각하지 말라"는 지시는 XML 태그 유출을 부르므로 금지. 중간 사고 블록은 원본 그대로 전송.
+4. **정형 JSON 추론**: 구조화 출력(structured outputs) 시 본문은 JSON만 나오므로 추론은 thinking에서 진행됨. "Think the problem through before you answer." 주입 권장. `stop_reason: "max_tokens"`는 실패 처리 후 재시도. 비정형 시 응답의 마지막 JSON 블록 파싱.
+5. **진행 상황 실시간 업데이트**: `display: "updates"` 헤더 지원. 5회 이상 연속 침묵 시 하네스 일회성 턴 스코프 리마인더 주입.
+6. **지식 및 검색 도구 활용**: "도구 최소화" 지침 삭제. 최신 세부사항(허용 여부, 규정, 요금)은 학습 지식 대신 검색 도구 강제.
+7. **미드턴 메시지와 간접 인젝션 방어**: 절대 `tool_result` 블록 내부에 사용자 텍스트 삽입 금지 (간접 인젝션으로 오탐). 사용자 입력은 별도 `text` 블록으로 추가.
+8. **코딩 실검증 강제**: `low` effort에서 의존성 핑계로 테스트를 건너뛰는 행위 차단 프롬프트 주입.
+9. **관용적 도구 호출 처리**: `bash` vs `Bash` 등 대소문자 차이는 허용하거나 `is_error: true`로 기대 규격 회신해 자체 교정 유도.
+10. **복합 시각 입력 & 5대 거부 카테고리**: 조밀한 차트/도면은 crop/zoom 도구 제공이 효과적. 거부 시 `stop_details.category` 5종(`cyber`, `bio`, `frontier_llm`, `reasoning_extraction`, `general_harms`) 대응.
+
+---
+
+## 5. Claude Code 실무 가이드라인
 
 - **기본 추천**: **일상적인 기능 개발, 빠른 인터랙티브 코딩, 고속 에이전틱 작업**에는 **Sonnet 5.5**를 기본 모델로 권장 (`/model sonnet` 또는 `/model sonnet-5-5`).
 - **Opus 5.5와의 역할 분담**:
@@ -67,12 +84,12 @@ Sonnet 5에서 Sonnet 5.5(`claude-sonnet-5-5`)로 마이그레이션할 때 주�
 
 ---
 
-## 5. 강의 사이트 반영 및 5대 필수 검증 실측 증거
+## 6. 강의 사이트 반영 및 5대 필수 검증 실측 증거
 
 ### 1) 파일 수정 내역
 - `content/03-models.md`: Sonnet 5.5 공식 사양, 벤치마크, 5대 브레이킹 체인지, 의사결정 다이어그램 반영.
-- `content/14-prompt-guide.md`: Addy Osmani 공식 가이드 연계, Sonnet 5 → Sonnet 5.5 마이그레이션 및 실전 지침 반영.
-- `content/18-references.md`: 공식 발표 시스템 카드 및 기술 블로그 1차 레퍼런스 추가.
+- `content/14-prompt-guide.md`: Anthropic 공식 문서("Prompting Claude Sonnet 5.5") 10대 패턴(추론 강도 재조정, 자율성 제어, between_tools 제약, JSON 추론, 간접 인젝션 방어, 실검증 강제 등) 3부 신설, Fable 5.1(4부), 마이그레이션(5부) 재배치 및 요약 반영.
+- `content/18-references.md`: `Prompting Claude Sonnet 5.5` 공식 URL(`https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5`) 1차 출처 표 추가.
 - `build_course.py`: 6개 모델 비용 계산기(`const M`), 1M 컨텍스트 예산(`const WIN`), 프롬프트 튜너 옵션 연동.
 - `tools/regress.mjs`: 계산기 모델 비교 행 검증 로직 동기화(6개 모델).
 
