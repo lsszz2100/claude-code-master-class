@@ -96,21 +96,21 @@ Anthropic 공식 문서 [**Prompting Claude Sonnet 5.5**](https://platform.claud
 ### 2) 빌드 및 회귀 테스트 실측치 (로컬)
 - **명령**: `python3 build_course.py && node tools/prerender.mjs && node tools/regress.mjs`
 - **결과**: **32 / 32 전건 PASS 통과**
-- **CDP 실측**: LayoutObjects 1566 (기준 ≤ 5000 충족)
+- **CDP 실측**: LayoutObjects 1568 (기준 ≤ 5000 충족)
 
 ### 3) 라이브 배포 및 교차 검증 실측치
-- **배포 URL**: `https://claude-code-tutorial-ko.vercel.app` (Git Commit `09c6675`)
+- **배포 URL**: `https://claude-code-tutorial-ko.vercel.app` (Git Commit `cfdca26`)
 - **바이트 레벨 비교**:
   ```bash
   curl -s https://claude-code-tutorial-ko.vercel.app | cmp - index.html
   # 종료 코드 0 (0 바이트 차이, 완벽 일치)
   ```
-  - 로컬 파일 크기: **1,002,735 바이트**
-  - 라이브 Content-Length: **1,002,735 바이트**
+  - 로컬 파일 크기: **1,061,642 바이트**
+  - 라이브 Content-Length: **1,061,642 바이트**
 - **라이브 브라우저 회귀 테스트**:
   ```bash
   node tools/regress.mjs --url https://claude-code-tutorial-ko.vercel.app
-  # 32 / 32 전건 PASS 통과
+  # 32 / 32 전건 PASS 통과 (LayoutObjects 1574)
   ```
 - **보안 헤더 실측치**:
   - `strict-transport-security: max-age=63072000; includeSubDomains; preload`
