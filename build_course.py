@@ -2210,7 +2210,8 @@ if(pgc){
   const KRW=1380; // 대략 환율(달러당)
   const M={ // [입력$, 출력$, 이름, 한줄 설명, 캐시요율(생략 시 0.1)]
     'claude-haiku-4-5':[1,5,'Haiku 4.5','가볍고 빠름 · 가장 저렴',0.1],
-    'claude-sonnet-5':[2,10,'Sonnet 5','균형 잡힌 실무용',0.1],
+    'claude-sonnet-5-5':[2,10,'Sonnet 5.5','속도 30% 향상 · 실무 표준',0.1],
+    'claude-sonnet-5':[2,10,'Sonnet 5','이전 세대 실무형',0.1],
     'claude-opus-5-5':[4,20,'Opus 5.5','최신 플래그십 · 코딩 최강',0.05],
     'claude-opus-5':[5,25,'Opus 5','이전 세대 플래그십',0.1],
     'claude-fable-5-1':[10,50,'Fable 5.1','최고 지능 · 캐시 $0.25',0.025],
@@ -2237,7 +2238,7 @@ if(pgc){
     '<div class="out"><div class="krw" id="ccKrw">₩0</div><div class="usd" id="ccUsd"></div><div class="brk" id="ccBrk"></div><div class="note" id="ccNote"></div></div>'+
     '<div class="pg-cmp"><div class="h">같은 조건에서 모델만 바꾸면 — 하루 비용</div><div id="ccCmp"></div>'+
     '<div class="cav">같은 <b>토큰 수</b>로 비교한 값입니다. 실제로는 Opus 4.7부터 도입된 새 토크나이저를 쓰는 '
-    +'<b>Fable 5.1·Opus 5.5·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
+    +'<b>Fable 5.1·Opus 5.5·Sonnet 5.5·Opus 5·Sonnet 5</b>가 같은 텍스트를 약 <b>30% 더 많은 토큰</b>으로 셉니다 — '
     +'옛 토크나이저인 <b>Haiku 4.5</b>와 나란히 놓으면 위쪽 모델들이 그만큼 싸 보인다는 뜻입니다.</div></div>'+
     '<div class="pg-plan"><div class="h">요금제(정액)로 쓰면? — 한 달 30일 환산 비교</div><div id="ccPlan"></div>'+
     '<div class="sum" id="ccPlanSum"></div><div class="cav" id="ccPlanCav"></div></div>';
@@ -2418,18 +2419,19 @@ if(pgpt){
     +'<div class="fld-row">'
     +'<label><b>대상 모델:</b> <select id="cpModel" aria-label="튜닝 대상 모델">'
     +'<option value="opus-5-5">Claude Opus 5.5 (최신 플래그십 코딩 표준)</option>'
+    +'<option value="sonnet-5-5">Claude Sonnet 5.5 (고속 코딩 · 실무 표준)</option>'
     +'<option value="fable-5-1">Claude Fable 5.1 (최고 지능 프런티어)</option>'
     +'<option value="opus-5">Claude Opus 5 (이전 세대 플래그십)</option>'
     +'</select></label>'
     +'</div>'
-    +'<textarea id="cpIn" aria-label="튜닝할 프롬프트 내용" spellcheck="false" placeholder="프롬프트를 입력하거나 위 버튼으로 샘플을 불러오세요. 최신 모델(Opus 5.5·Fable 5.1) 실전 지침 기반으로 즉시 분석합니다."></textarea>'
+    +'<textarea id="cpIn" aria-label="튜닝할 프롬프트 내용" spellcheck="false" placeholder="프롬프트를 입력하거나 위 버튼으로 샘플을 불러오세요. 최신 모델(Opus 5.5·Sonnet 5.5·Fable 5.1) 실전 지침 기반으로 즉시 분석합니다."></textarea>'
     +'<div class="gauge"><div class="lab"><b>프롬프트 분석</b><span class="val" id="cpStatus"></span></div></div>'
     +'<div class="finds" id="cpFinds"></div>'
     +'<div class="tuned-wrap" id="cpTunedWrap" style="display:none">'
     +'<div class="tuned-hd"><b>🪄 추천 튜닝 프롬프트:</b><button type="button" class="copy-btn" id="cpCopyBtn">📋 프롬프트 복사</button></div>'
     +'<div class="tuned-box" id="cpTunedBox"></div>'
     +'</div>'
-    +'<div class="cav">14장 공식 프롬프트 가이드(Opus 5.5 실전 플레이북 + Fable 5.1 공식 지침) 기반의 <b>어림 진단기</b>입니다. 실제 작업 특성에 맞게 조정해 사용하세요.</div>';
+    +'<div class="cav">14장 공식 프롬프트 가이드(Opus 5.5 플레이북 + Sonnet 5.5 에이전트 빌딩 + Fable 5.1 공식 지침) 기반의 <b>어림 진단기</b>입니다. 실제 작업 특성에 맞게 조정해 사용하세요.</div>';
 
   const ta=pgpt.querySelector('#cpIn'), pre=pgpt.querySelector('#cpPre'), sel=pgpt.querySelector('#cpModel');
   const statusEl=pgpt.querySelector('#cpStatus'), findsEl=pgpt.querySelector('#cpFinds');
@@ -2508,7 +2510,7 @@ const pgx=document.querySelector('.pg-ctx');
 if(pgx){
   // 컨텍스트 창은 3장 모델 표와 같아야 한다. 표를 고치면 여기도 같이 고칠 것.
   const WIN=[['claude-opus-5-5',1000000,'Opus 5.5'],['claude-fable-5-1',1000000,'Fable 5.1'],
-             ['claude-sonnet-5',1000000,'Sonnet 5'],['claude-haiku-4-5',200000,'Haiku 4.5']];
+             ['claude-sonnet-5-5',1000000,'Sonnet 5.5'],['claude-sonnet-5',1000000,'Sonnet 5'],['claude-haiku-4-5',200000,'Haiku 4.5']];
   // [id, 이름, 최대, 색, 줄이는 방법(없으면 조절 대상이 아님)]
   const SEG=[
     ['sys','시스템 프롬프트 · 내장 도구',40000,'--c1',''],

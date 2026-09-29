@@ -11,6 +11,8 @@
 | 자료 | 설명 |
 | --- | --- |
 | **Claude Code 공식 문서** — [code.claude.com/docs](https://code.claude.com/docs) | 명령어·CLAUDE.md·서브에이전트·스킬·훅·MCP·권한·설치 등 모든 기능의 1차 레퍼런스 |
+| **Building with Claude Sonnet 5.5** — [claude.dev/blog](https://claude.dev/blog/building-with-claude-sonnet-5-5/) | Addy Osmani 저. Sonnet 5.5의 30%+ 생성 가속, Terminal-Bench 4.0 70.6% 실측치, 에이전트 빌딩 패턴 및 API 마이그레이션 제약 ([3장](#ch3)·[14장](#ch14) 핵심 출처) |
+| **Claude Sonnet 5.5 발표 및 시스템 카드** — [anthropic.com](https://www.anthropic.com/news/claude-sonnet-5-5) | Anthropic 공식 릴리즈 블로그, 벤치마크 평가, 3단계 사이버보안 가드레일 및 모델 사양 ([3장](#ch3) 출처) |
 | **Getting the most out of Opus 5.5 in Claude and Claude Code** — [claude.dev/blog](https://claude.dev/blog/getting-the-most-out-of-opus-5-5/) | Addy Osmani 저. Opus 5.5 프롬프트 작성법, 완료 기준(Done) 정의, 긴 실행 세션 조종(CLAUDE.md 스톱 규칙, TASKS.md), 서브에이전트 팬아웃 및 결과 검증, 보안 플래그 대응 플레이북 ([14장](#ch14)의 핵심 출처) |
 | **Using Claude Code: Spending your effort** — [claude.dev/blog](https://claude.dev/blog/spending-your-effort/) | Thariq Shihipar 저. Terminal-Bench 3.0 벤치마크 기반 Opus 5.5 & Fable 5.1의 Effort 곡선 실측, `html-js-filter` XSS 방어 사례, 4단계 기능 개발 루프 ([3장](#ch3)·[14장](#ch14) 출처) |
 | **What a task costs on Opus 5.5** — [claude.dev/blog](https://claude.dev/blog/what-a-task-costs-on-opus-5-5/) | Addy Osmani 저. Opus 5.5의 토큰 인하 및 캐시 읽기 60% 인하($0.20/M)에 따른 실무 작업 비용 40% 절감 분석 |

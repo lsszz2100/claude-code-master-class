@@ -1,6 +1,6 @@
-[3장](#ch3)에서 본 최신 모델 — **Opus 5.5·Fable 5.1·Sonnet 5** — 은 이전 세대보다 훨씬 똑똑하고 자율적입니다. 기존 프롬프트로도 기본 동작하지만, **더 자율적으로 오래 일하기 때문에** 지시하는 방식도 진화해야 합니다.
+[3장](#ch3)에서 본 최신 모델 — **Opus 5.5·Fable 5.1·Sonnet 5.5** — 은 이전 세대보다 훨씬 똑똑하고 자율적입니다. 기존 프롬프트로도 기본 동작하지만, **더 자율적으로 오래 일하기 때문에** 지시하는 방식도 진화해야 합니다.
 
-이 챕터는 Anthropic 공식 **Opus 5.5 실전 활용 플레이북(*"Getting the most out of Opus 5.5 in Claude and Claude Code"*, Addy Osmani)**과 **Fable 5.1 프롬프트 가이드(*"Prompting Claude Fable 5.1"*, Thariq Shihipar)**를 바탕으로, 실무 에이전틱 코딩의 핵심 패턴과 보안 지침을 집대성했습니다.
+이 챕터는 Anthropic 공식 **Opus 5.5 실전 활용 플레이북(*"Getting the most out of Opus 5.5 in Claude and Claude Code"*, Addy Osmani)**, **Sonnet 5.5 에이전트 빌딩 가이드(*"Building with Claude Sonnet 5.5"*, Addy Osmani)**, 그리고 **Fable 5.1 프롬프트 가이드(*"Prompting Claude Fable 5.1"*, Thariq Shihipar)**를 바탕으로, 실무 에이전틱 코딩의 핵심 패턴과 보안 지침을 집대성했습니다.
 
 > **대원칙:** 모델이 발전할수록 **스캐폴딩(scaffolding)을 덜어내야** 합니다. 예전 모델을 밀어붙이려고 넣었던 지시(과도한 검증 강제·재확인·단계별 번호 강요)는 최신 모델에서 **과잉 행동과 토큰 낭비**를 낳습니다. 반면 **"완료의 정의(Finish line)"**와 **"위험 작업 전 멈춤 지점"**은 명확히 못 박아야 안전하게 오랜 시간 자율 주행할 수 있습니다.
 
@@ -256,6 +256,14 @@ help the user follow along. Close with a short recap that stands on its own.
 
 ## 4부: 세대별 마이그레이션 노트
 
+### Sonnet 5 → Sonnet 5.5 마이그레이션
+- **모델 ID**: `claude-sonnet-5` → `claude-sonnet-5-5`
+- **속도 및 성능 도약**: 30%+ 빠른 생성 속도, Terminal-Bench 4.0 70.6%(기존 10.3% 대비 비약적 발전)로 일상적인 기능 구현과 버그 수정을 최고 속도로 완결.
+- **실무 비용 절감**: 기본 요율($2/$10)은 동일하나 토큰 소모 효율 향상으로 작업당 최대 30% 비용 절감.
+- **Thinking 설정 변경**: `thinking: {"type": "disabled"}` 대신 `thinking: {"type": "between_tools"}` 강제.
+- **API 제약 준수**: 강제 `tool_choice`(`any`/`tool`) 금지(HTTP 400 반환), 레거시 `computer_20251124` 배제.
+- **암호학적 계정 바인딩**: Thinking 블록의 다중 테넌트 간 공유/재전송 금지.
+
 ### Opus 5 → Opus 5.5 마이그레이션
 - **모델 ID**: `claude-opus-5` → `claude-opus-5-5`
 - **단가 인하**: 입력 $4/M, 출력 $20/M, 캐시 읽기 $0.20/M (실제 세션 비용 약 40% 절감).
@@ -272,6 +280,10 @@ help the user follow along. Close with a short recap that stands on its own.
 
 ## 핵심 요약
 
+- **Sonnet 5.5 에이전트 빌딩 가이드**:
+  1. 빠른 상호작용과 에이전틱 코딩 루프(Terminal-Bench 4.0 70.6%)의 **새로운 실무 표준**.
+  2. 도구 호출 간 사고 제어는 `thinking: {"type": "between_tools"}` 준수.
+  3. 불필요한 장황 프롬프트 배제 및 간결한 스코프 지정으로 **작업당 비용 최대 30% 절감**.
 - **Opus 5.5 핵심 플레이북**:
   1. **완료 기준(Done)을 명시**하고 전체 과업을 한 번에 위임.
   2. "think hard" 지시를 프롬프트에서 삭제 (적응형 사고 상시 가동).
@@ -287,4 +299,4 @@ help the user follow along. Close with a short recap that stands on its own.
   - 생물학/사이버 가드레일 플래그 시 안전 모델로 자동 폴백.
   - 시스템 내부 추론 과정(internal reasoning) 직접 출력 요구 금지.
 
-> 💡 **직접 프롬프트를 진단해 보세요**: [16장 플레이그라운드의 프롬프트 튜너](#ch16)에 내 프롬프트를 입력하면, Opus 5.5 완료 기준 정의, Fable 5.1 병렬 호출 넛지, 과잉 스캐폴딩 배제 등 실전 지침에 맞춰 최적화된 프롬프트를 추천합니다.
+> 💡 **직접 프롬프트를 진단해 보세요**: [16장 플레이그라운드의 프롬프트 튜너](#ch16)에 내 프롬프트를 입력하면, Opus 5.5 완료 기준 정의, Sonnet 5.5 고속 반복 설정, Fable 5.1 병렬 호출 넛지 등 실전 지침에 맞춰 최적화된 프롬프트를 추천합니다.
